@@ -1473,8 +1473,9 @@ VIEWS.hub=function(){_hub();AU.music('hub');
   <button class="rb" data-go="ranks"><span class="ic">${IC.rank}</span><b class="stk">Xếp hạng</b></button>
   <button class="rb" data-go="arena"><span class="ic">${IC.arena}</span><b class="stk">Đấu trường</b></button>
   <button class="rb" data-go="guide"><span class="ic">${IC.book}</span><b class="stk">Hướng dẫn</b></button>
-  <button class="rb" id="admBtn"><span class="ic" style="background:radial-gradient(circle at 40% 30%,#e8eef8,#8a9ab8 60%,#4a5a78)">${IC.gear}</span><b class="stk">Quản trị</b></button>`;
- $('admBtn').onclick=openAdmin;
+`;
+ // lối vào bảng quản trị được ẩn: chạm 5 lần liên tiếp vào ảnh đại diện (trong vòng 3 giây)
+ {const av=$('ava');let n=0,t0=0;av.style.cursor='pointer';av.onclick=()=>{const now=Date.now();if(now-t0>3000)n=0;if(!n)t0=now;if(++n>=5){n=0;openAdmin();}};}
  const bb=scr.querySelector('.bottombar');const gs=bb.querySelector('.gostage');
  gs.insertAdjacentHTML('beforebegin',`<button class="bb" data-go="pets"><span class="ic">${IC.pet}</span><b class="stk">Linh thú</b></button><button class="bb" data-go="tower"><span class="ic">${IC.tower}</span><b class="stk">Tháp</b></button><button class="bb" data-go="wboss"><span class="ic">${IC.boss}</span><b class="stk">Boss</b></button>`);
  scr.insertAdjacentHTML('beforeend',`<button class="sndb" id="snd" aria-label="Bật tắt âm thanh">${AU.on?IC.sound:IC.mute}</button>`);
