@@ -323,7 +323,7 @@ const H=[
 const HB={};H.forEach(h=>HB[h.id]=h);
 const POOL=H.filter(h=>!h.boss);
 const RK=['SSS','SS','S','A','B'];
-const sn=h=>{const w=h.n.split(' ');return w.length<=2?h.n:w[w.length-1];};
+const sn=h=>{if(h.sn)return h.sn;const w=h.n.split(' ');return w.length<=2?h.n:w[w.length-1];};
 
 /* ---------- lưu trữ (chỉ trong trình duyệt này) ---------- */
 const SAVEK='nghv_save_v1';
@@ -2034,7 +2034,7 @@ VIEWS.special=function(){const B0=bannerNow(),fh=HB[B0.id];
    <button class="gb blue sm" id="spBuy" style="align-self:center" ${S.medal>=500?'':'disabled'}>500 huân chương → 1 vé ĐB</button></div>`);
  const run=n=>{const pay=S.vdb>=n?'vdb':'gem';if(pay==='gem'&&S.gems<(n===10?2800:300))return;const r=pullSpecial(n,pay);go('special');showPull(r);};
  $('sp1').onclick=()=>run(1);$('sp10').onclick=()=>run(10);$('spBuy').onclick=()=>{S.medal-=500;S.vdb++;save();go('special');};
- $('spInfo').onclick=()=>heroDetail(B0.id);};
+ $('spInfo').onclick=()=>{detailBack='special';heroDetail(B0.id);};};
 // lối vào từ màn chiêu mộ thường
 const _gacha5=VIEWS.gacha;
 VIEWS.gacha=function(res){_gacha5(res);const b=document.createElement('button');b.className='gb';b.id='goSpecial';b.style.cssText='position:absolute;left:518px;top:210px;z-index:6;font-size:24px;background:linear-gradient(180deg,#fff,#ffd24a 30%,#ff6a3a 70%,#c8201a);animation:pulse 1.4s infinite';
@@ -2042,6 +2042,211 @@ VIEWS.gacha=function(res){_gacha5(res);const b=document.createElement('button');
 // điểm danh ngày 7 thêm 1 vé Đặc biệt
 LOGIN[6].vdb=1;
 const _giveR=giveR;giveR=function(r){let t=_giveR(r);if(r.vdb){S.vdb+=r.vdb;t+=(t?', ':'')+r.vdb+' vé Đặc biệt';}return t;};
+
+/* =========================================================
+   HỆ THỐNG NHÂN VẬT: chuẩn chỉ số theo Hạng × Vai trò, hồ sơ nguồn gốc,
+   15 nhân vật mới, ràng buộc mới, màn Hồ sơ & Quy chuẩn
+   ========================================================= */
+VIL.suviet={n:'Anh Hùng Sử Việt',c:'#b8322a',sym:'sun'};
+VIL.thanthoai.n='Thần Thoại & Cổ Tích';
+
+const NEW6=[
+ {id:'chudongtu',n:'Chử Đồng Tử',t:'Thánh Nhất Dạ',v:'thanthoai',el:'moc',r:'ho',rar:'UR',hp:6000,atk:480,def:260,spd:118,
+  look:['hat','#2a2a1a','#d8a878','#3a6a3a','#ffe066','staff',0],a:{n:'Gậy Thần Điểm',tg:'single',m:1.05},
+  u:{n:'Thành Quách Một Đêm',cost:50,tg:'allyall',heal:.25,shieldAll:.35,fx:'moc',buff:['atkup',2],chakra:25,cleanse:1,d:'Cắm gậy, úp nón dựng thành quách trong một đêm: cả đội hồi 25% máu, nhận khiên 35% máu, xoá hiệu ứng xấu, tăng tấn công 2 lượt và hồi 25 Nộ. Lấy từ truyền thuyết Chử Đồng Tử – Tiên Dung.'},
+  c:{n:'Nón Thần Che',on:'nga',give:'lui',m:1.1,h:2}},
+ {id:'anduongvuong',n:'An Dương Vương',t:'Vua Thành Cổ Loa',v:'suviet',el:'kim',r:'cong',rar:'SSS',hp:5200,atk:560,def:190,spd:116,
+  look:['crown','#1a1a1a','#d8a878','#8a1a1a','#ffd24a','crossbow',0],a:{n:'Tên Đồng Ba Cạnh',tg:'single',m:1.1},
+  u:{n:'Nỏ Thần Muôn Tên',cost:50,tg:'all',m:1.8,h:3,st:'nga',fx:'kim',eff:[['defdown',.6,2]],d:'Giương nỏ thần bắn ba loạt tên vào toàn bộ địch, Quật Ngã và có thể giảm phòng thủ. Lấy từ truyền thuyết nỏ thần thành Cổ Loa.'},
+  c:{n:'Lẫy Nỏ Kim Quy',on:'tung',give:'nga',m:1.2,h:3}},
+ {id:'yetkieu',n:'Yết Kiêu',t:'Thủy Tướng Đục Thuyền',v:'suviet',el:'thuy',r:'am',rar:'SS',hp:3300,atk:540,def:130,spd:128,
+  look:['short','#1a1a1a','#b88a5a','#1a3a5a','#4aa8ff','kunai',0],a:{n:'Lặn Đánh Úp',tg:'back',m:1.1},
+  u:{n:'Dùi Sắt Đêm Đông',cost:40,tg:'lowest',m:3.0,st:'lui',fx:'thuy',eff:[['bleed',1,3],['defdown',.8,2]],d:'Lặn sâu, dùi thủng mục tiêu yếu nhất: sát thương cực lớn, chắc chắn Chảy máu 3 lượt, Đẩy Lùi và giảm phòng thủ. Lấy từ tích Yết Kiêu đục thuyền giặc Nguyên.'},
+  c:{n:'Lặn Truy',on:'lui',give:'tung',m:1.25,h:3}},
+ {id:'datuong',n:'Dã Tượng',t:'Tướng Thuần Voi',v:'suviet',el:'tho',r:'thu',rar:'SS',hp:5600,atk:360,def:250,spd:88,
+  look:['khan','#2a1a0a','#a87a54','#6a4a2a','#d0a060','staff',0],a:{n:'Móc Voi Quật',tg:'single',m:1.0,st:'nga'},
+  u:{n:'Tượng Binh Vạn Kiếp',cost:40,tg:'front',m:1.6,st:'tung',fx:'tho',shieldAll:.2,eff:[['stun',.6,1]],d:'Thúc đàn voi chiến xông vào hàng trước địch, Hất Tung, có thể gây Choáng và tạo khiên 20% máu cho cả đội. Lấy từ tích Dã Tượng chỉ huy voi chiến.'},
+  c:{n:'Voi Giẫm',on:'tung',give:'nga',m:1.15,h:2}},
+ {id:'langlieu',n:'Lang Liêu',t:'Hoàng Tử Bánh Chưng',v:'thanthoai',el:'moc',r:'ho',rar:'SS',hp:3800,atk:360,def:170,spd:114,
+  look:['short','#1a1a1a','#e0b890','#3a7a3a','#ffd24a','banh',0],a:{n:'Gạo Nếp Ném',tg:'single',m:1.0},
+  u:{n:'Bánh Trời Bánh Đất',cost:40,tg:'allyall',heal:.22,shieldAll:.18,fx:'moc',chakra:15,d:'Dâng bánh chưng (đất) và bánh giầy (trời): cả đội hồi 22% máu, nhận khiên 18% máu và hồi 15 Nộ. Lấy từ truyền thuyết bánh chưng bánh giầy.'},
+  c:{n:'Lá Dong Gói',on:'nga',give:null,m:1.0,h:2}},
+ {id:'caolo',n:'Cao Lỗ',t:'Tướng Chế Nỏ',v:'suviet',el:'kim',r:'cong',rar:'S',hp:3400,atk:430,def:130,spd:104,
+  look:['short','#1a1a1a','#c89a6a','#5a3a1a','#ffd24a','crossbow',0],a:{n:'Bắn Tỉa',tg:'back',m:1.05},
+  u:{n:'Liên Châu Tiễn',cost:40,tg:'all',m:1.25,h:2,st:'lui',fx:'kim',d:'Nỏ liên châu bắn hai loạt tên vào toàn bộ địch, Đẩy Lùi. Lấy từ tích Cao Lỗ chế nỏ cho An Dương Vương.'},
+  c:{n:'Tên Liên Phát',on:'nga',give:'lui',m:1.1,h:3}},
+ {id:'sodua',n:'Sọ Dừa',t:'Trạng Nguyên Chăn Bò',v:'thanthoai',el:'moc',r:'thu',rar:'S',hp:4600,atk:300,def:220,spd:86,
+  look:['short','#2a1a0a','#c8a070','#7a5a2a','#5fd068','branch',0],a:{n:'Gậy Chăn Bò',tg:'single',m:1.0,st:'lui'},
+  u:{n:'Vỏ Dừa Hộ Thân',cost:40,tg:'front',m:1.2,st:'nga',fx:'moc',shieldAll:.22,d:'Lăn vỏ dừa vào hàng trước địch, Quật Ngã và tạo khiên 22% máu cho cả đội. Lấy từ truyện cổ tích Sọ Dừa.'},
+  c:{n:'Dừa Lăn',on:'tung',give:'nga',m:1.05,h:2}},
+ {id:'hovooc',n:'Hộ Lâm Chà Vá',t:'Người Giữ Rừng Voọc',v:'sontra',el:'moc',r:'am',rar:'S',hp:2900,atk:460,def:110,spd:122,
+  look:['wild','#c8501a','#e8c0a0','#3a3a3a','#ff8a2a','claw',1],a:{n:'Chuyền Cành',tg:'back',m:1.1},
+  u:{n:'Bầy Voọc Sơn Trà',cost:40,tg:'backcol',m:2.0,st:'tung',fx:'moc',eff:[['bleed',.8,2]],d:'Gọi bầy voọc chuyền cành tập kích hàng sau địch, Hất Tung và có thể gây Chảy máu.'},
+  c:{n:'Vuốt Rừng',on:'nga',give:'tung',m:1.15,h:3}},
+ {id:'truongchi',n:'Trương Chi',t:'Tiếng Hát Sông Đêm',v:'thanthoai',el:'thuy',r:'ho',rar:'A',hp:3100,atk:300,def:140,spd:108,
+  look:['hat','#1a1a1a','#a87a54','#3a4a5a','#4aa8ff','oar',0],a:{n:'Mái Chèo Gõ',tg:'single',m:1.0},
+  u:{n:'Khúc Hát Đò Đêm',cost:30,tg:'all',m:.6,fx:'thuy',eff:[['silence',.6,1]],chakra:15,d:'Tiếng hát vang trên sông làm toàn bộ địch có thể bị Câm lặng, hồi 15 Nộ cho đội. Lấy từ truyện Trương Chi.'},
+  c:{n:'Chèo Đò',on:'lui',give:null,m:1.0,h:2}},
+ {id:'coc',n:'Cậu Cóc',t:'Cậu Ông Trời',v:'thanthoai',el:'tho',r:'cong',rar:'A',hp:3100,atk:380,def:120,spd:100,
+  look:['hood','#3a5a2a','#9ab070','#4a6a2a','#ffd24a','fist',0],a:{n:'Nghiến Răng',tg:'single',m:1.05},
+  u:{n:'Đạo Quân Muông Thú',cost:40,tg:'all',m:1.2,h:3,st:'tung',fx:'tho',d:'Dẫn cua, gấu, cọp, ong cùng đánh ba đợt vào toàn bộ địch, Hất Tung. Lấy từ truyện Cóc kiện Trời.'},
+  c:{n:'Ong Đốt',on:'nga',give:'tung',m:1.05,h:3}},
+ {id:'gachaivan',n:'Lính Gác Hải Vân Quan',t:'Đệ Nhất Hùng Quan',v:'haivan',el:'kim',r:'thu',rar:'A',hp:4300,atk:290,def:210,spd:82,
+  look:['helm','#1a1a1a','#c89a6a','#5a5a7a','#d9dee8','sword',0],a:{n:'Gươm Gác Ải',tg:'single',m:1.0,st:'nga'},
+  u:{n:'Đóng Cửa Ải',cost:40,tg:'front',m:1.2,st:'lui',fx:'kim',eff:[['stun',.5,1]],shieldAll:.15,d:'Đóng cổng ải: đánh hàng trước địch, Đẩy Lùi, có thể gây Choáng và tạo khiên 15% máu cho cả đội.'},
+  c:{n:'Chặn Đèo',on:'tung',give:'lui',m:1.0,h:2}},
+ {id:'thuongnhan',n:'Thương Nhân Phố Hội',t:'Bạn Hàng Thương Cảng',v:'hoian',el:'kim',r:'ho',rar:'A',hp:3100,atk:300,def:140,spd:106,
+  look:['bun','#1a1a1a','#f0d0b0','#8a2a5a','#ffd24a','fan',1],a:{n:'Quạt Giấy',tg:'single',m:1.0},
+  u:{n:'Phiên Chợ Đèn Lồng',cost:40,tg:'allyall',heal:.1,fx:'hoa',buff:['atkup',2],chakra:20,d:'Mở phiên chợ: cả đội hồi 10% máu, tăng tấn công 2 lượt và hồi 20 Nộ.'},
+  c:{n:'Đổi Hàng',on:'nga',give:null,m:1.0,h:2}},
+ {id:'thuyenthung',n:'Cô Thuyền Thúng',t:'Sóng Biển Mỹ Khê',v:'mykhe',el:'thuy',r:'am',rar:'B',hp:2700,atk:390,def:100,spd:114,
+  look:['pony','#1a1a1a','#d8a878','#2a5a8a','#4aa8ff','oar',1],a:{n:'Xoay Thúng',tg:'back',m:1.05},
+  u:{n:'Thúng Xoáy Lốc',cost:30,tg:'backone',m:1.9,st:'tung',fx:'thuy',d:'Quay thuyền thúng thành lốc nước lao vào một địch hàng sau, Hất Tung.'},
+  c:{n:'Mái Chèo Vụt',on:'lui',give:'tung',m:1.0,h:2}},
+ {id:'thoda',n:'Thợ Đá Non Nước',t:'Nghệ Nhân Ngũ Hành',v:'nguhanh',el:'tho',r:'thu',rar:'B',hp:4100,atk:285,def:190,spd:78,
+  look:['khan','#3a3a3a','#c89a6a','#7a7a6a','#d0a060','hammer',0],a:{n:'Búa Đục Đá',tg:'single',m:1.0,st:'nga'},
+  u:{n:'Tượng Đá Hộ Vệ',cost:30,tg:'front',m:1.0,fx:'tho',shieldAll:.15,d:'Tạc tượng đá chắn trước đội: đánh hàng trước địch và tạo khiên 15% máu cho cả đội.'},
+  c:{n:'Đục Vỡ',on:'tung',give:'nga',m:1.0,h:2}}];
+NEW6.forEach(h=>{H.push(h);HB[h.id]=h;POOL.push(h);});
+URH.push(HB.chudongtu);URS.push('chudongtu');SIG.chudongtu='crane';SIG.anduongvuong='serpent';
+Object.assign(S2,{chudongtu:{n:'Nón Thần Úp',k:'healAll',v:.12,cd:3},anduongvuong:{n:'Tên Đồng',k:'aoe',m:.9,cd:3},yetkieu:{n:'Đục Đáy',k:'debuff',m:1.5,cd:2},
+ datuong:{n:'Voi Chặn',k:'shield',v:.15,cd:3},langlieu:{n:'Bánh Giầy',k:'heal',v:.25,cd:2},caolo:{n:'Lẫy Liên Phát',k:'strike',m:1.3,st:'lui',cd:3},sodua:{n:'Hòn Đá Lửa',k:'shield',v:.12,cd:3},
+ hovooc:{n:'Rừng Che',k:'bleed',m:1.3,cd:2},truongchi:{n:'Hát Ru',k:'silence',m:.9,cd:3},coc:{n:'Gọi Mưa',k:'healAll',v:.08,cd:3},gachaivan:{n:'Giữ Ải',k:'shield',v:.1,cd:3},
+ thuongnhan:{n:'Buôn May',k:'chakra',v:15,cd:3},thuyenthung:{n:'Té Nước',k:'strike',m:1.2,st:'tung',cd:3},thoda:{n:'Đá Mài',k:'debuff',m:1.0,cd:3}});
+Object.assign(TAL,{chudongtu:['revive',.3],anduongvuong:['firstStrike',.2],yetkieu:['dodge',.25],datuong:['tenacity'],langlieu:['regen',.05],caolo:['critDmg',.4],sodua:['counter',.25],
+ hovooc:['dodge',.2],truongchi:['chakraKill',10],coc:['berserk',.5],gachaivan:['thorns',.15],thuongnhan:['regen',.03],thuyenthung:['exec',.3],thoda:['tenacity']});
+NEW6.forEach(h=>{h.s2=S2[h.id];const t=TAL[h.id];h.tp={k:t[0],v:t[1]||0};});
+
+const _dwe6=drawWeaponExtra;
+drawWeaponExtra=function(c,w){if(w==='banh'){c.fillStyle='#3a8a3a';c.strokeStyle='#1a3a1a';c.lineWidth=2;c.fillRect(-14,-14,28,28);c.strokeRect(-14,-14,28,28);c.strokeStyle='#e8d8a0';c.lineWidth=2;c.beginPath();c.moveTo(-14,0);c.lineTo(14,0);c.moveTo(0,-14);c.lineTo(0,14);c.stroke();
+  c.fillStyle='#fff8e8';c.beginPath();c.arc(0,-28,10,0,7);c.fill();c.strokeStyle='#c8b080';c.stroke();return true;}return _dwe6(c,w);};
+
+/* ---------- 1. QUY CHUẨN CHỈ SỐ: Hạng × Vai trò, cá tính tối đa ±6% ---------- */
+const RBASE={B:{hp:3000,atk:310,def:135,spd:92},A:{m:1.06,s:3},S:{m:1.14,s:6},SS:{m:1.28,s:10},SSS:{m:1.45,s:14},UR:{m:1.7,s:18}};
+const RSTAT=r=>r==='B'?RBASE.B:{hp:Math.round(3000*RBASE[r].m),atk:Math.round(310*RBASE[r].m),def:Math.round(135*RBASE[r].m),spd:92+RBASE[r].s};
+const ROLEM={thu:{hp:1.38,atk:.85,def:1.45,spd:.86},cong:{hp:1.0,atk:1.15,def:.9,spd:1.02},am:{hp:.9,atk:1.3,def:.8,spd:1.18},ho:{hp:1.05,atk:.92,def:1.05,spd:1.04}};
+const DEV=0.06;
+function stdStat(rar,r){const b=RSTAT(rar),m=ROLEM[r];return{hp:Math.round(b.hp*m.hp),atk:Math.round(b.atk*m.atk),def:Math.round(b.def*m.def),spd:Math.round(b.spd*m.spd)};}
+POOL.forEach(h=>{const T=stdStat(h.rar,h.r);h.dev={};['hp','atk','def','spd'].forEach(k=>{const d=Math.max(-DEV,Math.min(DEV,h[k]/T[k]-1));h.dev[k]=Math.round(d*100);h[k]=Math.round(T[k]*(1+d));});});
+for(const k in PCACHE)delete PCACHE[k];
+
+const SN6={chudongtu:'Đồng Tử',anduongvuong:'An Dương',hovooc:'Hộ Lâm',gachaivan:'Gác Ải',thuongnhan:'Thương Nhân',thuyenthung:'Thuyền Thúng',thoda:'Thợ Đá'};
+for(const k in SN6)HB[k].sn=SN6[k];for(const k in PCACHE)delete PCACHE[k];
+/* ---------- 2. HỒ SƠ NGUỒN GỐC ---------- */
+const ORG={dg:['Truyền thuyết – cổ tích','#c89a28'],ls:['Lịch sử – dân gian','#b8322a'],st:['Sáng tác','#3a8ad8']};
+const BIO={
+ giong:['dg','Cậu bé làng Phù Đổng lên ba vẫn chưa biết nói; nghe sứ giả tìm người đánh giặc Ân thì vươn vai thành tráng sĩ, cưỡi ngựa sắt, cầm roi sắt ra trận. Roi gãy thì nhổ tre đánh tiếp, thắng giặc rồi bay về trời ở núi Sóc.'],
+ sontinh:['dg','Thần núi Tản Viên. Cầu hôn Mỵ Nương – con gái vua Hùng thứ mười tám, mang đủ voi chín ngà, gà chín cựa, ngựa chín hồng mao đến trước nên rước được nàng; bốc đồi dời núi chặn nước đánh lui Thủy Tinh. Một trong Tứ bất tử.'],
+ thuytinh:['dg','Thần nước, đến cầu hôn Mỵ Nương chậm chân nên hô mưa gọi gió, dâng nước đánh Sơn Tinh. Truyền thuyết giải thích lũ lụt xảy ra hằng năm.'],
+ laclong:['dg','Thuộc nòi rồng, con trai Kinh Dương Vương; diệt Ngư Tinh, Hồ Tinh, Mộc Tinh giúp dân yên ổn. Kết duyên với Âu Cơ, sinh bọc trăm trứng nở trăm con; năm mươi con theo cha xuống biển.'],
+ auco:['dg','Tiên nữ dòng Thần Nông ở vùng núi cao, kết duyên với Lạc Long Quân. Năm mươi con theo mẹ lên núi; người con trưởng được tôn làm vua Hùng.'],
+ thachsanh:['dg','Chàng mồ côi sống dưới gốc đa, bị Lý Thông lừa đi canh miếu nên chém được chằn tinh, rồi bắn đại bàng cứu công chúa. Tiếng đàn thần giải oan cho chàng, niêu cơm thần khiến quân mười tám nước chư hầu phải lui.'],
+ maiantiem:['dg','Con nuôi vua Hùng, bị đày ra đảo hoang. Gieo hạt từ phân chim trồng được dưa hấu, khắc tên lên quả thả xuống biển; thuyền buôn vớt được, vua biết chuyện liền cho đón về.'],
+ cuoi:['dg','Tiều phu có cây đa thần chữa được bệnh. Vợ tưới nước bẩn khiến cây bật rễ bay lên trời; Cuội níu rễ bay theo và ở lại cung trăng.'],
+ tam:['dg','Cô gái hiền bị dì ghẻ và Cám hãm hại; nhiều lần hoá thân – chim vàng anh, cây xoan đào, khung cửi, quả thị – rồi trở lại làm người.'],
+ kimquy:['dg','Thần Rùa Vàng giúp An Dương Vương xây thành Cổ Loa và trao móng làm lẫy nỏ thần. Khi nỏ bị đánh tráo, Rùa Vàng hiện lên chỉ cho nhà vua kẻ giặc ở ngay sau lưng.'],
+ trutroi:['dg','Vị thần khổng lồ đào đất, đắp đá thành cột chống trời, tách trời khỏi đất. Trời đã cao, thần phá cột; đất đá văng ra khắp nơi thành núi đồi.'],
+ chudongtu:['dg','Chàng trai nghèo đến mức hai cha con chung một chiếc khố; tình cờ gặp công chúa Tiên Dung và nên vợ chồng. Theo học đạo, được trao cây gậy và chiếc nón thần; cắm gậy úp nón tránh mưa, nơi ấy hoá thành quách nguy nga trong một đêm (đất Nhất Dạ). Một trong Tứ bất tử.'],
+ langlieu:['dg','Con thứ mười tám của vua Hùng thứ sáu, nghèo nhất trong các hoàng tử. Được thần báo mộng, làm bánh chưng vuông tượng trưng cho đất và bánh giầy tròn tượng trưng cho trời; vua hài lòng nên truyền ngôi cho chàng.'],
+ sodua:['dg','Sinh ra không tay chân, tròn như quả dừa nên gọi là Sọ Dừa; chăn bò giỏi, cưới cô út nhà phú ông rồi đỗ trạng nguyên. Trước khi đi sứ trao vợ hòn đá lửa, con dao và hai quả trứng, nhờ vậy cô thoát khỏi bụng cá và sống sót trên đảo hoang.'],
+ truongchi:['dg','Chàng chài nghèo có tiếng hát hay khiến Mỵ Nương – con quan thừa tướng – thương nhớ. Khi gặp mặt, nàng thất vọng vì chàng xấu; Trương Chi ôm hận mà chết, trái tim hoá khối ngọc. Ngọc tạc thành chén, giọt nước mắt của Mỵ Nương làm chén tan thành nước.'],
+ coc:['dg','Trời hạn hán lâu ngày, Cóc rủ Cua, Gấu, Cọp, Ong cùng nhiều bạn lên kiện Trời, đánh bại quân nhà Trời. Ngọc Hoàng cho mưa và hẹn hễ Cóc nghiến răng là trời mưa – vì thế dân gian gọi Cóc là "cậu ông Trời".'],
+ anduongvuong:['ls','Vua nước Âu Lạc, xây thành Cổ Loa. Theo truyền thuyết, nhờ nỏ thần lẫy móng Rùa Vàng mà nhiều lần đánh lui Triệu Đà; sau khi Mỵ Châu để Trọng Thủy đánh tráo lẫy nỏ thì mất nước.'],
+ caolo:['ls','Tướng của An Dương Vương, người được ghi công chế tạo nỏ thần và tham gia xây thành Cổ Loa. Dân gian lưu câu: giữ được nỏ thần thì giữ được nước.'],
+ yetkieu:['ls','Gia tướng của Hưng Đạo Vương Trần Quốc Tuấn, xuất thân con nhà chài lưới, nổi tiếng bơi lặn giỏi. Đời kể ông lặn xuống đáy dùng dùi sắt đục thủng thuyền giặc Nguyên.'],
+ datuong:['ls','Gia tướng của Hưng Đạo Vương, có tài thuần dưỡng và chỉ huy voi chiến trong kháng chiến chống quân Nguyên. Nhiều chi tiết về ông chủ yếu đến từ truyền ngôn.'],
+ longmau:['st','Mẹ Rồng canh giữ sông Hàn, được Làng Rồng Lửa thờ như người che chở; cảm hứng từ hình tượng rồng gắn với Đà Nẵng.'],
+ longvuong:['st','Thủy long thần thú của Làng Mỹ Khê, cưỡi sóng giữ yên bãi biển.'],bachhac:['st','Bạch hạc thần thú của rừng Sơn Trà, mang sức sống cây rừng chữa thương cho đồng đội.'],
+ kylan:['st','Kỳ lân lửa của Làng Rồng Lửa, nhanh và hung dữ như ngọn lửa.'],
+ vannu:['st','Tiên nữ mây ở đỉnh Bà Nà, nơi mây phủ quanh năm.'],bantay:['st','Thần đá khổng lồ, cảm hứng từ đôi bàn tay đá nâng Cầu Vàng trên Bà Nà.'],
+ denlong:['st','Nữ nhẫn giả phố Hội, đánh bằng đèn lồng – cảm hứng từ những đêm phố cổ Hội An thắp đèn.'],chuacau:['st','Kiếm sĩ canh giữ cây cầu cổ, cảm hứng từ Chùa Cầu ở Hội An.'],
+ namo:['st','Lão ngư làng chài Nam Ô, ngôi làng ven vịnh Đà Nẵng có nghề làm nước mắm lâu đời.'],phonglinh:['st','Nữ ám sát giả dùng chuông gió, tiếng chuông làm địch câm lặng.'],
+ hoavang:['st','Thợ lò rèn ở vùng quê Hoà Vang, giữ hàng trước bằng búa nặng.'],thapcham:['st','Hộ pháp bằng gạch nung, cảm hứng từ những ngôi tháp Chăm Pa ở xứ Quảng.'],
+ tuyloan:['st','Tiểu nhẫn giả từ làng cổ Tuý Loan, ném đĩa như ném bánh tráng.'],miquang:['st','Nữ hiệp nấu mì Quảng hồi sức cho đồng đội.'],luoithep:['st','Thợ lưới vùng Thanh Khê, quăng lưới trói chân địch.'],
+ long:['st','Nhẫn giả trẻ của Làng Rồng Lửa, luyện hoả độn bên Cầu Rồng – cây cầu phun lửa và phun nước vào các tối cuối tuần ở Đà Nẵng.'],
+ khe:['st','Kiếm khách Làng Mỹ Khê, dùng quạt cuốn sóng biển.'],son:['st','Người gác rừng Sơn Trà, đứng vững như núi.'],van:['st','Ám sát giả đi mây về gió trên đèo Hải Vân.'],
+ mylan:['st','Y nữ Làng Mỹ Khê, chữa thương bằng thuỷ thuật.'],ho:['st','Võ sư Làng Ngũ Hành luyện vuốt hổ trong các hang động của Ngũ Hành Sơn.'],
+ tram:['st','Nữ ám sát Hải Vân, phóng trâm cài tóc.'],phao:['st','Pháo thủ Làng Rồng Lửa, mê pháo hoa trên sông Hàn.'],mien:['st','Thầy thuốc thảo dược Sơn Trà.'],
+ tieu:['st','Cô bé cầm đèn của Làng Rồng Lửa, tiếp lửa (Nộ) cho cả đội.'],vu:['st','Nhẫn giả Làng Ngũ Hành, ẩn trong vách đá mà đánh.'],thach:['st','Lực sĩ Làng Ngũ Hành, dùng thân mình làm khiên.'],
+ ngu:['st','Ngư dân Mỹ Khê, mái chèo là vũ khí.'],phong:['st','Nhẫn giả phi tiêu Hải Vân.'],truc:['st','Cung thủ rừng Sơn Trà.'],than:['st','Thợ rèn Làng Rồng Lửa.'],cat:['st','Pháp sư cát Làng Ngũ Hành.'],
+ hovooc:['st','Người giữ rừng sống cùng bầy voọc chà vá chân nâu trên bán đảo Sơn Trà – loài linh trưởng quý hiếm là biểu tượng của rừng nơi đây.'],
+ gachaivan:['st','Lính gác cửa ải trên đỉnh đèo; cảm hứng từ Hải Vân Quan, xây năm 1826 thời Minh Mạng, cổng phía Quảng Nam đề "Thiên hạ đệ nhất hùng quan".'],
+ thuongnhan:['st','Bạn hàng phố Hội, cảm hứng từ thương cảng Hội An xưa.'],thuyenthung:['st','Cô gái chèo thuyền thúng trên biển Mỹ Khê.'],
+ thoda:['st','Nghệ nhân tạc đá, cảm hứng từ làng đá mỹ nghệ Non Nước dưới chân Ngũ Hành Sơn, hình thành từ cuối thế kỷ XVIII.'],
+ trieu:['st','Thủ lĩnh Hắc Triều – phe đối địch, không chiêu mộ được.'],anh:['st','Sát thủ Hắc Triều – phe đối địch, không chiêu mộ được.']};
+
+/* ---------- 3. RÀNG BUỘC MỚI ---------- */
+BONDS.push(
+ {n:'Nỏ Thần Cổ Loa',ids:['anduongvuong','kimquy','caolo'],d:'An Dương Vương, Thần Kim Quy, Cao Lỗ: cả đội +18% tấn công',fx:{atk:.18},all:1},
+ {n:'Tứ Bất Tử',ids:['giong','sontinh','chudongtu'],d:'Thánh Gióng, Sơn Tinh, Chử Đồng Tử: cả đội +15% máu và +10% phòng thủ',fx:{hp:.15,def:.1},all:1},
+ {n:'Gia Tướng Hưng Đạo',ids:['yetkieu','datuong'],d:'Yết Kiêu và Dã Tượng +20% tấn công, +10% tốc độ',fx:{atk:.2,spd:.1},all:0},
+ {n:'Con Rồng Cháu Tiên',ids:['laclong','auco','langlieu'],d:'Lạc Long Quân, Âu Cơ, Lang Liêu: cả đội +12% máu, +12% tấn công',fx:{hp:.12,atk:.12},all:1},
+ {n:'Cổ Tích Làng Quê',ids:['tam','sodua','cuoi'],d:'Cô Tấm, Sọ Dừa, Chú Cuội: cả đội +12% phòng thủ',fx:{def:.12},all:1},
+ {n:'Phố Hội Lên Đèn',ids:['denlong','chuacau','thuongnhan'],d:'Cả đội +10% tấn công và +5% tốc độ',fx:{atk:.1,spd:.05},all:1},
+ {n:'Ải Bắc Đèo Mây',ids:['gachaivan','van'],d:'Lính Gác Hải Vân Quan và Vân Đèo +15% máu, +15% phòng thủ',fx:{hp:.15,def:.15},all:0});
+
+/* ---------- 4. HỒ SƠ TRONG BẢNG CHI TIẾT ---------- */
+let detailBack='roster';
+const _hd6=heroDetail;
+heroDetail=function(id){_hd6(id);const ms=GAME.querySelectorAll('.modal'),m=ms[ms.length-1];if(!m)return;const h=HB[id];
+ const cl=m.querySelector('#dClose');if(cl){const back=detailBack;cl.onclick=()=>{m.remove();go(back);};}detailBack='roster';
+ const p=m.querySelector('.parch');if(!p||!BIO[id])return;const [o,txt]=BIO[id];const T=stdStat(h.rar,h.r);
+ const bonds=BONDS.filter(b=>b.ids.includes(id));
+ const dv=k=>{const v=h.dev?h.dev[k]:0;return`<b style="color:${v>0?'#2a8a3a':v<0?'#c8201a':'#5a3a1a'}">${v>0?'+':''}${v}%</b>`;};
+ p.insertAdjacentHTML('beforeend',`<div style="margin-top:12px;border-top:2px dashed #b8864a;padding-top:8px">
+  <div style="font-weight:800;font-size:18px">Hồ sơ <span style="font-size:14px;color:#fff;background:${ORG[o][1]};border-radius:8px;padding:1px 8px;margin-left:6px">${ORG[o][0]}</span></div>
+  <p style="margin:6px 0">${txt}</p>
+  <p style="margin:6px 0"><b>Quy chuẩn ${h.rar} · ${ROLE[h.r]}</b> (cấp 1, 1★): Máu ${fmt(T.hp)} ${dv('hp')} · Tấn công ${T.atk} ${dv('atk')} · Phòng thủ ${T.def} ${dv('def')} · Tốc độ ${T.spd} ${dv('spd')}. <i>Tỉ lệ % là cá tính riêng, tối đa ±${DEV*100}%.</i></p>
+  <p style="margin:6px 0"><b>Bị động vai trò · ${PASSIVE[h.r][0]}:</b> ${PASSIVE[h.r][1]}</p>
+  <p style="margin:6px 0"><b>Khắc hệ:</b> ${EL[h.el].n} khắc ${EL[KHAC[h.el]].n}, bị ${EL[Object.keys(KHAC).find(k=>KHAC[k]===h.el)].n} khắc.</p>
+</div>`);};
+
+/* ---------- 5. MÀN HỒ SƠ & QUY CHUẨN ---------- */
+let CXF={rar:'',el:'',r:'',v:'',o:''};
+VIEWS.codex=function(tab){tab=tab||'list';
+ scr.insertAdjacentHTML('beforeend',`<div class="bgwood" style="position:absolute;inset:0;background:linear-gradient(#5a3a1a,#2a1608)"></div>${backB('roster')}${curBar()}
+ <div class="wood rise" style="position:absolute;left:40px;right:40px;top:96px;bottom:20px;padding:46px 18px 14px;display:flex;flex-direction:column;gap:8px">
+  <div class="title-rib stk">Hồ sơ nhẫn giả</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap" id="cxTabs">${[['list','Danh sách'],['rule','Quy chuẩn'],['bond','Ràng buộc']].map(([k,n])=>`<button class="tab stk${tab===k?' on':''}" data-t="${k}">${n}</button>`).join('')}</div>
+  <div id="cxBody" class="parch" style="flex:1;overflow:auto;padding:10px 14px;font-size:16px;line-height:1.4"></div></div>`);
+ scr.querySelectorAll('#cxTabs button').forEach(b=>b.onclick=()=>go('codex',b.dataset.t));
+ const body=$('cxBody');
+ if(tab==='list'){
+  const sel=(k,opts)=>`<select data-k="${k}" style="font:inherit;font-weight:700;padding:3px 6px;border-radius:8px;border:2px solid #8a5a2a;background:#fff6e0;color:#3b1e0c;text-shadow:none">${opts.map(([v,n])=>`<option value="${v}"${CXF[k]===v?' selected':''}>${n}</option>`).join('')}</select>`;
+  const list=POOL.filter(h=>(!CXF.rar||h.rar===CXF.rar)&&(!CXF.el||h.el===CXF.el)&&(!CXF.r||h.r===CXF.r)&&(!CXF.v||h.v===CXF.v)&&(!CXF.o||BIO[h.id]?.[0]===CXF.o)).sort((a,b)=>RK.indexOf(a.rar)-RK.indexOf(b.rar)||a.el.localeCompare(b.el));
+  body.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">${sel('rar',[['','Mọi hạng'],...RK.map(r=>[r,r])])}${sel('el',[['','Mọi hệ'],...Object.keys(EL).map(k=>[k,EL[k].n])])}${sel('r',[['','Mọi vai trò'],...Object.keys(ROLE).map(k=>[k,ROLE[k]])])}${sel('v',[['','Mọi phe'],...Object.keys(VIL).filter(k=>k!=='hactrieu').map(k=>[k,VIL[k].n])])}${sel('o',[['','Mọi nguồn gốc'],...Object.keys(ORG).map(k=>[k,ORG[k][0]])])}<b>${list.length} nhẫn giả</b></div>
+   <table style="width:100%;border-collapse:collapse;font-size:15px"><thead><tr style="text-align:left;background:#e8c890">${['','Tên','Hạng','Hệ','Vai trò','Phe','Nguồn gốc','Máu','Công','Thủ','Tốc','Sở hữu'].map(x=>`<th style="padding:4px 6px">${x}</th>`).join('')}</tr></thead><tbody>
+   ${list.map(h=>`<tr data-id="${h.id}" style="cursor:pointer;border-bottom:1px solid #d8b880"><td><canvas width="40" height="40" data-p="${h.id}"></canvas></td><td><b>${h.n}</b><br><small>${h.t}</small></td><td><b>${h.rar}</b></td><td style="color:${shade(EL[h.el].c,-0.35)}"><b>${EL[h.el].n}</b></td><td>${ROLE[h.r]}</td><td>${VIL[h.v].n}</td><td><span style="color:#fff;background:${ORG[BIO[h.id]?.[0]||'st'][1]};border-radius:6px;padding:0 6px;font-size:13px">${ORG[BIO[h.id]?.[0]||'st'][0]}</span></td><td>${fmt(h.hp)}</td><td>${h.atk}</td><td>${h.def}</td><td>${h.spd}</td><td>${S.owned[h.id]?'✔':''}</td></tr>`).join('')}</tbody></table>`;
+  body.querySelectorAll('select').forEach(s=>s.onchange=()=>{CXF[s.dataset.k]=s.value;go('codex','list');});
+  body.querySelectorAll('canvas[data-p]').forEach(cv=>cv.getContext('2d').drawImage(portraitURL(cv.dataset.p,120),0,0,40,40));
+  body.querySelectorAll('tr[data-id]').forEach(tr=>tr.onclick=()=>{detailBack='codex';heroDetail(tr.dataset.id);});}
+ else if(tab==='rule'){
+  const cnt=(f)=>{const o={};POOL.forEach(h=>{const k=f(h);o[k]=(o[k]||0)+1;});return o;};const cr=cnt(h=>h.rar),ce=cnt(h=>h.el),cro=cnt(h=>h.r),co=cnt(h=>BIO[h.id]?.[0]||'st');
+  const th=x=>`<th style="padding:4px 8px;text-align:left;background:#e8c890">${x}</th>`,td=x=>`<td style="padding:3px 8px;border-bottom:1px solid #d8b880">${x}</td>`;
+  body.innerHTML=`<h3 style="margin:4px 0">1. Chỉ số chuẩn theo Hạng × Vai trò (cấp 1, 1★)</h3>
+  <p style="margin:4px 0">Mọi nhẫn giả được tính từ một công thức: <b>Chỉ số = Chuẩn hạng × Hệ số vai trò × (1 + cá tính)</b>, cá tính tối đa ±${DEV*100}%. Nhờ vậy hai nhân vật cùng hạng, cùng vai trò luôn ngang sức; khác biệt nằm ở kỹ năng.</p>
+  <table style="border-collapse:collapse;margin:6px 0"><tr>${th('Hạng')}${th('Số lượng')}${['thu','cong','am','ho'].map(r=>th(ROLE[r]+' (Máu/Công/Thủ/Tốc)')).join('')}</tr>
+  ${RK.map(r=>`<tr>${td('<b>'+r+'</b>')}${td(cr[r]||0)}${['thu','cong','am','ho'].map(ro=>{const s=stdStat(r,ro);return td(`${fmt(s.hp)} / ${s.atk} / ${s.def} / ${s.spd}`);}).join('')}</tr>`).join('')}</table>
+  <h3 style="margin:10px 0 4px">2. Hệ số vai trò và bị động</h3>
+  <table style="border-collapse:collapse">${'<tr>'+th('Vai trò')+th('Số lượng')+th('Máu')+th('Công')+th('Thủ')+th('Tốc')+th('Bị động')+'</tr>'}${Object.keys(ROLEM).map(r=>`<tr>${td('<b>'+ROLE[r]+'</b>')}${td(cro[r]||0)}${['hp','atk','def','spd'].map(k=>td('×'+ROLEM[r][k])).join('')}${td(PASSIVE[r][0]+': '+PASSIVE[r][1])}</tr>`).join('')}</table>
+  <h3 style="margin:10px 0 4px">3. Ngũ hành khắc chế</h3>
+  <p style="margin:4px 0">${Object.keys(KHAC).map(k=>`<b>${EL[k].n}</b> khắc <b>${EL[KHAC[k]].n}</b>`).join(' → ')}. Đánh vào hệ bị khắc được tăng sát thương. Số nhẫn giả: ${Object.keys(EL).map(k=>EL[k].n+' '+(ce[k]||0)).join(' · ')}.</p>
+  <h3 style="margin:10px 0 4px">4. Tăng trưởng</h3>
+  <p style="margin:4px 0">Cấp tối đa phụ thuộc đột phá; mỗi sao tăng chỉ số; Thức tỉnh +15% (cần 5★, đột phá 2). Đồ giám: mỗi nhẫn giả sở hữu cộng thêm chỉ số cho cả đội. Trang bị 4 ô, ràng buộc và thú cưng cộng dồn sau cùng.</p>
+  <h3 style="margin:10px 0 4px">5. Nguồn gốc nhân vật</h3>
+  <p style="margin:4px 0">${Object.keys(ORG).map(k=>`<span style="color:#fff;background:${ORG[k][1]};border-radius:6px;padding:0 6px">${ORG[k][0]}</span> ${co[k]||0}`).join(' · ')}. Nhân vật <b>Truyền thuyết – cổ tích</b> và <b>Lịch sử – dân gian</b> bám theo cốt truyện dân gian Việt Nam; kỹ năng trong game là phần phóng tác. Nhân vật <b>Sáng tác</b> là hư cấu, lấy cảm hứng từ địa danh Đà Nẵng – Quảng Nam.</p>
+  <h3 style="margin:10px 0 4px">6. Hạng và nơi chiêu mộ</h3>
+  <table style="border-collapse:collapse">${'<tr>'+th('Hạng')+th('Chiêu mộ Vé')+th('Chiêu mộ Ngọc')+th('Chiêu mộ Đặc biệt')+th('Mảnh khi trùng')+'</tr>'}
+  ${[['UR','—','—','1,2%','60'],['SSS','0,5%','1,5%','3%','40'],['SS','2%','5%','8%','30'],['S','6%','12%','20%','20'],['A','30%','38%','67,8%','12'],['B','phần còn lại','phần còn lại','—','8']].map(r=>'<tr>'+r.map((x,i)=>td(i?x:'<b>'+x+'</b>')).join('')+'</tr>').join('')}</table>
+  <p style="margin:4px 0"><i>Tỉ lệ S của hai cửa thường có thể được quản trị viên điều chỉnh.</i></p>`;}
+ else{const th=x=>`<th style="padding:4px 8px;text-align:left;background:#e8c890">${x}</th>`,td=x=>`<td style="padding:3px 8px;border-bottom:1px solid #d8b880">${x}</td>`;
+  body.innerHTML=`<p style="margin:4px 0">Đưa đủ các nhẫn giả của một ràng buộc vào đội hình để kích hoạt. <b>Cả đội</b>: hiệu ứng cho toàn đội; <b>Riêng</b>: chỉ các thành viên. Ngoài ra: đủ 5 hệ → <b>Ngũ Hành Tương Sinh</b> (+10% công, máu); 3 người cùng phe → <b>Đồng Hương</b> (+8% máu).</p>
+  <table style="border-collapse:collapse;width:100%">${'<tr>'+th('Ràng buộc')+th('Thành viên')+th('Phạm vi')+th('Hiệu ứng')+'</tr>'}
+  ${BONDS.map(b=>'<tr>'+td('<b>'+b.n+'</b>')+td(b.ids.map(i=>(S.owned[i]?'✔ ':'')+HB[i].n).join(', '))+td(b.all?'Cả đội':'Riêng')+td(b.d)+'</tr>').join('')}</table>`;}
+};
+// lối vào: nút trong màn Nhẫn giả và nút bên sảnh
+const _ros6=VIEWS.roster;
+VIEWS.roster=function(a){_ros6(a);const b=document.createElement('button');b.className='gb sm';b.textContent='Hồ sơ & Quy chuẩn';b.style.cssText='position:absolute;right:56px;top:112px;z-index:5';b.onclick=()=>go('codex');scr.appendChild(b);};
 
 go('hub');
 </script>
