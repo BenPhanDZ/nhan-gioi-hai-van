@@ -844,6 +844,7 @@ function startBattle(cfg){
  else if(cfg.kind==='tower'){const f=cfg.floor,rnd=mulberry(f*31+7);foeLv=towerLv(f);const st=1+Math.floor(f/20);const team=pickTeam(rnd,f%10===0?5:6);
   foe=(f%10===0?[{id:f>=50?'trieu':'anh',slot:1,m:1.5+f/60,star:st}]:[]).concat(team.map((id,i)=>({id,slot:f%10===0?(i>=1?i+1:0):i,m:1,star:st})));foeName='Tháp Hải Vân · Tầng '+f;}
  else if(cfg.kind==='dungeon'){const D=dungeonFoes(cfg);foeLv=D.lv;foe=D.team;foeName=D.name;cfg.theme=D.theme;}
+ else if(cfg.foes){foeLv=cfg.lv;foe=cfg.foes;foeName=cfg.name;}
  else if(cfg.kind==='ai'){const D=aiFoes(cfg);foeLv=D.lv;foe=D.team;foeName=D.name;cfg.theme=D.theme;}
  else if(cfg.kind==='boss'){foeLv=Math.round(avgLv())+10;foe=[{id:'trieu',slot:1,m:60,star:3}];foeName='Boss thế giới · Hắc Triều Vương';}
  else{foeName=cfg.name;foeLv=cfg.lv;foe=cfg.team.map((id,i)=>({id,slot:i,m:1,star:1}));}
@@ -1285,7 +1286,7 @@ const EQR=[['B',1,'#3a8ad8'],['A',1.6,'#a05ae0'],['S',2.5,'#e8463a'],['SS',4,'#f
 const EQB={atk:38,hp:420,def:22,spd:4};
 const EQN={wpn:['Kiếm Thép','Đao Sóng','Kiếm Mây Bạc','Long Đao Hải Vân'],arm:['Áo Vải Bố','Giáp Da Cá','Giáp Đá Non Nước','Long Giáp Biển Đông'],band:['Băng Vải','Băng Đồng','Băng Bạc Khắc Hoa','Băng Vàng Cầu Rồng'],charm:['Bùa Tre','Bùa Ngọc Bích','Bùa Trầm Hương','Bùa Trống Đồng']};
 const eqStat=e=>EQS.find(s=>s[0]===e.s)[2];
-const eqVal=e=>(+(EQB[eqStat(e)]*EQR[e.r][1]*(1+0.08*e.lv)).toFixed(1))+'%';
+const eqVal=e=>(+(EQB[eqStat(e)]*EQR[e.r][1]*(1+0.1*e.lv)).toFixed(1))+'%';
 const eqName=e=>EQN[e.s][e.r];
 const STN={atk:'Tấn công',hp:'Máu',def:'Phòng thủ',spd:'Tốc độ'};
 function newEq(s,r){const e={u:S.uidSeq++,s,r,lv:0};S.inv.push(e);return e;}
@@ -2124,7 +2125,7 @@ drawWeaponExtra=function(c,w){if(w==='banh'){c.fillStyle='#3a8a3a';c.strokeStyle
   c.fillStyle='#fff8e8';c.beginPath();c.arc(0,-28,10,0,7);c.fill();c.strokeStyle='#c8b080';c.stroke();return true;}return _dwe6(c,w);};
 
 /* ---------- 1. QUY CHUẨN CHỈ SỐ: Hạng × Vai trò, cá tính tối đa ±6% ---------- */
-const RBASE={B:{hp:3000,atk:310,def:135,spd:92},A:{m:1.06,s:3},S:{m:1.14,s:6},SS:{m:1.28,s:10},SSS:{m:1.45,s:14},UR:{m:1.7,s:18}};
+const RBASE={B:{hp:3000,atk:310,def:135,spd:92},A:{m:1.12,s:3},S:{m:1.28,s:7},SS:{m:1.5,s:11},SSS:{m:1.8,s:16},UR:{m:2.25,s:22}};
 const RSTAT=r=>r==='B'?RBASE.B:{hp:Math.round(3000*RBASE[r].m),atk:Math.round(310*RBASE[r].m),def:Math.round(135*RBASE[r].m),spd:92+RBASE[r].s};
 const ROLEM={thu:{hp:1.38,atk:.85,def:1.45,spd:.86},cong:{hp:1.0,atk:1.15,def:.9,spd:1.02},am:{hp:.9,atk:1.3,def:.8,spd:1.18},ho:{hp:1.05,atk:.92,def:1.05,spd:1.04}};
 const DEV=0.06;
@@ -2293,7 +2294,7 @@ drawNinja=function(c,h,x,y,s,face,p,t){let aw=AWX!=null?AWX:awOf(h.id);AWX=null;
  _dn7(c,awHero(h,aw),x,y,s,face,p,t);
  c.save();c.translate(x,y);c.scale(s,s);awFront(c,h,aw,t);c.restore();};
 const _hc7=heroCard;
-heroCard=function(id,opt){const d=_hc7(id,opt||{});const aw=awOf(id);if(aw)d.insertAdjacentHTML('beforeend',`<span class="stk" style="position:absolute;left:4px;bottom:22px;font-size:11px;font-weight:800;background:linear-gradient(90deg,#c8201a,#ffb020);border-radius:6px;padding:0 4px;color:#fff">TT ${'I'.repeat(aw)}</span>`);return d;};
+heroCard=function(id,opt){const d=_hc7(id,opt||{});const aw=(opt&&opt.show)?0:awOf(id);if(aw)d.insertAdjacentHTML('beforeend',`<span class="stk" style="position:absolute;left:4px;bottom:22px;font-size:11px;font-weight:800;background:linear-gradient(90deg,#c8201a,#ffb020);border-radius:6px;padding:0 4px;color:#fff">TT ${'I'.repeat(aw)}</span>`);return d;};
 
 /* ---------- tác dụng thức tỉnh trong trận ---------- */
 const _sb7=startBattle;
@@ -2342,13 +2343,13 @@ function awShow(id,a,after){const h=HB[id];const m=document.createElement('div')
  m.querySelector('button').onclick=()=>{cancelAnimationFrame(raf);m.remove();after&&after();};}
 
 /* ---------- Ải Thức Tỉnh: 5 hệ × 120 tầng ---------- */
-const AIMAX=120,AITH={kim:'haivan',moc:'sontra',thuy:'mykhe',hoa:'caurong',tho:'nguhanh'},AIN={kim:'Ải Kim Cương',moc:'Ải Mộc Lâm',thuy:'Ải Thuỷ Cung',hoa:'Ải Hoả Diệm',tho:'Ải Thổ Thạch'};
-const aiLv=f=>f<=10?3+f*3:Math.round(4+f*4.75);
+const AIMAX=200,AITH={kim:'haivan',moc:'sontra',thuy:'mykhe',hoa:'caurong',tho:'nguhanh'},AIN={kim:'Ải Kim Cương',moc:'Ải Mộc Lâm',thuy:'Ải Thuỷ Cung',hoa:'Ải Hoả Diệm',tho:'Ải Thổ Thạch'};
+const aiLv=f=>f<=10?3+f*3:Math.min(600,Math.round(4+f*4.75));
 const aiRw=f=>({ls:3+Math.floor(f/6),xu:1000*f+30*f*f,gem:10+(f%10===0?40:0),an:f%10===0?1+Math.floor(f/30):0,dp:2+Math.floor(f/4)});
 function aiFoes(cfg){const E=cfg.el,f=cfg.floor,rnd=mulberry(f*53+E.charCodeAt(0)*7);const rs=f<30?['B','A','S']:f<70?['A','S','SS']:['S','SS','SSS'];
  let pool=POOL.filter(h=>h.el===E&&rs.includes(h.rar));if(pool.length<6)pool=pool.concat(POOL.filter(h=>h.el===E&&h.rar!=='UR'&&!pool.includes(h)));
  const pick=[];while(pick.length<Math.min(6,pool.length)){const h=pool[Math.floor(rnd()*pool.length)];if(!pick.includes(h.id))pick.push(h.id);}
- const st=Math.min(5,1+Math.floor(f/20)),boss=f%10===0;const AM=1+0.0232*f+0.000154*f*f;let team=pick.slice(0,boss?5:6).map((id,i)=>({id,slot:boss?(i>=1?i+1:0):i,m:AM,star:st}));
+ const st=Math.min(5,1+Math.floor(f/20)),boss=f%10===0;const AM=(1+0.0232*f+0.000154*f*f)*1.25*(f<=120?1+0.2*(f/120)*(f/120):1.2+(f-120)/20*0.6);let team=pick.slice(0,boss?5:6).map((id,i)=>({id,slot:boss?(i>=1?i+1:0):i,m:AM,star:st}));
  if(boss){const bh=POOL.filter(h=>h.el===E&&h.rar!=='UR').sort((a,b)=>RK.indexOf(a.rar)-RK.indexOf(b.rar))[0];team=[{id:bh.id,slot:1,m:(1.5+f/120)*AM,star:st}].concat(team.filter(x=>x.id!==bh.id));}
  return{lv:aiLv(f),team,name:AIN[E]+' · Tầng '+f+(boss?' · Thủ ải':''),theme:AITH[E]};}
 IC.awk='<svg viewBox="0 0 48 48"><path d="M24 4 L34 18 L30 42 H18 L14 18 Z" fill="#c86aff" stroke="#3a0a4a" stroke-width="3" stroke-linejoin="round"/><path d="M24 4 L24 42 M14 18 H34" stroke="#f0d0ff" stroke-width="2"/><circle cx="24" cy="20" r="4" fill="#fff6c0"/></svg>';
@@ -2362,7 +2363,7 @@ VIEWS.aitt=function(){ens7();if(S.aiSw.date!==today())S.aiSw={date:today(),n:{}}
   <div class="stk" style="font-size:14px;line-height:1.35">${cur>=AIMAX?'Đã chinh phục toàn bộ ải.':`Tầng ${f}${f%10===0?' (Thủ ải)':''} · địch cấp ${aiLv(f)}<br>Thưởng: ${rw.ls} Linh thạch ${EL[E].n}, ${fmt(rw.xu)} xu, ${rw.gem} ngọc, ${rw.dp} ngọc ĐP${rw.an?`, <b style="color:#ffd24a">${rw.an} Ấn</b>`:''}`}<br>Địch toàn hệ ${EL[E].n} – mang hệ ${EL[Object.keys(KHAC).find(k=>KHAC[k]===E)].n} để khắc chế.</div>
   <button class="gb red sm" data-e="${E}" data-a="fight" ${cur>=AIMAX?'disabled':''}>Khiêu chiến tầng ${f}</button>
   <button class="gb blue sm" data-e="${E}" data-a="sweep" ${!cur||sw>=3?'disabled':''}>Quét tầng ${cur||'–'} (${3-sw}/3)</button>
-  <div class="stk" style="font-size:13px;line-height:1.35;opacity:.95">Mốc kế tiếp:<br>${[10,20,30,40,60,80,100,120].filter(x=>x>cur).slice(0,3).map(x=>`Tầng ${x}: Thủ ải · ${aiRw(x).an} Ấn`).join('<br>')||'—'}<br>Quét: 60% xu, đủ Linh thạch${cur>=40?', thêm '+Math.floor(cur/40)+' Ấn':''}.</div>`;L.appendChild(box);});
+  <div class="stk" style="font-size:13px;line-height:1.35;opacity:.95">Mốc kế tiếp:<br>${[10,20,30,40,60,80,100,120,140,160,180,200].filter(x=>x>cur).slice(0,3).map(x=>`Tầng ${x}: Thủ ải · ${aiRw(x).an} Ấn`).join('<br>')||'—'}<br>Quét: 60% xu, đủ Linh thạch${cur>=40?', thêm '+Math.floor(cur/40)+' Ấn':''}.</div>`;L.appendChild(box);});
  L.querySelectorAll('button').forEach(b=>b.onclick=()=>{const E=b.dataset.e;if(b.dataset.a==='fight')startBattle({kind:'ai',el:E,floor:S.ai[E]+1});
   else{const f=S.ai[E],rw=aiRw(f),RW=S.cfg.reward||1;S.aiSw.n[E]=(S.aiSw.n[E]||0)+1;const ls=Math.round(rw.ls*RW),xu=Math.round(rw.xu*0.6*RW),an=Math.floor(f/40),dp=Math.floor(f/8);S.mats.ls[E]+=ls;S.coins+=xu;S.mats.an+=an;S.mats.dp+=dp;save();AU.coin();toast(`Quét tầng ${f}: +${ls} Linh thạch ${EL[E].n}, +${fmt(xu)} xu${dp?`, +${dp} ngọc ĐP`:''}${an?`, +${an} Ấn`:''}`);go('aitt');}});};
 const _sr7=showResult;
@@ -2484,23 +2485,23 @@ const _ban8=banner;banner=function(a,b){if(B&&B.round>12&&/^Hiệp/.test(a))b='C
    TRANG BỊ 2.0: 6 phẩm cấp · chỉ số % theo cấp · phụ tố · bộ trang bị ·
    cường hoá +20 (đá cường hoá, tỉ lệ) · mặc nhanh / mặc nhanh cả đội · kho đồ & phân giải
    ========================================================= */
-EQR.length=0;EQR.push(['B',1,'#9aa4b0','Thường'],['A',1.6,'#4aa84a','Tinh xảo'],['S',2.4,'#3a8ad8','Hiếm'],['SS',3.5,'#a05ae0','Sử thi'],['SSS',5,'#ff8a2a','Truyền thuyết'],['UR',7,'#ff3a5a','Thần khí']);
-Object.assign(EQB,{atk:5,hp:5,def:5,spd:2.5});
+EQR.length=0;EQR.push(['B',1,'#9aa4b0','Thường'],['A',1.8,'#4aa84a','Tinh xảo'],['S',2.8,'#3a8ad8','Hiếm'],['SS',4.2,'#a05ae0','Sử thi'],['SSS',6,'#ff8a2a','Truyền thuyết'],['UR',8.5,'#ff3a5a','Thần khí']);
+Object.assign(EQB,{atk:8,hp:8,def:8,spd:4});
 EQN.wpn=['Kiếm Thép','Đao Sóng Mỹ Khê','Kiếm Mây Bạc','Long Đao Hải Vân','Roi Sắt Phù Đổng','Gươm Thuận Thiên'];
 EQN.arm=['Áo Vải Bố','Giáp Da Cá','Giáp Đá Non Nước','Long Giáp Biển Đông','Giáp Vảy Rồng Sông Hàn','Giáp Mai Rùa Vàng'];
 EQN.band=['Băng Vải','Băng Đồng','Băng Bạc Khắc Hoa','Băng Vàng Cầu Rồng','Mũ Trụ Hải Vân Quan','Vương Miện Lạc Hồng'];
 EQN.charm=['Bùa Tre','Bùa Ngọc Bích','Bùa Trầm Hương','Bùa Trống Đồng','Minh Châu Biển Đông','Ấn Ngọc Âu Lạc'];
 const EQMAX=20,SUBN=[0,1,1,2,3,4],SUBK=['atk','hp','def','spd'];
-const EQSET=[{n:'Bộ Long Hải',c:'#ff7a3a',b2:{atk:8},b4:{atk:10,spd:8},d2:'+8% tấn công',d4:'+10% tấn công, +8% tốc độ'},
- {n:'Bộ Hải Vân',c:'#6ad0ff',b2:{hp:10},b4:{hp:12,def:10},d2:'+10% máu',d4:'+12% máu, +10% phòng thủ'},
- {n:'Bộ Ngũ Hành',c:'#c8b070',b2:{spd:6},b4:{spd:8,atk:8,hp:8},d2:'+6% tốc độ',d4:'+8% tốc độ, công, máu'}];
+const EQSET=[{n:'Bộ Long Hải',c:'#ff7a3a',b2:{atk:15},b4:{atk:20,spd:12},d2:'+15% tấn công',d4:'+20% tấn công, +12% tốc độ'},
+ {n:'Bộ Hải Vân',c:'#6ad0ff',b2:{hp:18},b4:{hp:22,def:20},d2:'+18% máu',d4:'+22% máu, +20% phòng thủ'},
+ {n:'Bộ Ngũ Hành',c:'#c8b070',b2:{spd:10},b4:{spd:12,atk:15,hp:15},d2:'+10% tốc độ',d4:'+12% tốc độ, +15% công, +15% máu'}];
 S.mats.da=S.mats.da||0;
-function eqGen(e){if(!e.sub){e.sub=[];const ks=SUBK.filter(k=>k!==eqStat(e));for(let i=0;i<SUBN[e.r];i++){const k=ks[Math.floor(Math.random()*ks.length)];e.sub.push([k,+((1.5+Math.random()*2)*(1+e.r*0.25)*(k==='spd'?0.6:1)).toFixed(1)]);}}
+function eqGen(e){if(!e.sub){e.sub=[];const ks=SUBK.filter(k=>k!==eqStat(e));for(let i=0;i<SUBN[e.r];i++){const k=ks[Math.floor(Math.random()*ks.length)];e.sub.push([k,+((2.5+Math.random()*3)*(1+e.r*0.3)*(k==='spd'?0.6:1)).toFixed(1)]);}}
  if(e.set==null)e.set=e.r>=2?Math.floor(Math.random()*3):-1;return e;}
-S.inv.forEach(e=>{if(e.lv>EQMAX)e.lv=EQMAX;eqGen(e);});
+S.inv.forEach(e=>{if(e.lv>EQMAX)e.lv=EQMAX;eqGen(e);if(!S.eqv2&&e.sub)e.sub.forEach(x=>x[1]=+(x[1]*1.6).toFixed(1));});S.eqv2=1;
 const _newEq9=newEq;newEq=function(s,r){return eqGen(_newEq9(s,r));};
 dropEq=function(level){const x=Math.random()+level*0.6;const r=x>2.15?5:x>1.8?4:x>1.45?3:x>1.05?2:x>0.6?1:0;return newEq(EQS[Math.floor(Math.random()*4)][0],r);};
-const eqMain=e=>+(EQB[eqStat(e)]*EQR[e.r][1]*(1+0.08*e.lv)).toFixed(1);
+const eqMain=e=>+(EQB[eqStat(e)]*EQR[e.r][1]*(1+0.1*e.lv)).toFixed(1);
 function eqPct(e){const p={atk:0,hp:0,def:0,spd:0};p[eqStat(e)]+=eqMain(e);(e.sub||[]).forEach(([k,v])=>p[k]+=v);return p;}
 function eqApply(r,o){const P={atk:0,hp:0,def:0,spd:0},sets={};for(const k in o.eq){const e=S.inv.find(x=>x.u===o.eq[k]);if(!e)continue;const p=eqPct(e);for(const s in p)P[s]+=p[s];if(e.set>=0)sets[e.set]=(sets[e.set]||0)+1;}
  for(const si in sets){const st=EQSET[si];if(sets[si]>=2)for(const s in st.b2)P[s]+=st.b2[s];if(sets[si]>=4)for(const s in st.b4)P[s]+=st.b4[s];}
@@ -2562,8 +2563,8 @@ function enhanceEq(e,back){const m=document.createElement('div');m.className='mo
   m.querySelector('#enB').onclick=()=>{m.remove();back&&back();};
   if(!mx){m.querySelector('#en1').onclick=()=>draw(tryUp());m.querySelector('#en5').onclick=()=>{let r,k=0;const goal=Math.min(EQMAX,(Math.floor(e.lv/5)+1)*5);while(e.lv<goal&&k<40){const c=eqUp(e);if(S.coins<c.xu||S.mats.da<c.da)break;r=tryUp();k++;}draw(r||{ok:false,t:'Không đủ nguyên liệu'});};}};
  const tryUp=()=>{const c=eqUp(e);if(S.coins<c.xu||S.mats.da<c.da)return{ok:false,t:'Không đủ nguyên liệu'};S.coins-=c.xu;S.mats.da-=c.da;
-  if(Math.random()<c.rate){e.lv++;let extra='';if(e.lv%5===0){if(e.sub.length<4&&Math.random()<0.35){const ks=SUBK.filter(k=>k!==eqStat(e)&&!e.sub.some(x=>x[0]===k));if(ks.length){const k=ks[Math.floor(Math.random()*ks.length)];e.sub.push([k,+(2+Math.random()*2).toFixed(1)]);extra=' · Mở phụ tố '+STN[k]+'!';}}
-    if(!extra&&e.sub.length){const sb=e.sub[Math.floor(Math.random()*e.sub.length)];const add=+((1.5+Math.random()*2)*(1+e.r*0.2)).toFixed(1);sb[1]=+(sb[1]+add).toFixed(1);extra=` · ${STN[sb[0]]} +${add}%`;}}
+  if(Math.random()<c.rate){e.lv++;let extra='';if(e.lv%5===0){if(e.sub.length<4&&Math.random()<0.35){const ks=SUBK.filter(k=>k!==eqStat(e)&&!e.sub.some(x=>x[0]===k));if(ks.length){const k=ks[Math.floor(Math.random()*ks.length)];e.sub.push([k,+((3+Math.random()*3)*(1+e.r*0.2)).toFixed(1)]);extra=' · Mở phụ tố '+STN[k]+'!';}}
+    if(!extra&&e.sub.length){const sb=e.sub[Math.floor(Math.random()*e.sub.length)];const add=+((2.5+Math.random()*3)*(1+e.r*0.25)).toFixed(1);sb[1]=+(sb[1]+add).toFixed(1);extra=` · ${STN[sb[0]]} +${add}%`;}}
    save();AU.chest(1);return{ok:true,t:`Thành công! +${e.lv}${extra}`};}
   save();AU.lose&&AU.lose();return{ok:false,t:'Thất bại! Trang bị giữ nguyên cấp.'};};
  draw();GAME.appendChild(m);}
@@ -2613,6 +2614,212 @@ VIEWS.shop=function(a){_shop9(a);const w=scr.querySelector('.wood');if(!w)return
  $('sh1').onclick=()=>{S.coins-=200000;S.mats.da+=30;save();toast('+30 đá cường hoá');go('shop',a);};
  $('sh2').onclick=()=>{S.gems-=600;const r=Math.random()<0.08?5:Math.random()<0.3?4:3;const e=newEq(EQS[Math.floor(Math.random()*4)][0],r);save();toast(`Nhận ${eqName(e)} (${EQR[r][3]})`);go('shop',a);};
  $('sh3').onclick=()=>go('inventory');};
+
+/* =========================================================
+   MỞ RỘNG 10: 6 UR + 24 SSS (anh hùng sử Việt & truyền thuyết) · mũi tên chuyển tướng ·
+   Đấu trường mới (làm mới, tìm đối thủ mạnh hơn, bảng vàng Top 1-2-3, thưởng hạng ngày) · Ải 200 tầng
+   ========================================================= */
+// ---- vũ khí mới ----
+const _dwe10=drawWeaponExtra;
+drawWeaponExtra=function(c,w){
+ if(w==='spear'){c.strokeStyle='#6a4520';c.lineWidth=5;c.beginPath();c.moveTo(0,40);c.lineTo(0,-58);c.stroke();c.fillStyle='#e8eef6';c.strokeStyle='#2a3448';c.lineWidth=2;c.beginPath();c.moveTo(-6,-56);c.lineTo(0,-80);c.lineTo(6,-56);c.closePath();c.fill();c.stroke();c.fillStyle='#c8201a';c.fillRect(-5,-56,10,6);return true;}
+ if(w==='flag'){c.strokeStyle='#6a4520';c.lineWidth=5;c.beginPath();c.moveTo(0,40);c.lineTo(0,-64);c.stroke();c.fillStyle='#c8201a';c.strokeStyle='#5a0a0a';c.lineWidth=2;c.beginPath();c.moveTo(2,-64);c.quadraticCurveTo(26,-58,46,-62);c.lineTo(44,-34);c.quadraticCurveTo(24,-30,2,-36);c.closePath();c.fill();c.stroke();c.fillStyle='#ffd24a';c.beginPath();c.arc(23,-48,6,0,7);c.fill();return true;}
+ if(w==='brush'){c.strokeStyle='#3a2a1a';c.lineWidth=5;c.beginPath();c.moveTo(0,30);c.lineTo(0,-30);c.stroke();c.fillStyle='#1a1a1a';c.beginPath();c.moveTo(-5,-30);c.quadraticCurveTo(0,-52,5,-30);c.fill();c.fillStyle='#f4ecd0';c.strokeStyle='#8a6a3a';c.fillRect(-36,-6,26,34);c.strokeRect(-36,-6,26,34);c.strokeStyle='#3a2a1a';c.lineWidth=1.5;for(let i=0;i<4;i++){c.beginPath();c.moveTo(-31+i*6,-1);c.lineTo(-31+i*6,22);c.stroke();}return true;}
+ if(w==='glaive'){c.strokeStyle='#6a4520';c.lineWidth=5;c.beginPath();c.moveTo(0,40);c.lineTo(0,-46);c.stroke();c.fillStyle='#e8eef6';c.strokeStyle='#2a3448';c.lineWidth=2;c.beginPath();c.moveTo(-2,-44);c.quadraticCurveTo(26,-60,10,-92);c.quadraticCurveTo(4,-66,-4,-60);c.closePath();c.fill();c.stroke();c.fillStyle='#ffd24a';c.beginPath();c.arc(0,-44,5,0,7);c.fill();return true;}
+ return _dwe10(c,w);};
+
+// ---- dữ liệu 30 nhân vật ----
+const H10=[
+ // UR
+ ['haibatrung','Hai Bà Trưng','Nữ Vương Mê Linh','suviet','hoa','cong','UR',['twin','#1a1a1a','#e8c0a0','#c8201a','#ffd24a','sword',1],
+  ['Song Kiếm Mê Linh','single',1.1],['Phất Cờ Mê Linh','all',1.9,2,'tung',[['burn',.8,2]],{buff:['atkup',2]},'Hai Bà cùng phất cờ khởi nghĩa: hai đợt chém vào toàn bộ địch, Hất Tung, có thể gây Bỏng; cả đội tăng tấn công 2 lượt.'],['Song Kiếm Hợp Bích','nga','tung',1.3,3],
+  ['aoe',.9,3],['firstStrike',.3],'ls','Trưng Trắc và Trưng Nhị, con gái Lạc tướng huyện Mê Linh. Năm 40 hai bà khởi nghĩa đánh đuổi thái thú Tô Định; Trưng Trắc lên ngôi vua, đóng đô ở Mê Linh.'],
+ ['batrieu','Bà Triệu','Nhuỵ Kiều Tướng Quân','suviet','tho','thu','UR',['bun','#1a1a1a','#e0b890','#d8a020','#ffe066','sword',1],
+  ['Kiếm Voi Trắng','single',1.0,0,'nga'],['Voi Trắng Xung Trận','front',1.7,1,'tung',[['stun',.6,1]],{shieldAll:.3},'Cưỡi voi trắng xông vào hàng trước địch: Hất Tung, có thể gây Choáng; cả đội nhận khiên 30% máu.'],['Voi Giày','tung','nga',1.2,2],
+  ['shield',.2,3],['thorns',.3],'ls','Triệu Thị Trinh, người quận Cửu Chân, khởi nghĩa chống quân Ngô năm 248. Tương truyền bà mặc áo giáp vàng, cưỡi voi ra trận và nói: muốn cưỡi cơn gió mạnh, đạp luồng sóng dữ, chém cá kình ở biển Đông.'],
+ ['ngoquyen','Ngô Quyền','Chủ Tướng Bạch Đằng','suviet','thuy','am','UR',['khan','#1a1a1a','#c89a6a','#1a3a5a','#4aa8ff','spear',0],
+  ['Giáo Đâm','back',1.1],['Trận Cọc Bạch Đằng','backcol',2.6,2,'nga',[['bleed',1,3],['defdown',.8,2]],{},'Cọc gỗ đầu bịt sắt trồi lên khi nước rút: hai đợt đâm hàng sau địch, Quật Ngã, chắc chắn Chảy máu và giảm phòng thủ.'],['Nước Rút','lui','nga',1.3,3],
+  ['bleed',1.5,2],['exec',.4],'ls','Năm 938 cho đóng cọc gỗ đầu bịt sắt dưới lòng sông Bạch Đằng, nhử thuyền quân Nam Hán vào lúc nước triều lên rồi phản công khi nước rút, giết Hoằng Thao. Năm sau ông xưng vương, đóng đô ở Cổ Loa.'],
+ ['hungdao','Hưng Đạo Đại Vương','Trần Quốc Tuấn','suviet','kim','ho','UR',['crown','#1a1a1a','#d8a878','#8a1a1a','#ffd24a','scroll',0],
+  ['Lệnh Tiết Chế','single',1.05],['Hịch Tướng Sĩ','allyall',0,1,null,null,{heal:.2,shieldAll:.3,buff:['atkup',3],chakra:30,cleanse:1},'Đọc Hịch tướng sĩ: cả đội hồi 20% máu, khiên 30% máu, xoá hiệu ứng xấu, tăng tấn công 3 lượt và hồi 30 Nộ.'],['Hiệu Lệnh','nga','lui',1.1,2],
+  ['buffAtk',0,3],['regen',.06],'ls','Trần Quốc Tuấn, Quốc công tiết chế thống lĩnh quân đội nhà Trần trong kháng chiến chống quân Nguyên Mông lần thứ hai (1285) và thứ ba (1287–1288). Ông soạn Hịch tướng sĩ; năm 1288 đại thắng trên sông Bạch Đằng.'],
+ ['leloi','Lê Lợi','Bình Định Vương','suviet','moc','cong','UR',['crown','#1a1a1a','#c89a6a','#2a5a2a','#ffd24a','sword',0],
+  ['Gươm Thuận Thiên','single',1.15],['Thuận Thiên Kiếm Khí','all',2.0,1,'nga',[['defdown',.8,2],['silence',.4,1]],{},'Gươm thần Thuận Thiên phóng kiếm khí khắp trận: sát thương lớn lên toàn bộ địch, Quật Ngã, giảm phòng thủ, có thể Câm lặng.'],['Kiếm Lam Sơn','tung','nga',1.3,3],
+  ['strike',1.6,2],['critDmg',.5],'ls','Lãnh đạo khởi nghĩa Lam Sơn (1418–1427) đánh đuổi quân Minh, lên ngôi năm 1428 (Lê Thái Tổ). Truyền thuyết kể ông được gươm thần Thuận Thiên; về sau Rùa Vàng hiện lên đòi gươm ở hồ Tả Vọng, từ đó hồ mang tên Hoàn Kiếm.'],
+ ['quangtrung','Quang Trung','Hoàng Đế Tây Sơn','suviet','thuy','am','UR',['wild','#1a1a1a','#c89a6a','#1a2a6a','#ffd24a','glaive',0],
+  ['Đại Đao Tây Sơn','back',1.15],['Thần Tốc Đống Đa','lowest',3.3,2,'tung',[['stun',.5,1]],{chakra:20},'Hành quân thần tốc: hai nhát đại đao chí mạng vào địch yếu nhất, Hất Tung, có thể gây Choáng, hồi 20 Nộ cho đội.'],['Tốc Chiến','nga','tung',1.35,3],
+  ['strike',1.8,2],['firstStrike',.35],'ls','Nguyễn Huệ, thủ lĩnh Tây Sơn. Năm 1785 phá quân Xiêm ở Rạch Gầm – Xoài Mút; cuối năm 1788 lên ngôi hoàng đế, hành quân thần tốc ra Bắc và đại phá quân Thanh ở Ngọc Hồi – Đống Đa dịp Tết Kỷ Dậu (1789).'],
+ // SSS
+ ['lythuongkiet','Lý Thường Kiệt','Thái Uý Nhà Lý','suviet','kim','cong','SSS',['helm','#1a1a1a','#c89a6a','#5a5a7a','#ffd24a','spear',0],
+  ['Giáo Như Nguyệt','single',1.1],['Phòng Tuyến Như Nguyệt','all',1.7,2,'lui',[['defdown',.7,2]],{},'Hai đợt giáo từ phòng tuyến sông Như Nguyệt quét toàn bộ địch, Đẩy Lùi, có thể giảm phòng thủ.'],['Tiên Phát Chế Nhân','lui','nga',1.2,3],
+  ['aoe',.8,3],['firstStrike',.25],'ls','Danh tướng nhà Lý. Năm 1075–1076 chủ động đánh sang các châu Ung, Khâm, Liêm của nhà Tống; năm 1077 chặn đánh quân Tống ở phòng tuyến sông Như Nguyệt. Bài thơ "Nam quốc sơn hà" theo truyền thuyết gắn với trận này.'],
+ ['dinhbolinh','Đinh Bộ Lĩnh','Vạn Thắng Vương','suviet','tho','cong','SSS',['short','#1a1a1a','#c89a6a','#7a5a2a','#c8201a','flag',0],
+  ['Cờ Lau Quật','single',1.1,0,'nga'],['Cờ Lau Tập Trận','all',1.6,2,'tung',[['stun',.3,1]],{},'Phất cờ lau dẫn quân: hai đợt đánh toàn bộ địch, Hất Tung, có thể gây Choáng.'],['Mục Đồng','nga','tung',1.15,3],
+  ['strike',1.4,3],['berserk',.6],'ls','Thuở nhỏ chăn trâu, lấy bông lau làm cờ bày trận. Lớn lên dẹp loạn 12 sứ quân, năm 968 lên ngôi hoàng đế, đặt quốc hiệu Đại Cồ Việt, đóng đô ở Hoa Lư.'],
+ ['lehoan','Lê Hoàn','Lê Đại Hành','suviet','hoa','cong','SSS',['crown','#1a1a1a','#c89a6a','#6a1a1a','#ffb020','glaive',0],
+  ['Đao Đại Hành','single',1.1],['Phá Tống Bình Chiêm','row',2.0,2,'nga',[['burn',.8,2]],{},'Hai nhát đại đao vào một hàng địch, Quật Ngã, có thể gây Bỏng.'],['Đại Hành','tung','nga',1.2,2],
+  ['strike',1.5,2],['critDmg',.4],'ls','Lên ngôi năm 980 (Lê Đại Hành), mở đầu nhà Tiền Lê. Năm 981 lãnh đạo quân dân đánh bại quân Tống xâm lược.'],
+ ['lynamde','Lý Nam Đế','Vua Nước Vạn Xuân','suviet','kim','thu','SSS',['crown','#1a1a1a','#d8a878','#8a6a1a','#ffd24a','sword',0],
+  ['Kiếm Vạn Xuân','single',1.0,0,'nga'],['Vạn Xuân Trường Tồn','front',1.3,1,'lui',[['stun',.4,1]],{shieldAll:.28},'Dựng thành Vạn Xuân: đánh hàng trước địch, Đẩy Lùi, có thể gây Choáng; cả đội nhận khiên 28% máu.'],['Thủ Thành','tung','lui',1.0,2],
+  ['shield',.18,3],['tenacity',0],'ls','Lý Bí, khởi nghĩa chống nhà Lương; năm 544 lên ngôi, xưng Lý Nam Đế, đặt quốc hiệu Vạn Xuân.'],
+ ['trieuquangphuc','Triệu Quang Phục','Dạ Trạch Vương','suviet','thuy','am','SSS',['hood','#1a1a1a','#c89a6a','#2a4a3a','#5fd068','spear',0],
+  ['Phục Kích Đầm Lầy','back',1.1],['Móng Rồng Dạ Trạch','backone',3.0,1,'tung',[['silence',.6,1]],{},'Từ đầm Dạ Trạch lao ra đâm một địch hàng sau, Hất Tung, có thể Câm lặng.'],['Ẩn Đầm','lui','tung',1.25,3],
+  ['debuff',1.3,2],['dodge',.25],'ls','Tướng của Lý Nam Đế, rút về đầm Dạ Trạch đánh du kích chống quân Lương, được gọi là Dạ Trạch Vương. Tương truyền ông được trao móng rồng gắn lên mũ đâu mâu.'],
+ ['maithucloan','Mai Thúc Loan','Mai Hắc Đế','suviet','hoa','cong','SSS',['wild','#1a1a1a','#8a6040','#3a1a1a','#ff7a3a','glaive',0],
+  ['Đao Hoan Châu','single',1.1],['Hắc Đế Nộ Hoả','all',1.7,1,'tung',[['burn',1,3]],{},'Lửa khởi nghĩa Hoan Châu thiêu toàn bộ địch: Hất Tung, chắc chắn gây Bỏng 3 lượt.'],['Lửa Hoan Châu','nga','tung',1.15,2],
+  ['bleed',1.4,2],['lifesteal',.2],'ls','Khởi nghĩa ở Hoan Châu năm 722 chống ách đô hộ nhà Đường, xưng hoàng đế; dân gian gọi là Mai Hắc Đế (vua Đen) vì ông có nước da đen.'],
+ ['phunghung','Phùng Hưng','Bố Cái Đại Vương','suviet','tho','thu','SSS',['wild','#1a1a1a','#a87a54','#5a3a1a','#d0a060','fist',0],
+  ['Tay Không Đánh Hổ','single',1.05,0,'nga'],['Vật Trâu Đánh Hổ','front',1.5,1,'tung',[['stun',.6,1]],{shieldAll:.2},'Sức vật trâu đánh hổ: đánh hàng trước địch, Hất Tung, có thể gây Choáng; cả đội nhận khiên 20% máu.'],['Quật Hổ','tung','nga',1.1,2],
+  ['shield',.15,3],['counter',.3],'ls','Hào trưởng đất Đường Lâm, khởi nghĩa chống nhà Đường cuối thế kỷ VIII. Tương truyền ông có sức khoẻ phi thường, tay không đánh hổ. Sau khi mất được tôn là Bố Cái Đại Vương.'],
+ ['nguyentrai','Nguyễn Trãi','Mưu Sĩ Lam Sơn','suviet','moc','ho','SSS',['hat','#1a1a1a','#d8a878','#2a4a2a','#e8e0c0','brush',0],
+  ['Bút Phạt Giặc','single',1.0],['Bình Ngô Đại Cáo','allyall',0,1,null,null,{heal:.22,buff:['atkup',2],chakra:20},'Áng văn Bình Ngô đại cáo: cả đội hồi 22% máu, tăng tấn công 2 lượt và hồi 20 Nộ.'],['Tâm Công','nga',null,1.0,2],
+  ['chakra',15,3],['regen',.05],'ls','Mưu sĩ của Lê Lợi trong khởi nghĩa Lam Sơn, chủ trương đánh vào lòng người. Năm 1428 ông soạn Bình Ngô đại cáo.'],
+ ['tranquangkhai','Trần Quang Khải','Thượng Tướng Chương Dương','suviet','hoa','cong','SSS',['helm','#1a1a1a','#d8a878','#7a1a1a','#ffb020','sword',0],
+  ['Kiếm Chương Dương','single',1.1],['Đoạt Giáo Chương Dương','row',2.0,2,'lui',[['burn',.7,2]],{},'Đánh úp bến Chương Dương: hai nhát vào một hàng địch, Đẩy Lùi, có thể gây Bỏng.'],['Đoạt Sáo','lui','nga',1.2,3],
+  ['strike',1.5,2],['critDmg',.35],'ls','Thượng tướng nhà Trần, chỉ huy trận Chương Dương năm 1285 trong kháng chiến chống quân Nguyên. Ông để lại bài thơ "Tụng giá hoàn kinh sư" (Đoạt sáo Chương Dương độ).'],
+ ['phamngulao','Phạm Ngũ Lão','Điện Súy Thượng Tướng','suviet','tho','am','SSS',['short','#1a1a1a','#a87a54','#4a3a2a','#c8201a','spear',0],
+  ['Giáo Đan Sọt','back',1.1],['Hoành Sóc Giang Sơn','lowest',3.0,1,'nga',[['bleed',1,2]],{},'Cắp ngang ngọn giáo giữ non sông: đâm địch yếu nhất, Quật Ngã, chắc chắn Chảy máu.'],['Giáo Ngang','nga','lui',1.25,3],
+  ['bleed',1.4,2],['tenacity',0],'ls','Tương truyền khi ngồi đan sọt bên đường mải nghĩ việc nước, quân lính lấy giáo đâm vào đùi mà không biết; Hưng Đạo Vương trọng dụng ông. Ông để lại bài thơ "Thuật hoài" (Hoành sóc giang sơn…).'],
+ ['tranquoctoan','Trần Quốc Toản','Hoài Văn Hầu','suviet','hoa','am','SSS',['short','#1a1a1a','#e8c0a0','#c8201a','#ffd24a','flag',0],
+  ['Cờ Thêu Sáu Chữ','back',1.1],['Phá Cường Địch Báo Hoàng Ân','backcol',2.5,1,'tung',[['burn',1,2]],{},'Giương cờ "Phá cường địch, báo hoàng ân" xông vào hàng sau địch: Hất Tung, chắc chắn Bỏng.'],['Quả Cam','tung','nga',1.2,3],
+  ['bleed',1.3,2],['berserk',.7],'ls','Tuổi còn nhỏ, không được dự bàn việc nước ở bến Bình Than, uất ức bóp nát quả cam lúc nào không biết. Về nhà ông chiêu tập gia binh, dựng cờ thêu sáu chữ "Phá cường địch, báo hoàng ân" đi đánh giặc Nguyên.'],
+ ['tranbinhtrong','Trần Bình Trọng','Bảo Nghĩa Vương','suviet','kim','thu','SSS',['helm','#1a1a1a','#c89a6a','#4a4a5a','#d9dee8','sword',0],
+  ['Kiếm Thiên Mạc','single',1.0,0,'nga'],['Quỷ Nước Nam','front',1.4,1,'lui',[['stun',.5,1]],{shieldAll:.25},'Chặn hậu cho cả đội: đánh hàng trước địch, Đẩy Lùi, có thể gây Choáng; cả đội nhận khiên 25% máu.'],['Chặn Hậu','tung','lui',1.05,2],
+  ['shield',.16,3],['thorns',.25],'ls','Tướng nhà Trần, năm 1285 chặn đánh quân Nguyên để bảo vệ cuộc rút lui, bị bắt. Giặc dụ hàng, ông khẳng khái: "Ta thà làm quỷ nước Nam chứ không thèm làm vương đất Bắc."'],
+ ['lelai','Lê Lai','Liều Mình Cứu Chúa','suviet','tho','thu','SSS',['khan','#1a1a1a','#c89a6a','#2a5a2a','#ffd24a','sword',0],
+  ['Kiếm Lam Sơn','single',1.0,0,'nga'],['Liều Mình Cứu Chúa','front',1.2,1,'lui',[['stun',.5,1]],{shieldAll:.35},'Khoác áo bào chủ tướng lao vào vòng vây: đánh hàng trước, Đẩy Lùi, có thể gây Choáng; cả đội nhận khiên 35% máu.'],['Mở Vây','tung','lui',1.0,2],
+  ['shield',.2,3],['revive',.25],'ls','Tướng khởi nghĩa Lam Sơn. Khi nghĩa quân bị vây, ông mặc áo bào giả làm Lê Lợi xông ra phá vòng vây và hy sinh, giúp chủ tướng thoát nạn.'],
+ ['buithixuan','Bùi Thị Xuân','Nữ Tướng Tây Sơn','suviet','moc','am','SSS',['pony','#1a1a1a','#e8c0a0','#2a6a3a','#ffd24a','sword',1],
+  ['Song Kiếm Tây Sơn','back',1.1],['Tượng Binh Tây Sơn','backcol',2.6,1,'tung',[['bleed',.9,2]],{},'Chỉ huy tượng binh đánh thốc vào hàng sau địch, Hất Tung, có thể gây Chảy máu.'],['Kiếm Song Đao','nga','tung',1.25,3],
+  ['strike',1.5,2],['dodge',.2],'ls','Nữ tướng nhà Tây Sơn, nổi tiếng giỏi võ nghệ; tương truyền bà rèn luyện và chỉ huy đội tượng binh.'],
+ ['lechan','Lê Chân','Nữ Tướng An Biên','suviet','thuy','cong','SSS',['bun','#1a1a1a','#e8c0a0','#1a4a7a','#4aa8ff','sword',1],
+  ['Kiếm Ven Biển','single',1.1],['Sóng Dữ An Biên','all',1.6,2,'lui',[['silence',.4,1]],{},'Sóng biển An Biên cuốn hai đợt vào toàn bộ địch, Đẩy Lùi, có thể Câm lặng.'],['Thuỷ Trận','lui','nga',1.15,2],
+  ['aoe',.85,3],['lifesteal',.2],'ls','Nữ tướng của Hai Bà Trưng. Tương truyền bà lập trang An Biên ven biển, nơi về sau phát triển thành Hải Phòng.'],
+ ['lycongtuan','Lý Công Uẩn','Lý Thái Tổ','suviet','moc','ho','SSS',['crown','#1a1a1a','#e0b890','#a07a1a','#ffd24a','scroll',0],
+  ['Chiếu Lệnh','single',1.0],['Chiếu Dời Đô','allyall',0,1,null,null,{heal:.2,shieldAll:.2,buff:['atkup',2]},'Ban Chiếu dời đô: cả đội hồi 20% máu, khiên 20% máu và tăng tấn công 2 lượt.'],['Rồng Bay','nga',null,1.0,2],
+  ['healAll',.1,3],['regen',.05],'ls','Vua đầu tiên của nhà Lý. Năm 1010 ban Chiếu dời đô từ Hoa Lư ra thành Đại La và đổi tên là Thăng Long.'],
+ ['tiendung','Tiên Dung','Công Chúa Họ Hùng','thanthoai','thuy','ho','SSS',['tiara','#1a1a1a','#f0d0b0','#4aa8d8','#ffd24a','fan',1],
+  ['Quạt Lụa','single',1.0],['Màn Che Bãi Tự Nhiên','allyall',0,1,null,null,{heal:.25,cleanse:1,chakra:15},'Vây màn che: cả đội hồi 25% máu, xoá hiệu ứng xấu và hồi 15 Nộ.'],['Gió Quạt','lui',null,1.0,2],
+  ['heal',.28,2],['regen',.05],'dg','Công chúa con vua Hùng. Theo truyền thuyết, nàng cho vây màn tắm ở bãi cát và gặp Chử Đồng Tử đang vùi mình dưới cát; hai người nên duyên rồi cùng nhau học đạo.'],
+ ['mychau','Mỵ Châu','Công Chúa Thành Ốc','thanthoai','kim','ho','SSS',['tiara','#1a1a1a','#f0d0b0','#e8e0f0','#ffffff','fan',1],
+  ['Lông Ngỗng Bay','single',1.0],['Ngọc Trai Giếng Nước','allyall',0,1,null,null,{heal:.3,revive:.3},'Ngọc trai trong giếng sáng lên: cả đội hồi 30% máu và hồi sinh một đồng đội với 30% máu.'],['Áo Lông Ngỗng','nga',null,1.0,2],
+  ['healAll',.1,3],['chakraKill',10],'dg','Con gái An Dương Vương, vợ Trọng Thuỷ. Theo truyền thuyết, nàng để chồng đánh tráo lẫy nỏ thần và rắc lông ngỗng chỉ đường; máu nàng chảy xuống biển, trai ăn phải hoá ngọc, rửa nước giếng nơi Trọng Thuỷ trầm mình thì ngọc sáng hơn.'],
+ ['kinhduongvuong','Kinh Dương Vương','Vua Nước Xích Quỷ','thanthoai','hoa','ho','SSS',['crown','#1a1a1a','#c89a6a','#c8201a','#ffd24a','staff',0],
+  ['Trượng Xích Quỷ','single',1.0],['Xích Quỷ Khai Quốc','allyall',0,1,null,null,{shieldAll:.3,buff:['atkup',2],chakra:20},'Khai mở nước Xích Quỷ: cả đội nhận khiên 30% máu, tăng tấn công 2 lượt và hồi 20 Nộ.'],['Hoả Trượng','tung',null,1.0,2],
+  ['chakra',15,3],['regen',.04],'dg','Theo truyền thuyết thời Hồng Bàng, ông làm vua nước Xích Quỷ, lấy Long Nữ con Động Đình Quân, sinh ra Lạc Long Quân.'],
+ ['lyongtrong','Lý Ông Trọng','Người Khổng Lồ Từ Liêm','thanthoai','tho','thu','SSS',['shave','#1a1a1a','#a87a54','#5a4a3a','#d0a060','hammer',0],
+  ['Búa Khổng Lồ','single',1.0,0,'nga'],['Tượng Đồng Trấn Ải','front',1.5,1,'tung',[['stun',.7,1]],{shieldAll:.22},'Thân khổng lồ như tượng đồng trấn ải: đánh hàng trước địch, Hất Tung, thường gây Choáng; cả đội nhận khiên 22% máu.'],['Dậm Đất','tung','nga',1.1,2],
+  ['stun',1.1,3],['tenacity',0],'dg','Theo Việt Điện U Linh tập, ông là người khổng lồ quê huyện Từ Liêm, sang làm quan nhà Tần đánh Hung Nô; nhà Tần đúc tượng đồng hình ông. Ông được thờ ở đình Chèm (Hà Nội).'],
+ ['thandongco','Thần Đồng Cổ','Thần Hội Thề','thanthoai','kim','ho','SSS',['helm','#1a1a1a','#c8a070','#3a3a6a','#ffd24a','bell',0],
+  ['Trống Đồng Vang','single',1.0],['Lời Thề Đồng Cổ','allyall',0,1,null,null,{shieldAll:.25,cleanse:1,buff:['atkup',2],chakra:15},'Hội thề trung hiếu: cả đội nhận khiên 25% máu, xoá hiệu ứng xấu, tăng tấn công 2 lượt, hồi 15 Nộ.'],['Tiếng Trống','lui',null,1.0,2],
+  ['cleanse',0,3],['chakraKill',10],'dg','Thần núi Đồng Cổ. Tương truyền thần báo mộng giúp Lý Thái Tổ đánh Chiêm Thành và báo trước cho Lý Thái Tông loạn Tam vương (1028); vua lập đền và mở hội thề trung hiếu hằng năm.'],
+ ['trannhatduat','Trần Nhật Duật','Chiêu Văn Vương','suviet','thuy','ho','SSS',['short','#1a1a1a','#e0b890','#2a5a8a','#e8e0c0','brush',0],
+  ['Thư Pháp','single',1.0],['Đại Thắng Hàm Tử','allyall',0,1,null,null,{heal:.18,buff:['atkup',3],chakra:25},'Thắng trận Hàm Tử: cả đội hồi 18% máu, tăng tấn công 3 lượt, hồi 25 Nộ.'],['Thông Ngữ','nga',null,1.0,2],
+  ['chakra',15,3],['regen',.04],'ls','Hoàng tử nhà Trần, nổi tiếng thông thạo tiếng nói và phong tục nhiều dân tộc. Năm 1285 ông chỉ huy trận Hàm Tử đánh bại quân Nguyên.'],
+ ['trankhanhdu','Trần Khánh Dư','Phiêu Kỵ Đại Tướng','suviet','thuy','am','SSS',['hood','#1a1a1a','#c89a6a','#1a2a4a','#4aa8ff','kunai',0],
+  ['Tập Kích Thuyền','back',1.1],['Vân Đồn Đốt Lương','backcol',2.6,1,'lui',[['burn',.8,2],['defdown',.6,2]],{},'Đánh úp đoàn thuyền lương: tấn công hàng sau địch, Đẩy Lùi, có thể gây Bỏng và giảm phòng thủ.'],['Đánh Úp','lui','tung',1.25,3],
+  ['debuff',1.3,2],['exec',.35],'ls','Tướng nhà Trần. Năm 1288 ông chỉ huy trận Vân Đồn, đánh tan đoàn thuyền lương của quân Nguyên do Trương Văn Hổ chỉ huy.'],
+ ['lephunghieu','Lê Phụng Hiểu','Đô Thống Nhà Lý','suviet','moc','cong','SSS',['wild','#1a1a1a','#a87a54','#3a5a2a','#c8201a','glaive',0],
+  ['Phi Đao','back',1.1],['Thác Đao Điền','row',2.0,1,'tung',[['bleed',.8,2]],{},'Ném đại đao xa hàng chục dặm: đánh một hàng địch, Hất Tung, có thể gây Chảy máu.'],['Đao Bay','tung','lui',1.2,3],
+  ['strike',1.5,2],['berserk',.5],'ls','Tướng nhà Lý, có công dẹp loạn Tam vương năm 1028. Tương truyền ông xin vua cho ném đao, đao rơi đến đâu thì được ban ruộng đến đó – ruộng ấy gọi là "thác đao điền".']];
+const SIG10={haibatrung:'beast',batrieu:'beast',ngoquyen:'flood',hungdao:'crane',leloi:'serpent',quangtrung:'horse',lythuongkiet:'flood',dinhbolinh:'horse',lehoan:'beast',lynamde:'mountain',trieuquangphuc:'serpent',maithucloan:'beast',phunghung:'mountain',nguyentrai:'crane',tranquangkhai:'flood',phamngulao:'horse',tranquoctoan:'beast',tranbinhtrong:'mountain',lelai:'mountain',buithixuan:'beast',lechan:'flood',lycongtuan:'serpent',tiendung:'crane',mychau:'crane',kinhduongvuong:'serpent',lyongtrong:'mountain',thandongco:'mountain',trannhatduat:'crane',trankhanhdu:'flood',lephunghieu:'horse'};
+const SN10={haibatrung:'Hai Bà',batrieu:'Bà Triệu',ngoquyen:'Ngô Quyền',hungdao:'Hưng Đạo',quangtrung:'Quang Trung',lythuongkiet:'Thường Kiệt',dinhbolinh:'Bộ Lĩnh',trieuquangphuc:'Quang Phục',maithucloan:'Hắc Đế',phunghung:'Phùng Hưng',nguyentrai:'Nguyễn Trãi',tranquangkhai:'Quang Khải',phamngulao:'Ngũ Lão',tranquoctoan:'Quốc Toản',tranbinhtrong:'Bình Trọng',buithixuan:'Thị Xuân',lycongtuan:'Công Uẩn',kinhduongvuong:'Kinh Dương',lyongtrong:'Ông Trọng',thandongco:'Đồng Cổ',trannhatduat:'Nhật Duật',trankhanhdu:'Khánh Dư',lephunghieu:'Phụng Hiểu'};
+H10.forEach(([id,n,t,v,el,r,rar,look,A,U,C,s2,tal,o,bio])=>{
+ const T=stdStat(rar,r);const h={id,n,t,v,el,r,rar,hp:T.hp,atk:T.atk,def:T.def,spd:T.spd,look,
+  a:{n:A[0],tg:A[1],m:A[2],...(A[4]?{st:A[4]}:{})},
+  u:Object.assign({n:U[0],cost:50,tg:U[1],m:U[2],...(U[3]>1?{h:U[3]}:{}),...(U[4]?{st:U[4]}:{}),fx:el,d:U[7]},U[5]?{eff:U[5]}:{},U[6]||{}),
+  c:{n:C[0],on:C[1],give:C[2],m:C[3],h:C[4]}};
+ // cá tính ±6% từ vai trò & hệ để không ai giống hệt ai
+ const dv={hp:0,atk:0,def:0,spd:0};const hsh=[...id].reduce((a,ch)=>a*31+ch.charCodeAt(0)>>>0,7);['hp','atk','def','spd'].forEach((k,i)=>{dv[k]=((hsh>>(i*5))%13-6);h[k]=Math.round(T[k]*(1+dv[k]/100));});h.dev=dv;
+ const sk={k:s2[0],cd:s2[2]};if(['shield','heal','healAll'].includes(s2[0]))sk.v=s2[1];else if(s2[0]==='chakra')sk.v=s2[1];else if(s2[0]==='cleanse')sk.v=.12;else if(s2[0]!=='cleanse'&&s2[0]!=='buffAtk')sk.m=s2[1];
+ sk.n={shield:'Hộ Thể',heal:'Hồi Phục',healAll:'Hồi Sức',chakra:'Khích Lệ',cleanse:'Thanh Tẩy',buffAtk:'Cổ Vũ',aoe:'Quét Ngang',strike:'Trọng Kích',bleed:'Rạch Giáp',debuff:'Phá Giáp',stun:'Chấn Động',silence:'Phong Ấn'}[s2[0]];if(s2[0]==='strike')sk.st='nga';
+ S2[id]=sk;h.s2=sk;TAL[id]=tal;h.tp={k:tal[0],v:tal[1]||0};BIO[id]=[o,bio];SIG[id]=SIG10[id];if(SN10[id])h.sn=SN10[id];
+ H.push(h);HB[id]=h;POOL.push(h);if(rar==='UR'){URH.push(h);URS.push(id);}});
+for(const k in PCACHE)delete PCACHE[k];
+BONDS.push(
+ {n:'Bạch Đằng Giang',ids:['ngoquyen','lehoan','hungdao'],d:'Ba chiến thắng Bạch Đằng (938, 981, 1288): cả đội +20% tấn công, +10% tốc độ',fx:{atk:.2,spd:.1},all:1},
+ {n:'Hào Khí Đông A',ids:['hungdao','tranquangkhai','trannhatduat'],d:'Hưng Đạo, Quang Khải, Nhật Duật: cả đội +15% máu, +15% tấn công',fx:{hp:.15,atk:.15},all:1},
+ {n:'Sát Thát',ids:['phamngulao','tranquoctoan','tranbinhtrong'],d:'Phạm Ngũ Lão, Trần Quốc Toản, Trần Bình Trọng: cả đội +18% tấn công',fx:{atk:.18},all:1},
+ {n:'Lam Sơn Tụ Nghĩa',ids:['leloi','nguyentrai','lelai'],d:'Lê Lợi, Nguyễn Trãi, Lê Lai: cả đội +15% máu, +12% phòng thủ, +8% tốc độ',fx:{hp:.15,def:.12,spd:.08},all:1},
+ {n:'Anh Thư Nước Việt',ids:['haibatrung','batrieu','lechan'],d:'Hai Bà Trưng, Bà Triệu, Lê Chân: cả đội +15% tấn công, +15% máu',fx:{atk:.15,hp:.15},all:1},
+ {n:'Tây Sơn Thần Tốc',ids:['quangtrung','buithixuan'],d:'Quang Trung và Bùi Thị Xuân +25% tấn công, +15% tốc độ',fx:{atk:.25,spd:.15},all:0},
+ {n:'Thăng Long Định Đô',ids:['lycongtuan','lythuongkiet','lephunghieu'],d:'Lý Công Uẩn, Lý Thường Kiệt, Lê Phụng Hiểu: cả đội +12% công, máu, thủ',fx:{atk:.12,hp:.12,def:.12},all:1},
+ {n:'Vạn Xuân Bất Khuất',ids:['lynamde','trieuquangphuc','phunghung'],d:'Lý Nam Đế, Triệu Quang Phục, Phùng Hưng: cả đội +18% máu, +10% phòng thủ',fx:{hp:.18,def:.1},all:1},
+ {n:'Hồng Bàng Thị Tộc',ids:['kinhduongvuong','laclong','auco'],d:'Kinh Dương Vương, Lạc Long Quân, Âu Cơ: cả đội +15% công, máu, +10% tốc độ',fx:{atk:.15,hp:.15,spd:.1},all:1},
+ {n:'Bãi Tự Nhiên',ids:['chudongtu','tiendung'],d:'Chử Đồng Tử và Tiên Dung +20% máu, +20% phòng thủ',fx:{hp:.2,def:.2},all:0},
+ {n:'Thành Ốc Cổ Loa',ids:['anduongvuong','mychau','caolo'],d:'An Dương Vương, Mỵ Châu, Cao Lỗ: cả đội +12% tấn công, +12% máu',fx:{atk:.12,hp:.12},all:1});
+
+/* ---------- mũi tên chuyển tướng ---------- */
+let NAVLIST=null;
+const _hd10=heroDetail;
+heroDetail=function(id){const backAt=detailBack;_hd10(id);const ms=GAME.querySelectorAll('.modal'),m=ms[ms.length-1];if(!m)return;
+ let L=NAVLIST&&NAVLIST.includes(id)?NAVLIST:null;
+ if(!L){L=S.owned[id]?Object.keys(S.owned).sort((a,b)=>RK.indexOf(HB[a].rar)-RK.indexOf(HB[b].rar)||powerFull(b)-powerFull(a)):POOL.slice().sort((a,b)=>RK.indexOf(a.rar)-RK.indexOf(b.rar)).map(h=>h.id);NAVLIST=L;}
+ const i=L.indexOf(id),n=L.length;if(n<2)return;
+ const nav=d=>{const nx=L[(i+d+n)%n];document.removeEventListener('keydown',key);m.remove();detailBack=backAt;heroDetail(nx);};
+ const key=e=>{if(!m.isConnected){document.removeEventListener('keydown',key);return;}if(e.key==='ArrowLeft')nav(-1);else if(e.key==='ArrowRight')nav(1);};document.addEventListener('keydown',key);
+ const mk=(d,side)=>{const b=document.createElement('button');b.className='navarr';b.setAttribute('aria-label',d<0?'Tướng trước':'Tướng sau');b.style[side]='4px';
+  b.innerHTML=`<svg viewBox="0 0 48 48"><path d="${d<0?'M30 10 L16 24 L30 38':'M18 10 L32 24 L18 38'}" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg><small>${sn(HB[L[(i+d+n)%n]])}</small>`;b.onclick=()=>nav(d);m.appendChild(b);};
+ mk(-1,'left');mk(1,'right');m.insertAdjacentHTML('beforeend',`<div class="stk navcnt">${i+1} / ${n}</div>`);};
+document.head.insertAdjacentHTML('beforeend',`<style>.navarr{position:absolute;top:50%;transform:translateY(-50%);z-index:60;width:64px;height:96px;border-radius:18px;border:3px solid #ffe066;background:linear-gradient(180deg,#ffb020,#c8601a);box-shadow:0 5px 0 #6a2a00,0 0 16px #0008;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;color:#fff}
+.navarr svg{width:40px;height:40px}.navarr small{font:800 11px "Baloo 2",sans-serif;max-width:60px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-shadow:0 1px 0 #000}.navarr:active{transform:translateY(-46%)}
+.navcnt{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:60;font-size:16px;font-weight:800;background:#0008;border-radius:10px;padding:0 12px}</style>`);
+// danh sách theo ngữ cảnh: màn Nhẫn giả, Hồ sơ
+const _ros10=VIEWS.roster;VIEWS.roster=function(a){NAVLIST=null;_ros10(a);};
+const _cx10=VIEWS.codex;VIEWS.codex=function(t){_cx10(t);if((t||'list')==='list'){const ids=[...scr.querySelectorAll('tr[data-id]')].map(tr=>tr.dataset.id);scr.querySelectorAll('tr[data-id]').forEach(tr=>{const o=tr.onclick;tr.onclick=()=>{NAVLIST=ids;o();};});}};
+
+/* ---------- Ải Thức Tỉnh: 200 tầng, khó hơn ---------- */
+/* ---------- ĐẤU TRƯỜNG MỚI ---------- */
+const ARB=['Sóng Mỹ Khê','Rồng Đêm 99','Voọc Sơn Trà','Gió Hải Vân','Đá Non Nước','Đèn Lồng Hội An','Cát Trắng Nam Ô','Mây Bà Nà','Thuyền Thúng 7','Hổ Ngũ Hành','Kiếm Khách Sông Hàn','Ngư Ông Thanh Khê','Lửa Cầu Rồng','Hạc Trắng Sơn Trà','Vân Đèo 2','Tiểu Long Nữ','Gậy Tre Làng','Bão Biển Đông','Mắt Bão','Sấm Hải Vân','Nón Lá Xứ Quảng','Mì Quảng Cay','Bánh Tráng Tuý Loan','Hồn Đá Ngũ Hành','Kỳ Lân Đỏ','Rùa Vàng','Đại Bàng Núi','Ánh Trăng Cuội','Sao Băng 88','Thần Tốc Tây Sơn','Cọc Bạch Đằng','Cờ Lau Hoa Lư','Trống Đồng 1010','Vạn Xuân','Cổ Loa Nỏ Thần','Tượng Binh','Hịch Tướng Sĩ','Gươm Hồ Tả Vọng','Ải Chi Lăng','Bến Chương Dương'];
+const ARK=[[0,'Đồng','#b87a4a'],[1200,'Bạc','#c8d0dc'],[1600,'Vàng','#ffd24a'],[2100,'Bạch Kim','#8ae0e8'],[2700,'Kim Cương','#6ab0ff'],[3400,'Cao Thủ','#d08aff'],[4200,'Huyền Thoại','#ff5a5a']];
+const arTier=p=>{let t=ARK[0];ARK.forEach(k=>{if(p>=k[0])t=k;});return t;};
+function arBots(){const day=Math.floor(Date.now()/86400000);return ARB.map((nm,i)=>{const r=mulberry(i*977+13);const base=700+Math.round(Math.pow(i/ARB.length,1.6)*3900);const pts=base+Math.round(r()*120)+((day*37+i*11)%60);
+ const pool=POOL.filter(h=>h.rar!=='B');const lead=pool[Math.floor(r()*pool.length)].id;return{nm,pts,lead,bot:1};});}
+function arTable(){const me={nm:'Bạn',pts:S.arena.pts,lead:S.team.find(Boolean)||'long',me:1};return arBots().concat([me]).sort((a,b)=>b.pts-a.pts);}
+function arFoes(seed,k,strong){const rnd=mulberry(seed*131+k*17+(strong?999:0));const mult=(strong?[1.2,1.4,1.65,1.95,2.3]:[0.8,0.95,1.1,1.3,1.55])[k];
+ const rs=k>=3||strong?['S','SS','SSS','UR']:k>=1?['A','S','SS','SSS']:['A','S','SS'];const pool=POOL.filter(h=>rs.includes(h.rar));const ids=[];while(ids.length<6){const h=pool[Math.floor(rnd()*pool.length)];if(!ids.includes(h.id))ids.push(h.id);}
+ const lv=Math.max(1,Math.min(600,Math.round(avgLv())));const st=Math.min(5,1+k+(strong?1:0));const P=teamPower()*mult;const p0=ids.reduce((a,id)=>a+powerOf(HB[id],lv,st),0)||1;const m=Math.max(0.6,P/p0);
+ const bots=arBots();const nm=bots[Math.floor(rnd()*bots.length)].nm;const pts=Math.max(0,S.arena.pts+Math.round((mult-1)*600+(rnd()-0.5)*80));
+ return{nm,pts,lv,foes:ids.map((id,i)=>({id,slot:i,m,star:st})),power:Math.round(P),gain:Math.round((strong?[22,30,40,52,66]:[10,16,24,34,46])[k]),mult};}
+VIEWS.arena=function(){S.arena.seed=S.arena.seed||1;S.arena.strong=!!S.arena.strong;if(S.arena.rd!==today()){S.arena.rd=today();S.arena.ref=5;S.arena.claim=0;}
+ scr.appendChild(sceneCanvas('caurong'));const T=arTable(),myR=T.findIndex(x=>x.me)+1,tier=arTier(S.arena.pts);
+ scr.insertAdjacentHTML('beforeend',`${backB()}${curBar()}
+ <div class="wood rise" style="position:absolute;left:24px;top:92px;width:430px;bottom:14px;padding:46px 14px 12px;display:flex;flex-direction:column"><div class="title-rib stk" style="font-size:22px">Bảng Vàng Đấu Trường</div>
+  <div id="podium" style="position:relative;height:230px;flex:none"></div>
+  <div id="arT" class="parch" style="flex:1;overflow:auto;padding:4px 8px;font-size:15px"></div>
+  <div class="stk" style="margin-top:6px;font-size:15px">Hạng của bạn: <b style="color:#ffe066">#${myR}</b> / ${T.length}</div>
+  <button class="gb sm red" id="arClaim" ${S.arena.claim?'disabled':''}>${S.arena.claim?'Đã nhận thưởng hạng hôm nay':'Nhận thưởng hạng hôm nay: '+arRw(myR).t}</button></div>
+ <div class="wood rise" style="position:absolute;left:470px;right:24px;top:92px;bottom:14px;padding:46px 16px 12px;display:flex;flex-direction:column;gap:8px"><div class="title-rib stk">Khiêu chiến</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap" class="stk"><span style="font-size:19px;font-weight:800">Điểm <b style="color:#ffe066">${S.arena.pts}</b> · <b style="color:${tier[2]}">${tier[1]}</b> · ${S.arena.w} thắng / ${S.arena.l} thua</span>
+   <span style="margin-left:auto;display:flex;gap:8px"><button class="gb sm ${S.arena.strong?'red':''}" id="arStr">${S.arena.strong?'Chế độ: Đối thủ mạnh ✔':'Tìm đối thủ mạnh hơn'}</button><button class="gb sm blue" id="arRef">Làm mới ${S.arena.ref>0?'(miễn phí '+S.arena.ref+')':'· 20 ngọc'}</button></span></div>
+  <div class="stk" style="font-size:13px">Đối thủ mạnh hơn cho nhiều điểm hơn. Thua trừ 10 điểm. Lực chiến đội bạn: <b>${fmt(teamPower())}</b></div>
+  <div id="alist" style="display:flex;flex-direction:column;gap:8px;flex:1;overflow:auto"></div></div>`);
+ // bục vinh danh
+ const pod=$('podium');[[1,'#ffd24a',150,0],[0,'#c8d0dc',120,-1],[2,'#d08a4a',100,1]].forEach(([idx,col,hgt,pos])=>{const x=T[idx===1?0:idx===0?1:2];if(!x)return;const rank=idx===1?1:idx===0?2:3;
+  const w=document.createElement('div');w.style.cssText=`position:absolute;bottom:0;left:${135+pos*130}px;width:128px;text-align:center`;
+  const cv=document.createElement('canvas');cv.width=120;cv.height=120;cv.style.cssText='width:84px;height:84px;display:block;margin:0 auto -6px;border-radius:50%;border:4px solid '+col+';background:#0004';cv.getContext('2d').drawImage(portraitURL(x.lead,120),0,0,120,120);
+  w.appendChild(cv);w.insertAdjacentHTML('beforeend',`<div class="stk" style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${x.me?'color:#7cffb0':''}">${x.nm}</div><div class="stk" style="font-size:12px">${x.pts} điểm</div>
+   <div style="height:${hgt-60}px;margin-top:4px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,${col},${shade(col,-0.4)});border:3px solid #3b1e0c;display:flex;align-items:flex-start;justify-content:center"><b style="font:${rank===1?44:34}px Bungee,sans-serif;color:#fff;-webkit-text-stroke:2px #3b1e0c">${rank}</b></div>`);pod.appendChild(w);});
+ $('arT').innerHTML=T.slice(3,30).map((x,i)=>`<div style="display:flex;gap:8px;padding:3px 4px;border-bottom:1px solid #d8b880;${x.me?'background:#7cffb055;font-weight:800':''}"><b style="width:30px">#${i+4}</b><span style="flex:1">${x.nm}</span><span style="color:${arTier(x.pts)[2]};text-shadow:0 1px 0 #0008;font-weight:800">${arTier(x.pts)[1]}</span><b style="width:50px;text-align:right">${x.pts}</b></div>`).join('')+(myR>30?`<div style="padding:4px;font-weight:800;background:#7cffb055">#${myR} Bạn · ${S.arena.pts}</div>`:'');
+ $('arClaim').onclick=()=>{const r=arRw(myR);S.gems+=r.gems;S.coins+=r.xu;S.medal=(S.medal||0)+r.medal;if(r.vdb)S.vdb=(S.vdb||0)+r.vdb;S.arena.claim=1;save();AU.chest(3);toast('Nhận '+r.t);go('arena');};
+ $('arStr').onclick=()=>{S.arena.strong=!S.arena.strong;S.arena.seed++;save();go('arena');};
+ $('arRef').onclick=()=>{if(S.arena.ref>0)S.arena.ref--;else{if(S.gems<20){toast('Không đủ ngọc');return;}S.gems-=20;}S.arena.seed++;save();go('arena');};
+ const L=$('alist');for(let k=0;k<5;k++){const F=arFoes(S.arena.seed,k,S.arena.strong);const P=teamPower();const lab=F.mult>=1.5?['Cực khó','#ff4a4a']:F.mult>=1.25?['Rất khó','#ff7a6a']:F.mult>1.05?['Khó','#ffb060']:F.mult>=0.92?['Ngang sức','#ffe066']:['Dễ','#8ae84a'];
+  const row=document.createElement('div');row.className='parch rise';row.style.cssText='display:flex;align-items:center;gap:10px;padding:5px 10px;animation-delay:'+(k*0.05)+'s';
+  row.innerHTML=`<div style="width:170px;flex:none"><b style="font-size:18px">${F.nm}</b><div style="font-size:14px">Lực chiến ${fmt(F.power)} · <b style="color:${lab[1]};text-shadow:0 1px 0 #000">${lab[0]}</b></div><div style="font-size:13px">${F.pts} điểm · thắng <b>+${F.gain}</b></div></div><div class="mini" style="display:flex;gap:4px;flex:1;flex-wrap:wrap"></div>`;
+  const mini=row.querySelector('.mini');F.foes.forEach(f=>{const c=heroCard(f.id,{show:1});c.style.cssText='width:56px;height:56px;border-width:3px';mini.appendChild(c);});
+  const b=document.createElement('button');b.className='gb red sm';b.textContent='Khiêu chiến';b.onclick=()=>startBattle({kind:'arena2',name:F.nm,lv:F.lv,foes:F.foes,gain:F.gain,mult:F.mult});row.appendChild(b);L.appendChild(row);}};
+function arRw(r){const o=r===1?{gems:1000,xu:500000,medal:100,vdb:2}:r===2?{gems:700,xu:350000,medal:70,vdb:1}:r===3?{gems:500,xu:250000,medal:50,vdb:1}:r<=10?{gems:300,xu:150000,medal:30}:r<=20?{gems:150,xu:80000,medal:15}:{gems:60,xu:30000,medal:5};
+ o.t=`${o.gems} ngọc, ${fmt(o.xu)} xu, ${o.medal} huân chương${o.vdb?', '+o.vdb+' vé Đặc biệt':''}`;return o;}
+const _sr10=showResult;
+showResult=function(win){const c=B&&B.cfg;if(!c||c.kind!=='arena2'||B.quit){_sr10(win);return;}
+ const r=$('result');r.hidden=false;const RW=S.cfg.reward||1;let txt;
+ if(win){const xu=Math.round((2000+avgLv()*150)*c.mult*RW),gm=Math.round(30*c.mult*RW);S.arena.pts+=c.gain;S.arena.w++;S.coins+=xu;S.gems+=gm;S.medal=(S.medal||0)+Math.round(8*c.mult);S.arena.seed++;qAdd('win');AU.win();
+  txt=`Điểm hạng +${c.gain} (${S.arena.pts}) · +${fmt(xu)} xu · +${gm} ngọc · +${Math.round(8*c.mult)} huân chương`;}
+ else{S.arena.pts=Math.max(0,S.arena.pts-10);S.arena.l++;AU.lose();txt='Điểm hạng −10. Hãy nâng cấp, mặc đồ nhanh hoặc tự xếp đội hình.';}save();
+ r.innerHTML=`<div class="modal"><div class="wood pop" style="position:relative;width:720px;padding:60px 30px 26px;text-align:center"><div class="title-rib stk">${win?'Chiến thắng':'Thất bại'}</div><p class="stk" style="font-size:20px;margin:0 0 12px">${txt}</p>${statsHTML()}
+ <div style="display:flex;gap:12px;justify-content:center"><button class="gb" id="rOk">Về đấu trường</button></div></div></div>`;
+ $('rOk').onclick=()=>{closeBattle();go('arena');};};
 
 go('hub');
 </script>
