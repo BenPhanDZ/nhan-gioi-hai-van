@@ -32,29 +32,7 @@ const man = fs.existsSync(manPath) ? JSON.parse(fs.readFileSync(manPath, 'utf8')
 const saveState = () => fs.writeFileSync(statePath, JSON.stringify(state, null, 1));
 const saveMan = () => fs.writeFileSync(manPath, JSON.stringify(man, null, 1) + '\n');
 
-// ---------- prompt từ dữ liệu nhân vật ----------
-const HAIR = { spiky: 'spiky', long: 'long straight', wild: 'wild messy', pony: 'ponytail', bun: 'bun', short: 'short', twin: 'twin-tail', hood: 'hooded', shave: 'shaved head with red headband', hat: 'conical Vietnamese non la hat', dragon: 'dragon-horned helmet', crane: 'top-knot with white crane feather', flame: 'flaming spiky', helm: 'samurai-like helmet with red crest', crown: 'golden crown over', tiara: 'long hair with golden tiara,', khan: 'traditional Vietnamese khan dong turban' };
-const WPN = { sword: 'straight sword', fan: 'war fan', staff: 'wooden staff with glowing orb', katana: 'curved sword', scroll: 'magic scroll', claw: 'claw blades', pins: 'throwing kunai', tube: 'scroll tube', lantern: 'red paper lantern', kunai: 'kunai', fist: 'armored gauntlets', oar: 'wooden boat oar', shuriken: 'large shuriken', bow: 'longbow', hammer: 'war hammer', orb: 'glowing orb', trident: 'trident', crane: 'crane-feather fan', bamboo: 'bamboo staff', scythe: 'scythe', axe: 'axe', melon: 'glowing watermelon orb', branch: 'magic branch staff', net: 'fishing net fan', bell: 'bronze bell', disc: 'throwing disc', bowl: 'magic bowl', crossbow: 'crossbow', pillar: 'stone pillar hammer', banh: 'rice-cake scroll', spear: 'spear', glaive: 'glaive', flag: 'battle banner', brush: 'giant calligraphy brush' };
-const ELN = { kim: 'metal', moc: 'wood and leaves', thuy: 'water', hoa: 'fire', tho: 'earth and stone' };
-function colorName(hex) {
-  const n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
-  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
-  if (d < 0.08) return l > 0.85 ? 'white' : l > 0.55 ? 'light grey' : l > 0.25 ? 'grey' : 'black';
-  let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360;
-  const base = h < 15 ? 'red' : h < 40 ? 'orange' : h < 65 ? 'yellow' : h < 160 ? 'green' : h < 195 ? 'cyan' : h < 250 ? 'blue' : h < 290 ? 'purple' : h < 340 ? 'pink' : 'red';
-  return (l < 0.3 ? 'dark ' : l > 0.72 ? 'light ' : '') + base;
-}
-function prompt(h) {
-  const [hair, hc, , out, acc, wpn, fem] = h.look;
-  return [
-    `Stylized chibi ${fem ? 'girl' : 'boy'} ninja warrior, full body, standing A-pose, big head small body`,
-    `${colorName(hc)} ${HAIR[hair] || hair} hair`,
-    `${colorName(out)} ninja outfit with ${colorName(acc)} scarf and belt`,
-    `holding a ${WPN[wpn] || wpn}`,
-    `${ELN[h.el] || h.el} element motifs, Vietnamese folklore inspired`,
-    'low-poly faceted game asset, sharp angular planes, hard edges, crisp silhouette, clean topology, flat cel-shaded colors',
-  ].join(', ');
-}
+import { prompt } from './prompt.mjs';
 
 // ---------- gọi API ----------
 async function api(method, p, body) {

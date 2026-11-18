@@ -3790,13 +3790,24 @@ function c3GlbModel(h,aw){if(!C3.man||!C3.man[h.id])return null;const st=C3.glb[
   m.material=new T.MeshToonMaterial({color:o0.color?o0.color.clone():new T.Color(0xffffff),map:o0.map||null,gradientMap:C3.grad,skinning:sk});
   const ws=new T.Vector3();m.getWorldScale(ws);ol.push([m,sk,0.022/(sc*Math.max(1e-4,(ws.x+ws.y+ws.z)/3))]);});
  for(const [m,sk,w] of ol){const g0=m.geometry;if(C3.FLAT){m.geometry=g0.index?g0.toNonIndexed():g0.clone();m.geometry.computeVertexNormals();m.userData.shared=false;}let o;if(sk){o=new T.SkinnedMesh(g0,c3OutlineMat(w,true));o.bind(m.skeleton,m.bindMatrix);o.bindMode=m.bindMode;o.position.copy(m.position);o.quaternion.copy(m.quaternion);o.scale.copy(m.scale);m.parent.add(o);}
-  else{o=new T.Mesh(g0,c3OutlineMat(w,false));m.add(o);}o.userData.shared=true;o.frustumCulled=m.frustumCulled=false;}
+  else{o=new T.Mesh(g0,c3OutlineMat(w,false));m.add(o);}o.userData.shared=true;o.userData.ol=true;o.frustumCulled=m.frustumCulled=false;}
  let mixer=null;const acts={};if(st.clips.length){mixer=new T.AnimationMixer(src);const pick=re=>st.clips.find(c=>re.test(c.name));
   const cs={idle:pick(/idle|stand|breath/i),run:pick(/run|walk/i),atk:pick(/atk|attack|punch|slash|strike/i)};
   for(const k in cs)if(cs[k])acts[k]=mixer.clipAction(cs[k]);if(!acts.idle&&!acts.run&&!acts.atk)acts.idle=mixer.clipAction(st.clips[0]);}
- if(aw>=3){const ha=new T.Mesh(new T.TorusGeometry(0.26,0.03,6,18),new T.MeshBasicMaterial({color:0xffe066}));ha.position.set(0,(st.e.h||1.95)+0.1,-0.05);ha.rotation.x=Math.PI/2-0.25;G.add(ha);}
- G.userData.rig={glb:true,mixer,acts,holder};return G;}
+ // thức tỉnh I/II/III cho model GLB: I = vòng nguyên tố + ánh phát sáng, II = cánh, III = cánh vàng + áo choàng + hào quang
+ const hs=(st.e.h||1.95)/1.95,ec=EL[h.el].c,gold='#ffcc3a',fx=c3AwFx(G,aw,ec,hs,st.e.wy);
+ if(aw>=1)src.traverse(m=>{if(m.isMesh&&m.material&&m.material.emissive&&!m.userData.ol){m.material.emissive=new T.Color(aw>=3?gold:ec);m.material.emissiveIntensity=0.06+aw*0.05;}});
+ G.userData.rig={glb:true,mixer,acts,holder,WG:fx.WG,HA:fx.HA};return G;}
+function c3AwFx(G,aw,ec,hs,wy){const T=THREE,gold='#ffcc3a',WG=[];let HA=null;if(!aw)return{WG,HA};
+ const ring=new T.Mesh(new T.TorusGeometry(0.42*hs,0.025*hs,6,28),new T.MeshBasicMaterial({color:new T.Color(aw>=3?gold:ec),transparent:true,opacity:0.85,depthWrite:false}));ring.position.y=0.62*hs;ring.rotation.x=Math.PI/2;G.add(ring);
+ if(aw>=2){const wc=aw>=3?gold:ec,y0=(wy||1.05)*hs;[-1,1].forEach(sx=>{for(let i=0;i<(aw>=3?3:2);i++){const g=new T.PlaneGeometry((0.75-i*0.12)*hs*1.15,0.24*hs);g.translate(0.37*hs*1.15,0,0);
+  const w=new T.Mesh(g,new T.MeshBasicMaterial({color:new T.Color(wc),transparent:true,opacity:0.75-i*0.15,side:T.DoubleSide,depthWrite:false}));
+  w.position.set(sx*0.1*hs,y0-i*0.15*hs,-0.3*hs);w.rotation.set(0,sx>0?-0.15:Math.PI+0.15,sx*(0.6-i*0.38));w.userData.z0=w.rotation.z;w.userData.sx=sx;WG.push(w);G.add(w);}});}
+ if(aw>=3){const cp=new T.Mesh(new T.PlaneGeometry(0.62*hs,1.0*hs),new T.MeshToonMaterial({color:new T.Color('#a8181a'),gradientMap:C3.grad,side:T.DoubleSide}));cp.position.set(0,0.62*hs,-0.32*hs);cp.rotation.x=0.12;G.add(cp);
+  HA=new T.Mesh(new T.TorusGeometry(0.26*hs,0.03*hs,6,22),new T.MeshBasicMaterial({color:0xffe066}));HA.position.set(0,2.0*hs+0.05,-0.05);HA.rotation.x=Math.PI/2-0.25;G.add(HA);}
+ return{WG,HA};}
 function c3GlbAnim(r,p,t,fa,fl,wind,swing){const run=Math.abs(fl)>0.35,atk=wind>0.8||swing>0.5;
+ for(const w of r.WG||[])w.rotation.z=w.userData.z0+w.userData.sx*Math.sin(t*5)*0.14;if(r.HA)r.HA.rotation.z=t*1.2;
  r.holder.rotation.z=0;r.holder.rotation.x=0;
  if(!r.mixer){r.holder.rotation.z=(run?Math.sin(t*20)*0.06:Math.sin(t*1.7)*0.02);r.holder.rotation.x=-wind*0.06+swing*0.12;r.holder.position.y=run?Math.abs(Math.sin(t*20))*0.05:Math.sin(t*3.1)*0.01;return;}
  const a=(atk&&r.acts.atk)||(run&&r.acts.run)||r.acts.idle||r.acts.run||r.acts.atk;if(!a)return;
