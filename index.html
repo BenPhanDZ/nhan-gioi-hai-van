@@ -679,7 +679,7 @@ function heroDetail(id){
  m.innerHTML=`<div class="wood pop" style="position:relative;width:1060px;height:560px;padding:50px 24px 20px;box-sizing:border-box;display:flex;gap:18px"><div class="title-rib stk">${h.n}</div>
   <div style="width:330px;flex:none;position:relative"><canvas id="dArt" width="330" height="420" style="width:330px;height:420px;border-radius:14px;border:4px solid #3b1e0c"></canvas>
    <div class="stk" style="position:absolute;left:10px;top:8px;font-family:var(--fd);font-size:40px;color:#ffe066">${h.rar}</div>
-   <div class="stk" style="text-align:center;font-size:24px;color:#ffd24a;margin-top:2px">${o?'★'.repeat(o.star)+'☆'.repeat(5-o.star):'Chưa sở hữu'}</div></div>
+   <div class="stk" style="text-align:center;font-size:24px;color:#ffd24a;margin-top:2px">${o?starHTML(o.star):'Chưa sở hữu'}</div></div>
   <div class="parch" style="flex:1;padding:12px 16px;overflow:auto;font-size:17px;line-height:1.4">
    <div style="font-weight:800;font-size:19px">${h.t} · ${VIL[h.v].n} · Hệ ${EL[h.el].n} · ${ROLE[h.r]}${o?' · Cấp '+o.lv:''}</div>
    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0">${[['Máu',fmt(s.hp)],['Tấn công',s.atk],['Phòng thủ',s.def],['Tốc độ',s.spd]].map(([k,v])=>`<div style="background:#fff8;border:2px solid #b8864a;border-radius:10px;padding:4px 8px">${k}<b style="display:block;font-size:22px">${v}</b></div>`).join('')}</div>
@@ -3142,8 +3142,8 @@ const EVMN={win:'Thắng trận bất kỳ',evstage:'Vượt ải sự kiện (l
 const EVMS=[[500,{gems:300}],[1500,{vdb:2,tt:20}],[3000,{gems:800,an:10}],[5000,{vdb:3,tt:40}],[8000,{urSel:1}]];
 const EVSHOP=e=>[{id:'feat',n:`Tướng UR: ${HB[e.feat].n}`,p:6000,lim:1,r:{hero:e.feat}},{id:'vdb',n:'Vé Đặc biệt',p:300,lim:10,r:{vdb:1}},{id:'tt',n:'10 Tinh Thiết',p:200,lim:10,r:{tt:10}},
  {id:'an',n:'5 Ấn Thức Tỉnh',p:250,lim:10,r:{an:5}},{id:'ls',n:'30 Linh thạch mỗi hệ',p:300,lim:10,r:{ls:30}},{id:'da',n:'50 Đá cường hoá',p:100,lim:20,r:{da:50}},{id:'eq',n:'Rương Sử thi+',p:400,lim:5,r:{eq:3}},
- {id:'dp',n:'40 Ngọc đột phá',p:150,lim:10,r:{dp:40}},{id:'xu',n:'1.000.000 xu',p:100,lim:20,r:{xu:1000000}}].concat(SKEV[e.id]?[{id:'skin',n:'Trang phục: '+SKINS[SKEV[e.id]].n,p:2500,lim:1,r:{skin:SKEV[e.id]}}]:[]);
-function evGive(r){ens7();const out=[];if(r.skin){if(!S.skins.includes(r.skin))S.skins.push(r.skin);out.push('trang phục '+SKINS[r.skin].n);}if(r.tok){const st=evState();st.tok+=r.tok;out.push(r.tok+' '+evNow().e.tok);}if(r.gems){S.gems+=r.gems;out.push(r.gems+' ngọc');}if(r.xu){S.coins+=r.xu;out.push(fmt(r.xu)+' xu');}
+ {id:'dp',n:'40 Ngọc đột phá',p:150,lim:10,r:{dp:40}},{id:'xu',n:'1.000.000 xu',p:100,lim:20,r:{xu:1000000}}].concat([{id:'th',n:'100 Tinh Hồn',p:300,lim:10,r:{th:100}}]).concat(SKEV[e.id]?[{id:'skin',n:'Trang phục: '+SKINS[SKEV[e.id]].n,p:2500,lim:1,r:{skin:SKEV[e.id]}}]:[]);
+function evGive(r){ens7();const out=[];if(r.th){S.mats.th=(S.mats.th||0)+r.th;out.push(r.th+' Tinh Hồn');}if(r.skin){if(!S.skins.includes(r.skin))S.skins.push(r.skin);out.push('trang phục '+SKINS[r.skin].n);}if(r.tok){const st=evState();st.tok+=r.tok;out.push(r.tok+' '+evNow().e.tok);}if(r.gems){S.gems+=r.gems;out.push(r.gems+' ngọc');}if(r.xu){S.coins+=r.xu;out.push(fmt(r.xu)+' xu');}
  if(r.vdb){S.vdb=(S.vdb||0)+r.vdb;out.push(r.vdb+' vé Đặc biệt');}if(r.tt){S.mats.tt=(S.mats.tt||0)+r.tt;out.push(r.tt+' Tinh Thiết');}if(r.an){S.mats.an+=r.an;out.push(r.an+' Ấn');}
  if(r.ls){for(const k in S.mats.ls)S.mats.ls[k]+=r.ls;out.push(r.ls+' Linh thạch mỗi hệ');}if(r.da){S.mats.da+=r.da;out.push(r.da+' đá cường hoá');}if(r.dp){S.mats.dp+=r.dp;out.push(r.dp+' ngọc ĐP');}
  if(r.urSel){S.urSel=(S.urSel||0)+r.urSel;out.push(r.urSel+' Rương chọn UR');}if(r.eq){const t=Math.random()<0.15?5:Math.random()<0.4?4:r.eq;const e=newEq(EQS[Math.floor(Math.random()*4)][0],t);out.push(eqName(e)+' ('+EQR[t][3]+')');}
@@ -3430,7 +3430,7 @@ if(!DG.find(d=>d.k==='ld'))DG.push({k:'ld',n:'Động Linh Đan Sơn Trà',d:'Li
 S.dgc=S.dgc||{};
 function dgReward(k,t,RW){const f=t+1;const r={};if(k==='gold')r.xu=Math.round(20000*Math.pow(f,1.9)*RW);else if(k==='dp')r.dp=Math.round(8*Math.pow(f,1.35)*RW);else if(k==='da'){r.da=Math.round(30*Math.pow(f,1.3)*RW);if(t>=4)r.tt=t-2;}
  else if(k==='ld')r.ld=Math.round(6*Math.pow(f,1.3)*RW);else{r.eq=1+Math.floor(t/3);r.da=Math.round(10*f*RW);}return r;}
-const dgTxt=r=>[r.xu?fmt(r.xu)+' xu':'',r.dp?r.dp+' ngọc ĐP':'',r.da?r.da+' đá cường hoá':'',r.tt?r.tt+' Tinh Thiết':'',r.ld?r.ld+' Linh Đan':'',r.eq?r.eq+' trang bị':''].filter(Boolean).join(', ');
+let dgTxt=r=>[r.xu?fmt(r.xu)+' xu':'',r.dp?r.dp+' ngọc ĐP':'',r.da?r.da+' đá cường hoá':'',r.tt?r.tt+' Tinh Thiết':'',r.ld?r.ld+' Linh Đan':'',r.eq?r.eq+' trang bị':''].filter(Boolean).join(', ');
 function dgGive(k,t,RW){ens7();const r=dgReward(k,t,RW);if(r.xu)S.coins+=r.xu;if(r.dp)S.mats.dp+=r.dp;if(r.da)S.mats.da=(S.mats.da||0)+r.da;if(r.tt)S.mats.tt=(S.mats.tt||0)+r.tt;if(r.ld)S.mats.ld=(S.mats.ld||0)+r.ld;
  const eqs=[];for(let i=0;i<(r.eq||0);i++)eqs.push(dropEq(Math.min(2.4,0.3+t*0.24)));S.medal=(S.medal||0)+3;return dgTxt(r)+(eqs.length?' ('+eqs.map(e=>EQR[e.r][3]).join(', ')+')':'');}
 function dgFoes2(k,t){const rnd=mulberry(t*131+k.length*17+new Date().getDate());const rs=t<2?['B','A','S']:t<4?['A','S','SS']:t<6?['S','SS','SSS']:t<8?['SS','SSS']:['SSS','UR'];
@@ -3456,6 +3456,100 @@ showResult=function(win){const c=B&&B.cfg;if(!c||c.kind!=='dg2'||B.quit){_sr15(w
  else{txt='Thất bại (vẫn tính 1 lượt). Hãy nâng cấp, Khai Mạch hoặc đổi đội hình.';AU.lose();}save();
  r.innerHTML=`<div class="modal"><div class="wood pop" style="position:relative;width:720px;padding:60px 30px 26px;text-align:center"><div class="title-rib stk">${win?'Thành công':'Thất bại'}</div><p class="stk" style="font-size:19px;margin:0 0 12px">${txt}</p>${statsHTML()}
  <div style="display:flex;gap:12px;justify-content:center"><button class="gb" id="rOk">Về phó bản</button></div></div></div>`;$('rOk').onclick=()=>{closeBattle();go('dungeon');};};
+
+/* =========================================================
+   16: BỒI DƯỠNG – Thăng Tinh (6★–10★) · Tâm Pháp (3 bí tịch) · Chuyển Sinh
+   ========================================================= */
+S.mats.th=S.mats.th||0;S.bt=S.bt||[];S.btSeq=S.btSeq||1;
+function starHTML(s,compact){s=s|0;if(s<=5)return compact?'★'.repeat(s):'★'.repeat(s)+'☆'.repeat(5-s);const red=`<b style="color:#ff3a3a;text-shadow:0 0 6px #ff3a3a">${'★'.repeat(s-5)}</b>`;return compact?red:'★'.repeat(5-(s-5))+red;}
+// ---------- Thăng Tinh ----------
+const TT_NEED=[null,null,null,null,null,null,{sh:20,th:60,lv:300},{sh:30,th:120,lv:400,aw:1},{sh:40,th:220,lv:500,aw:2},{sh:50,th:350,lv:700,aw:2},{sh:60,th:500,lv:900,aw:3}];
+const TH_RATE={UR:15,SSS:10,SS:8,S:6,A:4,B:3};
+// ---------- Tâm Pháp ----------
+const BTK={atk:['Phá Quân Tâm Pháp','Tấn công',[6,10,15,22],'%'],hp:['Trường Sinh Quyết','Máu',[6,10,15,22],'%'],def:['Kim Cương Kinh','Phòng thủ',[6,10,15,22],'%'],spd:['Phong Hành Bộ','Tốc độ',[4,7,10,14],'%'],
+ bk:['Bí Kỹ Chân Kinh','Sát thương Bí kỹ',[5,8,12,18],'%'],no:['Nộ Khí Quyết','Nộ đầu trận',[3,5,8,12],''],hut:['Hấp Huyết Công','Hút máu',[3,5,8,12],'%']};
+const BTR=[['Lục','#4aa84a'],['Lam','#3a8ad8'],['Tím','#a05ae0'],['Cam','#ff8a2a']];
+function newBt(k,r){const b={u:S.btSeq++,k,r};S.bt.push(b);return b;}
+function dropBt(t){const ks=Object.keys(BTK);const x=Math.random()+t*0.12;const r=x>1.6?3:x>1.2?2:x>0.7?1:0;return newBt(ks[Math.floor(Math.random()*ks.length)],r);}
+const btVal=b=>BTK[b.k][2][b.r];
+const btOwner=u=>Object.keys(S.owned).find(id=>(S.owned[id].tp||[]).includes(u));
+function btOf(id){const o=S.owned[id];return(o&&o.tp||[]).map(u=>S.bt.find(b=>b.u===u)).filter(Boolean);}
+const btIcon=(b,s)=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:${s}px;height:${s}px;flex:none;border-radius:8px;background:linear-gradient(135deg,#f4ecd0,${BTR[b.r][1]});border:3px solid ${BTR[b.r][1]};box-shadow:0 0 8px ${BTR[b.r][1]}88;font:900 ${s*0.42}px 'Baloo 2',sans-serif;color:#3b1e0c">${{atk:'Công',hp:'Máu',def:'Thủ',spd:'Tốc',bk:'Kỹ',no:'Nộ',hut:'Hút'}[b.k]}</span>`;
+// ---------- Chuyển Sinh ----------
+const CSMAX=5,CSB=12;
+// ---------- áp dụng chỉ số ----------
+const _fs16=fullStat;
+fullStat=function(id){const r=_fs16(id);const o=S.owned[id];if(!o)return r;const P={hp:0,atk:0,def:0,spd:0};
+ btOf(id).forEach(b=>{if(P[b.k]!=null)P[b.k]+=btVal(b);});if(o.cs){P.hp+=CSB*o.cs;P.atk+=CSB*o.cs;P.def+=CSB*o.cs;}
+ for(const k in P)if(P[k])r[k]=Math.round(r[k]*(1+P[k]/100));return r;};
+const _mk16=mkUnit;
+mkUnit=function(id,lv,star,side,slot,bm){const u=_mk16(id,lv,star,side,slot,bm);if(side===0&&S.owned[id]){const o=S.owned[id];u.rs=Math.max(0,(o.star|0)-5);btOf(id).forEach(b=>{if(b.k==='bk')u.btBk=btVal(b);if(b.k==='no')u.btNo=btVal(b);if(b.k==='hut')u.btHut=btVal(b);});u.cs=o.cs|0;}return u;};
+const _dc16=dmgCalc;
+dmgCalc=function(u,t,m){const r=_dc16(u,t,m);if(u&&B&&B.curUlt){let k=1+(u.rs||0)*0.05+(u.btBk||0)/100;if(k>1)r.d=Math.round(r.d*k);}return r;};
+const _hit16=hit;
+hit=function(t,d,col,crit,dot){const a=B&&B.curAtk;const r=_hit16(t,d,col,crit,dot);if(!dot&&a&&a.btHut&&a.alive&&t&&t.side!==a.side&&d>0){const h=Math.round(d*a.btHut/100);a.hp=Math.min(a.maxhp,a.hp+h);}return r;};
+const _sb16=startBattle;
+startBattle=function(cfg){_sb16(cfg);if(B&&B.cfg===cfg&&B.U){const n=B.U.filter(u=>u.side===0).reduce((s,u)=>s+(u.btNo||0),0);if(n)B.ch[0]=Math.min(100,B.ch[0]+n);}};
+// thẻ tướng: sao đỏ + nhãn Chuyển Sinh
+const _hc16=heroCard;
+heroCard=function(id,opt){const d=_hc16(id,opt);const o=S.owned[id];if(o&&!(opt&&opt.show)){const st=d.querySelector('.st');if(st&&o.star>5)st.innerHTML=starHTML(o.star,1);
+ if(o.cs)d.insertAdjacentHTML('beforeend',`<span class="stk" style="position:absolute;right:3px;bottom:22px;font-size:11px;font-weight:900;background:linear-gradient(90deg,#ffd24a,#ff4ad8);border-radius:6px;padding:0 4px">CS${o.cs}</span>`);}return d;};
+
+// ---------- MÀN BỒI DƯỠNG ----------
+function nurture(id,tab){ens7();tab=tab||'tt';const h=HB[id],o=S.owned[id];o.tp=o.tp||[];o.cs=o.cs||0;
+ const m=document.createElement('div');m.className='modal';m.style.zIndex=46;GAME.appendChild(m);
+ const draw=msg=>{const fs=fullStat(id);
+  m.innerHTML=`<div class="wood pop" style="position:relative;width:1140px;height:640px;box-sizing:border-box;padding:52px 18px 14px;display:flex;gap:14px"><div class="title-rib stk">Bồi dưỡng · ${h.n}</div>
+   <div class="parch" style="width:260px;flex:none;padding:10px;text-align:center;display:flex;flex-direction:column;gap:6px"><canvas width="240" height="240" id="nuP" style="width:200px;height:200px;margin:auto;border-radius:14px;border:4px solid #3b1e0c"></canvas>
+    <div style="font-size:22px;color:#ffb020">${starHTML(o.star)}</div><div style="font-size:15px"><b>Cấp ${o.lv}</b> · Đột phá ${o.br||0} · TT ${['0','I','II','III'][awOf(id)]} · Khai Mạch ${o.km||0}/80${o.cs?` · <b style="color:#c8209a">Chuyển Sinh ${o.cs}</b>`:''}</div>
+    <div style="font-size:14px;text-align:left;line-height:1.5;background:#0001;border-radius:10px;padding:6px 10px">Máu <b>${fmt(fs.hp)}</b><br>Tấn công <b>${fmt(fs.atk)}</b><br>Phòng thủ <b>${fmt(fs.def)}</b><br>Tốc độ <b>${fs.spd}</b></div>
+    <div style="font-size:14px">Tinh Hồn: <b style="color:#c8209a">${fmt(S.mats.th)}</b> · Mảnh: <b>${o.sh}</b></div>
+    <button class="gb sm" id="nuX" style="margin-top:auto">Đóng</button></div>
+   <div style="flex:1;display:flex;flex-direction:column;min-width:0"><div style="display:flex;gap:8px;margin-bottom:8px">${[['tt','Thăng Tinh'],['tp','Tâm Pháp'],['cs','Chuyển Sinh']].map(([k,n])=>`<button class="tab stk${tab===k?' on':''}" data-nt="${k}">${n}</button>`).join('')}</div>
+    <div id="nuB" class="parch" style="flex:1;overflow:auto;padding:10px 14px;font-size:15px;line-height:1.45"></div>
+    ${msg?`<div class="stk" style="text-align:center;font-size:19px;font-weight:800;color:#7cff8a;margin-top:6px">${msg}</div>`:''}</div></div>`;
+  m.querySelector('#nuP').getContext('2d').drawImage(portraitURL(id,120),0,0,240,240);
+  m.querySelectorAll('[data-nt]').forEach(b=>b.onclick=()=>{tab=b.dataset.nt;draw();});m.querySelector('#nuX').onclick=()=>{m.remove();GAME.querySelectorAll('.modal').forEach(x=>x.remove());heroDetail(id);};
+  const B0=m.querySelector('#nuB');
+  if(tab==='tt'){const s=o.star,N=TT_NEED[s+1];const rate=TH_RATE[h.rar];
+   B0.innerHTML=`<b style="font-size:18px">Thăng Tinh: nâng từ 5★ lên tối đa 10★ (sao đỏ)</b><div>Mỗi sao đỏ: chỉ số cơ bản +14% (như sao vàng) và <b>Bí kỹ +5%</b>. Cần mảnh của chính tướng (chiêu mộ trùng) và <b>Tinh Hồn</b> (Chuyển Sinh, phó bản Tàng Kinh Các, cửa hàng sự kiện). Thiếu mảnh có thể đổi từ Tinh Hồn: 1 mảnh = ${rate} Tinh Hồn (hạng ${h.rar}).</div>
+    <table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:14px"><tr style="background:#e8c890"><th style="text-align:left;padding:3px 6px">Sao</th><th style="text-align:left">Mảnh</th><th style="text-align:left">Tinh Hồn</th><th style="text-align:left">Điều kiện</th><th></th></tr>
+    ${[6,7,8,9,10].map(k=>{const n=TT_NEED[k];return`<tr style="border-bottom:1px solid #d8b880;${s>=k?'color:#2a8a3a;font-weight:800':''}"><td style="padding:3px 6px">${k}★</td><td>${n.sh}</td><td>${n.th}</td><td>Cấp ${n.lv}${n.aw?` · ${AWN[n.aw]}`:''}</td><td>${s>=k?'✔':s+1===k?'◀ tiếp theo':''}</td></tr>`;}).join('')}</table>
+    ${s<5?`<b style="color:#c8201a">Cần đạt 5★ trước (tăng sao thường bằng mảnh trong bảng chi tiết).</b>`:s>=10?'<b style="color:#2a8a3a">Đã đạt 10★ tối đa!</b>':`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+     <span>Lên ${s+1}★: mảnh <b>${o.sh}/${N.sh}</b> · Tinh Hồn <b>${fmt(S.mats.th)}/${N.th}</b> · cấp <b style="color:${o.lv>=N.lv?'#2a8a3a':'#c8201a'}">${o.lv}/${N.lv}</b>${N.aw?` · <b style="color:${awOf(id)>=N.aw?'#2a8a3a':'#c8201a'}">${AWN[N.aw]}</b>`:''}</span>
+     <button class="gb sm blue" id="ttEx" ${o.sh<N.sh&&S.mats.th>=rate?'':'disabled'}>Đổi mảnh thiếu</button><button class="gb sm red" id="ttUp" ${o.sh>=N.sh&&S.mats.th>=N.th&&o.lv>=N.lv&&awOf(id)>=(N.aw||0)?'':'disabled'}>Thăng ${s+1}★</button></div>`}`;
+   const ex=m.querySelector('#ttEx');if(ex)ex.onclick=()=>{const need=N.sh-o.sh,can=Math.min(need,Math.floor((S.mats.th-0)/rate));if(can>0){o.sh+=can;S.mats.th-=can*rate;save();draw(`Đổi ${can} mảnh (−${can*rate} Tinh Hồn)`);}};
+   const up=m.querySelector('#ttUp');if(up)up.onclick=()=>{o.sh-=N.sh;S.mats.th-=N.th;o.star++;save();AU.chest(4);for(const k in PCACHE)if(k.startsWith(id))delete PCACHE[k];draw(`Thăng Tinh thành công: ${o.star}★!`);};}
+  else if(tab==='tp'){const eq=btOf(id);const free=S.bt.filter(b=>!btOwner(b.u)).sort((a,b)=>b.r-a.r||a.k.localeCompare(b.k));
+   B0.innerHTML=`<b style="font-size:18px">Tâm Pháp: 3 ô bí tịch</b><div>Mỗi tướng gắn tối đa 3 bí tịch, <b>không trùng loại</b>. 4 phẩm Lục → Lam → Tím → Cam; gộp 3 cuốn cùng loại, cùng phẩm thành 1 cuốn phẩm cao hơn. Bí tịch rơi ở phó bản <b>Tàng Kinh Các</b>.</div>
+    <div style="display:flex;gap:10px;margin:8px 0">${[0,1,2].map(i=>{const b=eq[i];return`<div style="flex:1;border:3px dashed ${b?BTR[b.r][1]:'#b8a080'};border-radius:12px;padding:8px;display:flex;gap:8px;align-items:center;min-height:56px;background:#fff8">${b?`${btIcon(b,44)}<div style="flex:1;font-size:13px"><b>${BTK[b.k][0]}</b><br><span style="color:${BTR[b.r][1]};font-weight:800">${BTR[b.r][0]}</span> · ${BTK[b.k][1]} +${btVal(b)}${BTK[b.k][3]}</div><button class="gb sm" data-off="${b.u}">Gỡ</button>`:'<i style="opacity:.7">Ô trống</i>'}</div>`;}).join('')}</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><b>Kho bí tịch (${free.length} chưa dùng)</b><button class="gb sm red" id="btM">Gộp tự động</button><button class="gb sm green" id="btQ">Gắn tốt nhất</button></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${free.map(b=>{const dup=eq.some(x=>x.k===b.k);return`<div style="display:flex;gap:6px;align-items:center;padding:4px 6px;border-radius:10px;background:#fff8;border:2px solid ${BTR[b.r][1]}">${btIcon(b,34)}<div style="flex:1;font-size:12px;line-height:1.2"><b>${BTK[b.k][0]}</b><br>${BTK[b.k][1]} +${btVal(b)}${BTK[b.k][3]}</div><button class="gb sm" style="padding:2px 8px;font-size:12px" data-on="${b.u}" ${eq.length>=3||dup?'disabled':''}>Gắn</button></div>`;}).join('')||'<i>Chưa có bí tịch – đánh phó bản Tàng Kinh Các.</i>'}</div>`;
+   B0.querySelectorAll('[data-off]').forEach(b=>b.onclick=()=>{o.tp=o.tp.filter(u=>u!==+b.dataset.off);save();draw();});
+   B0.querySelectorAll('[data-on]').forEach(b=>b.onclick=()=>{o.tp=btOf(id).map(x=>x.u);o.tp.push(+b.dataset.on);save();draw();});
+   m.querySelector('#btM').onclick=()=>{let n=0,again=true;while(again){again=false;for(const k in BTK)for(let r=0;r<3;r++){const g=S.bt.filter(b=>b.k===k&&b.r===r&&!btOwner(b.u));if(g.length>=3){const use=g.slice(0,3);S.bt=S.bt.filter(b=>!use.includes(b));newBt(k,r+1);n++;again=true;}}}save();draw(n?`Gộp được ${n} cuốn phẩm cao hơn`:'Không có 3 cuốn cùng loại, cùng phẩm');};
+   m.querySelector('#btQ').onclick=()=>{const w=ROLEW[h.r];const score=b=>btVal(b)*(b.k in w?w[b.k]*(b.k==='spd'?1.6:1):b.k==='bk'?(h.r==='ho'?0.3:1.1):b.k==='no'?1.4:0.9);
+    const pool=S.bt.filter(b=>{const ow=btOwner(b.u);return!ow||ow===id;}).sort((a,b)=>score(b)-score(a));const pick=[];for(const b of pool){if(pick.length>=3)break;if(!pick.some(x=>x.k===b.k))pick.push(b);}o.tp=pick.map(b=>b.u);save();draw('Đã gắn 3 bí tịch phù hợp nhất');};}
+  else{const ok=o.lv>=1000&&o.cs<CSMAX;
+   B0.innerHTML=`<b style="font-size:18px">Chuyển Sinh (tối đa ${CSMAX} lần)</b><div>Khi tướng đạt <b>cấp 1000</b>, có thể Chuyển Sinh: tướng về <b>cấp 1</b> nhưng <b>giữ nguyên</b> đột phá, sao, thức tỉnh, Khai Mạch, trang bị, Thần Binh, bí tịch; nhận vĩnh viễn <b>+${CSB}% máu, công, thủ</b> mỗi lần và <b>+300 Tinh Hồn</b>. Lên lại cấp 1000 để Chuyển Sinh lần tiếp theo.</div>
+    <div style="display:flex;gap:8px;margin:10px 0">${Array.from({length:CSMAX},(_,i)=>`<div style="flex:1;text-align:center;padding:8px;border-radius:12px;border:3px solid ${o.cs>i?'#c8209a':'#b8a080'};background:${o.cs>i?'linear-gradient(135deg,#ffe0f4,#ffd24a)':'#fff8'}"><b>Lần ${i+1}</b><br><small>+${CSB*(i+1)}% tổng</small><br>${o.cs>i?'✔':''}</div>`).join('')}</div>
+    <div>Hiện tại: <b>Chuyển Sinh ${o.cs}/${CSMAX}</b> · thưởng vĩnh viễn +${CSB*o.cs}% máu, công, thủ.</div>
+    <div style="margin:6px 0">Điều kiện: cấp <b style="color:${o.lv>=1000?'#2a8a3a':'#c8201a'}">${o.lv}/1000</b>${o.cs>=CSMAX?' · <b>Đã tối đa</b>':''}</div>
+    <div style="font-size:13px;opacity:.85">Lưu ý: lên lại cấp tốn nhiều xu – hãy chuẩn bị trước. Cấp giảm nên lực chiến tạm thời giảm.</div>
+    <button class="gb red" id="csGo" style="margin-top:8px" ${ok?'':'disabled'}>Chuyển Sinh lần ${o.cs+1}</button><div id="csConf"></div>`;
+   const g=m.querySelector('#csGo');g.onclick=()=>{m.querySelector('#csConf').innerHTML=`<div style="margin-top:8px;padding:8px;border-radius:10px;background:#ff3a3a22;border:2px solid #c8201a">Xác nhận đưa ${h.n} về cấp 1? <button class="gb sm red" id="csY">Đồng ý</button> <button class="gb sm" id="csN">Huỷ</button></div>`;
+    m.querySelector('#csN').onclick=()=>draw();m.querySelector('#csY').onclick=()=>{o.cs++;o.lv=1;S.mats.th+=300;save();AU.chest(5);for(const k in PCACHE)if(k.startsWith(id))delete PCACHE[k];draw(`Chuyển Sinh lần ${o.cs} thành công! +${CSB}% vĩnh viễn, +300 Tinh Hồn`);};};}};draw();}
+// nút trong bảng chi tiết + sửa hiển thị sao
+const _hd16=heroDetail;
+heroDetail=function(id){_hd16(id);const o=S.owned[id];if(!o)return;const ms=GAME.querySelectorAll('.modal'),m=ms[ms.length-1];const btns=m&&m.querySelector('#dBtns');if(!btns)return;
+ const b=document.createElement('button');b.className='gb sm';b.style.background='linear-gradient(180deg,#fff0c0,#ffb020 45%,#c8601a)';b.textContent='Bồi dưỡng';b.onclick=()=>nurture(id);btns.prepend(b);
+ const us=m.querySelector('#us');if(us&&o.star>=5){us.disabled=false;us.textContent=o.star>=10?'10★ tối đa':'Thăng Tinh ▶';us.onclick=()=>nurture(id,'tt');}};
+// ---------- nguồn: phó bản Tàng Kinh Các + Tinh Hồn ----------
+if(!DG.find(d=>d.k==='bt'))DG.push({k:'bt',n:'Tàng Kinh Các',d:'Bí tịch, Tinh Hồn',th:'haivan'});
+const _dgR16=dgReward;dgReward=function(k,t,RW){if(k!=='bt')return _dgR16(k,t,RW);const f=t+1;return{bt:1+Math.floor(t/3),th:Math.round(8*Math.pow(f,1.3)*RW)};};
+const _dgT16=dgTxt;dgTxt=function(r){const a=_dgT16(r);return[a,r.bt?r.bt+' bí tịch':'',r.th?r.th+' Tinh Hồn':''].filter(Boolean).join(', ');};
+const _dgG16=dgGive;dgGive=function(k,t,RW){if(k!=='bt')return _dgG16(k,t,RW);const r=dgReward(k,t,RW);S.mats.th+=r.th;const got=[];for(let i=0;i<r.bt;i++)got.push(dropBt(t));S.medal=(S.medal||0)+3;
+ return `${r.th} Tinh Hồn, ${got.map(b=>BTR[b.r][0]+' '+BTK[b.k][0]).join(', ')}`;};
 
 go('hub');
 </script>
