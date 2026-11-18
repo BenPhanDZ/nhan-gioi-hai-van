@@ -3289,13 +3289,13 @@ const _hc14=heroCard;
 heroCard=function(id,opt){const d=_hc14(id,opt);const sk=!(opt&&opt.show)&&S.skin[id]&&SKINS[S.skin[id]];if(sk){d.style.boxShadow=`0 0 0 2px ${SKRC[sk.rar]},0 0 12px ${sk.c}`;d.insertAdjacentHTML('beforeend',`<span style="position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:${sk.c};border:2px solid #fff;box-shadow:0 0 6px ${sk.c}" title="${sk.n}"></span>`);}return d;};
 
 /* ---------- Phòng Trang Phục ---------- */
-function wardrobe(id,tab){tab=tab||'custom';const h=HB[id];const L0=Object.assign({},S.look[id]||{});let L=Object.assign({},L0);let skin=S.skin[id]||'';
+function wardrobe(id,tab){tab='skin';const h=HB[id];const L0=Object.assign({},S.look[id]||{});let L=Object.assign({},L0);let skin=S.skin[id]||'';
  const m=document.createElement('div');m.className='modal';m.style.zIndex=48;
- m.innerHTML=`<div class="wood pop" style="position:relative;width:1180px;height:640px;box-sizing:border-box;padding:54px 18px 14px;display:flex;gap:14px"><div class="title-rib stk">Trang phục · ${h.n}</div>
+ m.innerHTML=`<div class="wood pop" style="position:relative;width:1180px;height:640px;box-sizing:border-box;padding:54px 18px 14px;display:flex;gap:14px"><div class="title-rib stk">Trang phục sưu tầm · ${h.n}</div>
   <div class="parch" style="width:380px;flex:none;display:flex;flex-direction:column;align-items:center;padding:8px"><canvas width="760" height="880" style="width:380px;height:440px;border-radius:12px" id="wdCv"></canvas>
    <div id="wdInfo" style="font-size:14px;text-align:center;min-height:40px;margin-top:4px"></div>
    <div style="display:flex;gap:8px;margin-top:auto"><button class="gb sm" id="wdReset">Về mặc định</button><button class="gb sm green" id="wdSave">Lưu</button><button class="gb sm red" id="wdX">Đóng</button></div></div>
-  <div style="flex:1;display:flex;flex-direction:column;min-width:0"><div style="display:flex;gap:8px;margin-bottom:8px"><button class="tab stk" data-w="custom">Tự chỉnh (miễn phí)</button><button class="tab stk" data-w="skin">Trang phục sưu tầm</button></div>
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0"><div style="display:flex;gap:8px;margin-bottom:8px"><button class="tab stk" data-w="skin">Trang phục sưu tầm</button></div>
    <div id="wdB" class="parch" style="flex:1;overflow:auto;padding:10px 12px;font-size:15px"></div></div></div>`;
  GAME.appendChild(m);const cv=m.querySelector('#wdCv'),c=cv.getContext('2d');const t0=performance.now();let raf;
  const cur=()=>{const save={l:S.look[id],s:S.skin[id]};S.look[id]=Object.keys(L).length?L:undefined;S.skin[id]=skin||undefined;return save;};
@@ -3310,7 +3310,7 @@ function wardrobe(id,tab){tab=tab||'custom';const h=HB[id];const L0=Object.assig
    <b>Dáng</b>${sw(['0','1'],6,String(val(6))).replace('>0<','>Nam<').replace('>1<','>Nữ<')}<div style="font-size:13px;opacity:.8">Tự chỉnh chỉ đổi ngoại hình, không đổi chỉ số hay kỹ năng.</div>`;
    B0.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;let v=b.dataset.v;if(k===6)v=+v;if(v===base[k]||(k===6&&v===+base[6]))delete L[k];else L[k]=v;draw();});}
   else{B0.innerHTML=`<div style="font-size:13px;margin-bottom:6px">Trang phục sưu tầm dùng chung cho mọi tướng (mỗi tướng mặc 1 bộ), có hiệu ứng riêng và cộng chỉ số nhỏ. Bộ sự kiện đổi trong Cửa hàng sự kiện tuần tương ứng.</div>
-   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"><button class="parch" data-sk="" style="padding:8px;text-align:left;border:3px solid ${!skin?'#ff3a3a':'#c8a070'}"><b>Không mặc</b><br><small>Ngoại hình gốc hoặc tự chỉnh</small></button>
+   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"><button class="parch" data-sk="" style="padding:8px;text-align:left;border:3px solid ${!skin?'#ff3a3a':'#c8a070'}"><b>Không mặc</b><br><small>Ngoại hình gốc</small></button>
    ${Object.entries(SKINS).map(([k,sk])=>{const own=S.skins.includes(k);return`<div class="parch" style="padding:8px;border:3px solid ${skin===k?'#ff3a3a':SKRC[sk.rar]};display:flex;gap:8px;align-items:center"><span style="width:30px;height:30px;flex:none;border-radius:50%;background:linear-gradient(135deg,${sk.L[3]},${sk.L[4]});border:3px solid ${sk.c};box-shadow:0 0 8px ${sk.c}"></span>
     <div style="flex:1;font-size:13px;line-height:1.3"><b style="font-size:15px">${sk.n}</b> <span class="eqtag" style="background:${SKRC[sk.rar]}">${sk.rar}</span><br>${Object.entries(sk.st).map(([s,v])=>STN[s]+' +'+v+'%').join(', ')} · ${sk.src}</div>
     ${own?`<button class="gb sm ${skin===k?'':'green'}" data-sk="${k}">${skin===k?'Đang thử':'Thử'}</button>`:`<button class="gb sm" data-pv="${k}">Xem</button>${sk.gem?`<button class="gb sm red" data-buy="${k}" ${S.gems>=sk.gem?'':'disabled'}>${fmt(sk.gem)} ngọc</button>`:''}`}</div>`;}).join('')}</div>`;
@@ -3332,6 +3332,130 @@ const _arv14=VIEWS.arena;VIEWS.arena=function(){_arv14();const b=$('arClaim');if
 
 /* ---------- Phó bản Đá Cường Hoá ---------- */
 DG.push({k:'da',n:'Mỏ Đá Non Nước',d:'Đá cường hoá, Tinh Thiết',th:'nguhanh'});
+
+/* =========================================================
+   15: bỏ tự chỉnh · màn Thức tỉnh rõ ràng · Phó bản 10 tầng tới cấp 1000 · Khai Mạch
+   ========================================================= */
+// ---------- 1. bỏ tự chỉnh ngoại hình (giữ trang phục sưu tầm) ----------
+S.look={};
+lookOf=function(h){const sk=S.skin[h.id]&&SKINS[S.skin[h.id]];if(!sk)return h;const nl=h.look.slice();for(const k in sk.L)nl[k]=sk.L[k];return Object.assign(Object.create(h),{look:nl,_lk:nl.join('|')});};
+
+// ---------- 2. MÀN THỨC TỈNH ----------
+const AWST=['','Linh Khí','Linh Dực','Thần Thể'];
+function awScreen(id){ens7();const h=HB[id],o=S.owned[id];const aw=awOf(id);const el=h.el;
+ const m=document.createElement('div');m.className='modal';m.style.zIndex=46;
+ const req=a=>{const R=AWREQ[a];return[[`Đạt 5★`,o.star>=5,`${o.star}/5★ – tăng sao bằng mảnh tướng (chiêu mộ trùng)`,null],
+  [`Đột phá bậc ${R.br}`,(o.br||0)>=R.br,`đang ${o.br||0}`,'detail'],
+  [`${R.ls} Linh thạch ${EL[el].n}`,S.mats.ls[el]>=R.ls,`có ${fmt(S.mats.ls[el])}`,'aitt'],
+  [`${R.an} Ấn Thức Tỉnh`,S.mats.an>=R.an,`có ${S.mats.an}`,'aitt'],
+  [`${fmt(R.xu)} xu`,S.coins>=R.xu,`có ${fmt(S.coins)}`,'dungeon']];};
+ m.innerHTML=`<div class="wood pop" style="position:relative;width:1200px;height:660px;box-sizing:border-box;padding:52px 18px 12px;display:flex;flex-direction:column;gap:8px"><div class="title-rib stk">Thức tỉnh · ${h.n}</div>
+  <div class="parch" style="padding:8px 14px;font-size:14px;line-height:1.4"><b>Thức tỉnh là gì?</b> Là bước nâng cấp lớn sau khi tướng đạt 5★: tăng mạnh chỉ số, nâng Bí kỹ và đổi ngoại hình. Có 3 bậc, làm lần lượt.
+   <b>Lộ trình:</b> 5★ → Đột phá 2 → <b style="color:#1f64c0">TT I</b> → Đột phá 5 → <b style="color:#7a2ab0">TT II</b> → Đột phá 8 → <b style="color:#c8209a">TT III</b>. Lưu ý: muốn <b>Đột phá 6</b> cần TT I, <b>Đột phá 8</b> cần TT II, <b>Đột phá 10+</b> cần TT III.
+   <b>Nguyên liệu:</b> Linh thạch <b style="color:${EL[el].c}">hệ ${EL[el].n}</b> (đúng hệ tướng) và Ấn Thức Tỉnh lấy ở <b>Ải Thức Tỉnh</b> – ải hệ ${EL[el].n}; Ấn rơi ở tầng Thủ ải (10, 20, 30…).</div>
+  <div style="flex:1;display:flex;gap:10px;min-height:0">${[1,2,3].map(a=>{const R=req(a),ok=R.every(x=>x[1]),done=aw>=a,next=aw+1===a;
+   return`<div class="parch" style="flex:1;display:flex;flex-direction:column;padding:8px 10px;border:4px solid ${done?'#2a8a3a':next?(ok?'#ff3a3a':'#ffb020'):'#b8a080'};${!done&&!next?'opacity:.7':''}">
+    <div style="display:flex;align-items:center;gap:8px"><b style="font-size:20px">${AWN[a]}</b><span class="eqtag awb${a}" style="font-size:13px">${AWST[a]}</span><span style="margin-left:auto;font-weight:800;color:${done?'#2a8a3a':next?'#c8201a':'#8a6a4a'}">${done?'✔ Đã đạt':next?(ok?'Sẵn sàng!':'Bậc tiếp theo'):'Chưa mở'}</span></div>
+    <canvas width="440" height="300" data-a="${a}" style="width:100%;height:150px;border-radius:10px;margin:4px 0;background:#1a2a3a"></canvas>
+    <div style="font-size:13px;line-height:1.35"><b>Sức mạnh:</b> ${AWB[a]}</div>
+    <div style="font-size:13px;line-height:1.35"><b>Ngoại hình:</b> ${['','lửa nguyên tố quanh thân, vòng phù văn dưới chân','thêm cánh năng lượng, cầu nguyên tố bay quanh, pháp trận','thêm cột sáng, 3 đôi cánh vàng, vương miện hào quang, vòng cầu vồng'][a]}</div>
+    <div style="font-size:13px;line-height:1.35;margin-top:4px"><b>Yêu cầu:</b>${R.map(([t,ok2,sub,src])=>`<div style="display:flex;gap:4px;align-items:center">${done?'✔':ok2?'<b style="color:#2a8a3a">✔</b>':'<b style="color:#c8201a">✘</b>'} <span style="flex:1">${t} <small style="opacity:.75">(${sub})</small></span>${!done&&!ok2&&src?`<a href="#" data-go="${src}" style="color:#1f64c0;font-weight:800;white-space:nowrap">Đi lấy ▶</a>`:''}</div>`).join('')}</div>
+    <button class="gb sm ${next&&ok?'red':''}" data-aw="${a}" style="margin-top:auto" ${next&&ok?'':'disabled'}>${done?'Đã thức tỉnh':next?(ok?'Thức tỉnh ngay':'Chưa đủ điều kiện'):'Cần bậc trước'}</button></div>`;}).join('')}</div>
+  <div style="display:flex;justify-content:center"><button class="gb" id="awX">Đóng</button></div></div>`;
+ GAME.appendChild(m);const cvs=[...m.querySelectorAll('canvas[data-a]')];const t0=performance.now();let raf;
+ const loop=()=>{const t=(performance.now()-t0)/1000;cvs.forEach(cv=>{const c=cv.getContext('2d'),a=+cv.dataset.a;c.setTransform(2,0,0,2,0,0);const g=c.createLinearGradient(0,0,0,150);g.addColorStop(0,a===3?'#3a1a5a':a===2?'#2a1a4a':'#1a2a4a');g.addColorStop(1,'#0a0a14');c.fillStyle=g;c.fillRect(0,0,220,150);AWX=a;drawNinja(c,h,110,142,0.52,1,{bob:Math.sin(t*2)*2,fa:-0.8,ba:0.5},t);});if(m.isConnected)raf=requestAnimationFrame(loop);};loop();
+ const close=()=>{cancelAnimationFrame(raf);m.remove();};
+ m.querySelector('#awX').onclick=()=>{close();GAME.querySelectorAll('.modal').forEach(x=>x.remove());heroDetail(id);};
+ m.querySelectorAll('[data-go]').forEach(a=>a.onclick=ev=>{ev.preventDefault();const g=a.dataset.go;close();if(g==='detail'){GAME.querySelectorAll('.modal').forEach(x=>x.remove());heroDetail(id);return;}GAME.querySelectorAll('.modal').forEach(x=>x.remove());go(g);});
+ m.querySelectorAll('[data-aw]').forEach(b=>b.onclick=()=>{const a=+b.dataset.aw,R=AWREQ[a];S.mats.ls[el]-=R.ls;S.mats.an-=R.an;S.coins-=R.xu;o.aw=a;save();for(const k in PCACHE)if(k.startsWith(id))delete PCACHE[k];close();GAME.querySelectorAll('.modal').forEach(x=>x.remove());awShow(id,a,()=>awScreen(id));});}
+
+// ---------- 3. KHAI MẠCH (nâng tướng kiểu đột phá) ----------
+const KMN=['Luyện Khí','Trúc Cơ','Kết Đan','Nguyên Anh','Hoá Thần','Luyện Hư','Hợp Thể','Đại Thừa','Độ Kiếp','Chân Tiên'];
+const KMS=['hp','atk','def','spd','hp','atk','def','atk'];
+const KMHN=['Bách Hội','Thiên Trung','Đản Trung','Khí Hải','Mệnh Môn','Dũng Tuyền','Lao Cung','Thần Khuyết'];
+const kmLvReq=tr=>tr*100;
+const kmCost=(tr)=>({ld:Math.round(4*Math.pow(tr+1,1.5)),xu:Math.round(40000*Math.pow(tr+1,2))});
+const kmNode=(tr,i)=>KMS[i]==='spd'?+(1+tr*0.5).toFixed(1):+(1.5*(tr+1)).toFixed(1);
+function kmStat(n){const P={hp:0,atk:0,def:0,spd:0};for(let j=0;j<n;j++){const tr=Math.floor(j/8),i=j%8;P[KMS[i]]+=kmNode(tr,i);if(i===7){P.hp+=4;P.atk+=4;P.def+=4;}}return P;}
+S.mats.ld=S.mats.ld||0;
+const _fs15=fullStat;
+fullStat=function(id){const r=_fs15(id);const o=S.owned[id];if(o&&o.km){const P=kmStat(o.km);for(const k in P)r[k]=Math.round(r[k]*(1+P[k]/100));}return r;};
+const _mk15=mkUnit;
+mkUnit=function(id,lv,star,side,slot,bm){const u=_mk15(id,lv,star,side,slot,bm);if(side===0&&S.owned[id])u.km=S.owned[id].km||0;return u;};
+const _dc15=dmgCalc;
+dmgCalc=function(u,t,m){const r=_dc15(u,t,m);if(u&&u.km>=80&&B&&B.curUlt)r.d=Math.round(r.d*1.2);else if(u&&u.km>=56&&B&&B.curUlt)r.d=Math.round(r.d*1.1);return r;};
+const _sb15=startBattle;
+startBattle=function(cfg){_sb15(cfg);if(B&&B.cfg===cfg&&B.U){const n=B.U.filter(u=>u.side===0&&u.km>=40).length;if(n)B.ch[0]=Math.min(100,B.ch[0]+5*n);}};
+const KMMS=[[5,'Trọng 5: vào trận +5 Nộ cho đội'],[7,'Trọng 7: Bí kỹ +10%'],[10,'Trọng 10: Bí kỹ +20%']];
+function kmScreen(id){ens7();S.mats.ld=S.mats.ld||0;const h=HB[id],o=S.owned[id];o.km=o.km||0;
+ const m=document.createElement('div');m.className='modal';m.style.zIndex=46;GAME.appendChild(m);
+ const draw=msg=>{const n=o.km,tr=Math.min(9,Math.floor(n/8)),i=n%8,full=n>=80,c=kmCost(tr),lvOK=o.lv>=kmLvReq(tr);const ok=!full&&lvOK&&S.mats.ld>=c.ld&&S.coins>=c.xu;const P=kmStat(n);
+  const R=170,cx=230,cy=215;
+  m.innerHTML=`<div class="wood pop" style="position:relative;width:1080px;height:600px;box-sizing:border-box;padding:52px 18px 14px;display:flex;gap:14px"><div class="title-rib stk">Khai Mạch · ${h.n}</div>
+   <div style="width:460px;flex:none;position:relative;border-radius:14px;background:radial-gradient(#3a2a5a,#0a0a18);overflow:hidden">
+    <svg viewBox="0 0 460 440" style="position:absolute;inset:0;width:100%;height:100%">${KMHN.map((_,j)=>{const a=-Math.PI/2+j*Math.PI/4,b=-Math.PI/2+((j+1)%8)*Math.PI/4;const lit=full||j<i;return`<line x1="${cx+Math.cos(a)*R}" y1="${cy+Math.sin(a)*R}" x2="${cx+Math.cos(b)*R}" y2="${cy+Math.sin(b)*R}" stroke="${lit&&(full||j+1<=i)?'#ffd24a':'#ffffff33'}" stroke-width="4"/>`;}).join('')}</svg>
+    <canvas width="240" height="240" id="kmP" style="position:absolute;left:${cx-80}px;top:${cy-80}px;width:160px;height:160px;border-radius:50%;border:4px solid #ffd24a;box-shadow:0 0 30px #ffd24a88"></canvas>
+    ${KMHN.map((nm,j)=>{const a=-Math.PI/2+j*Math.PI/4,lit=full||j<i,cur=!full&&j===i;return`<div style="position:absolute;left:${cx+Math.cos(a)*R-24}px;top:${cy+Math.sin(a)*R-24}px;width:48px;text-align:center">
+      <div style="width:44px;height:44px;margin:auto;border-radius:50%;border:3px solid ${lit?'#fff':cur?'#ffd24a':'#666'};background:${lit?'radial-gradient(#fff6c0,#ffb020)':cur?'radial-gradient(#5a4a2a,#2a1a0a)':'#1a1a2a'};box-shadow:${lit?'0 0 16px #ffd24a':cur?'0 0 10px #ffd24a':'none'};display:flex;align-items:center;justify-content:center;font-weight:900;color:${lit?'#5a2a00':'#ccc'};font-size:13px${cur?';animation:pulse 1.2s infinite':''}">${{hp:'Máu',atk:'Công',def:'Thủ',spd:'Tốc'}[KMS[j]]}</div>
+      <div class="stk" style="font-size:10px;white-space:nowrap;margin-left:-20px;width:88px">${nm}</div></div>`;}).join('')}
+    <div class="stk" style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:20px;font-weight:800;color:#ffe066">${full?'Chân Tiên viên mãn':`Trọng ${tr+1}: ${KMN[tr]} · ${i}/8 huyệt`}</div></div>
+   <div class="parch" style="flex:1;padding:10px 14px;font-size:15px;line-height:1.45;display:flex;flex-direction:column">
+    <b style="font-size:17px">Khai Mạch là gì?</b><div>Đả thông 8 huyệt mỗi Trọng, 10 Trọng (80 huyệt). Mỗi huyệt cộng % chỉ số; mở đủ 8 huyệt của một Trọng được thêm +4% máu, công, thủ. Trọng càng cao càng cần cấp tướng cao (Trọng 10 cần cấp 900) – đi song song với Đột phá tới cấp 1000.</div>
+    <div style="margin-top:6px"><b>Đã nhận:</b> ${Object.entries(P).filter(([k,v])=>v).map(([k,v])=>`${STN[k]} +${+v.toFixed(1)}%`).join(' · ')||'chưa có'}</div>
+    <div style="margin-top:4px"><b>Mốc:</b> ${KMMS.map(([t,d])=>`<span style="${n>=t*8?'color:#2a8a3a;font-weight:800':''}">${n>=t*8?'✔ ':''}${d}</span>`).join(' · ')}</div>
+    ${full?'':`<div style="margin-top:8px;padding:8px;border-radius:10px;background:#ffe06644"><b>Huyệt kế tiếp: ${KMHN[i]}</b> → ${STN[KMS[i]]} +${kmNode(tr,i)}%${i===7?' (hoàn thành Trọng: +4% máu, công, thủ)':''}<br>
+     Chi phí: <b>${c.ld} Linh Đan</b> (có ${fmt(S.mats.ld)}) · <b>${fmt(c.xu)} xu</b>${lvOK?'':`<br><b style="color:#c8201a">Cần tướng đạt cấp ${kmLvReq(tr)} (đang ${o.lv})</b>`}</div>`}
+    ${msg?`<div class="stk" style="margin-top:6px;font-size:18px;font-weight:800;color:#2a8a3a;text-shadow:none">${msg}</div>`:''}
+    <div style="font-size:13px;margin-top:6px;opacity:.85">Linh Đan lấy ở Phó bản <b>Động Linh Đan Sơn Trà</b>.</div>
+    <div style="display:flex;gap:10px;margin-top:auto;flex-wrap:wrap"><button class="gb green" id="km1" ${ok?'':'disabled'}>Khai huyệt</button><button class="gb red" id="kmA" ${ok?'':'disabled'}>Khai tối đa</button><button class="gb blue" id="kmG">Lấy Linh Đan ▶</button><button class="gb" id="kmX">Đóng</button></div></div></div>`;
+  const pc=m.querySelector('#kmP');pc.getContext('2d').drawImage(portraitURL(id,120),0,0,240,240);
+  const one=()=>{const tr2=Math.floor(o.km/8),c2=kmCost(tr2);if(o.km>=80||o.lv<kmLvReq(tr2)||S.mats.ld<c2.ld||S.coins<c2.xu)return false;S.mats.ld-=c2.ld;S.coins-=c2.xu;o.km++;return true;};
+  m.querySelector('#km1').onclick=()=>{if(one()){save();AU.chest(o.km%8===0?3:1);draw(o.km%8===0?`Hoàn thành Trọng ${o.km/8}: ${KMN[o.km/8-1]}!`:`Đả thông ${KMHN[(o.km-1)%8]}!`);}};
+  m.querySelector('#kmA').onclick=()=>{let k=0;while(one())k++;save();AU.chest(3);draw(`Đả thông ${k} huyệt!`);};
+  m.querySelector('#kmG').onclick=()=>{m.remove();GAME.querySelectorAll('.modal').forEach(x=>x.remove());go('dungeon');};
+  m.querySelector('#kmX').onclick=()=>{m.remove();GAME.querySelectorAll('.modal').forEach(x=>x.remove());heroDetail(id);};};draw();}
+
+// ---------- nút trong bảng chi tiết ----------
+const _hd15=heroDetail;
+heroDetail=function(id){_hd15(id);if(!S.owned[id])return;const ms=GAME.querySelectorAll('.modal'),m=ms[ms.length-1];const btns=m&&m.querySelector('#dBtns');if(!btns)return;
+ [...btns.querySelectorAll('button')].forEach(b=>{const t=b.textContent.trim();if(/^(Thức tỉnh|Đã Thức tỉnh|Xem ngoại hình)/.test(t))b.remove();});
+ const o=S.owned[id],aw=awOf(id);const R=aw<3&&AWREQ[aw+1];const ready=R&&o.star>=5&&(o.br||0)>=R.br&&S.mats.ls[HB[id].el]>=R.ls&&S.mats.an>=R.an&&S.coins>=R.xu;
+ const a=document.createElement('button');a.className='gb sm red';a.innerHTML=`Thức tỉnh${aw?` (${['','I','II','III'][aw]})`:''}${ready?' <b style="color:#ffe066">!</b>':''}`;a.onclick=()=>awScreen(id);
+ const k=document.createElement('button');k.className='gb sm blue';k.textContent=`Khai Mạch (${o.km||0}/80)`;k.onclick=()=>kmScreen(id);
+ btns.prepend(k);btns.prepend(a);};
+
+// ---------- 4. PHÓ BẢN 10 TẦNG ----------
+const DGT=[15,40,80,140,220,320,450,600,800,1000];
+if(!DG.find(d=>d.k==='ld'))DG.push({k:'ld',n:'Động Linh Đan Sơn Trà',d:'Linh Đan (Khai Mạch)',th:'sontra'});
+S.dgc=S.dgc||{};
+function dgReward(k,t,RW){const f=t+1;const r={};if(k==='gold')r.xu=Math.round(20000*Math.pow(f,1.9)*RW);else if(k==='dp')r.dp=Math.round(8*Math.pow(f,1.35)*RW);else if(k==='da'){r.da=Math.round(30*Math.pow(f,1.3)*RW);if(t>=4)r.tt=t-2;}
+ else if(k==='ld')r.ld=Math.round(6*Math.pow(f,1.3)*RW);else{r.eq=1+Math.floor(t/3);r.da=Math.round(10*f*RW);}return r;}
+const dgTxt=r=>[r.xu?fmt(r.xu)+' xu':'',r.dp?r.dp+' ngọc ĐP':'',r.da?r.da+' đá cường hoá':'',r.tt?r.tt+' Tinh Thiết':'',r.ld?r.ld+' Linh Đan':'',r.eq?r.eq+' trang bị':''].filter(Boolean).join(', ');
+function dgGive(k,t,RW){ens7();const r=dgReward(k,t,RW);if(r.xu)S.coins+=r.xu;if(r.dp)S.mats.dp+=r.dp;if(r.da)S.mats.da=(S.mats.da||0)+r.da;if(r.tt)S.mats.tt=(S.mats.tt||0)+r.tt;if(r.ld)S.mats.ld=(S.mats.ld||0)+r.ld;
+ const eqs=[];for(let i=0;i<(r.eq||0);i++)eqs.push(dropEq(Math.min(2.4,0.3+t*0.24)));S.medal=(S.medal||0)+3;return dgTxt(r)+(eqs.length?' ('+eqs.map(e=>EQR[e.r][3]).join(', ')+')':'');}
+function dgFoes2(k,t){const rnd=mulberry(t*131+k.length*17+new Date().getDate());const rs=t<2?['B','A','S']:t<4?['A','S','SS']:t<6?['S','SS','SSS']:t<8?['SS','SSS']:['SSS','UR'];
+ const pool=POOL.filter(h=>rs.includes(h.rar));const ids=[];while(ids.length<6){const h=pool[Math.floor(rnd()*pool.length)];if(!ids.includes(h.id))ids.push(h.id);}
+ const st=Math.min(5,1+Math.floor(t/2)),m=1+t*0.35+t*t*0.04;return ids.map((id,i)=>({id,slot:i,m,star:st}));}
+VIEWS.dungeon=function(){ens7();if(S.dg.date!==today())S.dg={date:today(),n:{}};scr.appendChild(sceneCanvas('nguhanh'));
+ scr.insertAdjacentHTML('beforeend',`${backB()}${curBar()}<div class="stk" style="position:absolute;left:110px;top:100px;font-size:16px;font-weight:700">10 tầng mỗi phó bản (quái cấp 15 → 1000) · 3 lượt đánh/quét mỗi ngày · lần đầu thưởng ×2</div>
+ <button class="gb" id="goAi" style="position:absolute;right:30px;top:94px;z-index:5;background:linear-gradient(180deg,#f0d0ff,#c86aff 40%,#7a2ab0)">Ải Thức Tỉnh ▶</button>
+ <div id="dgL" style="position:absolute;left:24px;right:24px;top:138px;bottom:12px;display:flex;gap:10px"></div>`);
+ $('goAi').onclick=()=>go('aitt');const L=$('dgL');
+ DG.forEach(d=>{const n=S.dg.n[d.k]||0,cl=S.dgc[d.k]||0;const box=document.createElement('div');box.className='wood rise';box.style.cssText='flex:1;min-width:0;padding:10px;display:flex;flex-direction:column;gap:4px';
+  box.innerHTML=`<div class="stk" style="font-size:17px;font-weight:800;line-height:1.15">${d.n}</div><div class="stk" style="font-size:13px">${d.d} · Còn <b style="color:#ffe066">${3-n}/3</b> · Đã qua ${cl}/10</div><div class="dgT" style="flex:1;overflow:auto;display:flex;flex-direction:column;gap:4px;padding-right:2px"></div>`;
+  const T=box.querySelector('.dgT');DGT.forEach((lv,t)=>{const open=t<=cl,done=t<cl;const row=document.createElement('div');row.className='parch';row.style.cssText=`display:flex;align-items:center;gap:4px;padding:3px 6px;font-size:12px;line-height:1.2;${open?'':'opacity:.5'}`;
+   row.innerHTML=`<div style="flex:1;min-width:0"><b style="font-size:13px">Tầng ${t+1}</b> · cấp ${lv}<br><span style="opacity:.85">${dgTxt(dgReward(d.k,t,S.cfg.reward||1))}</span></div>`;
+   const b=document.createElement('button');b.className='gb sm '+(done?'blue':'red');b.style.cssText='padding:2px 8px;font-size:13px;min-width:0';b.textContent=done?'Quét':open?'Đánh':'Khoá';b.disabled=!open||n>=3;
+   b.onclick=()=>{if(done){S.dg.n[d.k]=n+1;const tx=dgGive(d.k,t,S.cfg.reward||1);qAdd('win');save();AU.coin();toast(`Quét ${d.n} tầng ${t+1}: ${tx}`);go('dungeon');}
+    else startBattle({kind:'dg2',dg:d.k,t,name:`${d.n} · Tầng ${t+1}`,lv,foes:dgFoes2(d.k,t),theme:d.th});};row.appendChild(b);T.appendChild(row);});
+  L.appendChild(box);});};
+const _sr15=showResult;
+showResult=function(win){const c=B&&B.cfg;if(!c||c.kind!=='dg2'||B.quit){_sr15(win);return;}const r=$('result');r.hidden=false;let txt;
+ S.dg.n[c.dg]=(S.dg.n[c.dg]||0)+1;
+ if(win){const first=c.t>=(S.dgc[c.dg]||0);if(first)S.dgc[c.dg]=c.t+1;txt=dgGive(c.dg,c.t,(S.cfg.reward||1)*(first?2:1))+(first?' · Lần đầu ×2!':'')+' · +3 huân chương';qAdd('win');AU.win();try{evProg('win');evGain(5,'win');}catch(e){}}
+ else{txt='Thất bại (vẫn tính 1 lượt). Hãy nâng cấp, Khai Mạch hoặc đổi đội hình.';AU.lose();}save();
+ r.innerHTML=`<div class="modal"><div class="wood pop" style="position:relative;width:720px;padding:60px 30px 26px;text-align:center"><div class="title-rib stk">${win?'Thành công':'Thất bại'}</div><p class="stk" style="font-size:19px;margin:0 0 12px">${txt}</p>${statsHTML()}
+ <div style="display:flex;gap:12px;justify-content:center"><button class="gb" id="rOk">Về phó bản</button></div></div></div>`;$('rOk').onclick=()=>{closeBattle();go('dungeon');};};
 
 go('hub');
 </script>
