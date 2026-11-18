@@ -1153,7 +1153,7 @@ S.cfg=Object.assign({},CFG_DEF,S.cfg||{});
 let adminOK=false,adminTab='res';
 IC.gear='<svg viewBox="0 0 48 48"><path d="M24 4 L28 4 L29 10 L34 12 L39 8 L42 11 L38 16 L40 21 L46 22 V26 L40 27 L38 32 L42 37 L39 40 L34 36 L29 38 L28 44 H24 L23 38 L18 36 L13 40 L10 37 L14 32 L12 27 L6 26 V22 L12 21 L14 16 L10 11 L13 8 L18 12 L23 10 Z" fill="#cfd8e8" stroke="#2a3448" stroke-width="2.5" stroke-linejoin="round"/><circle cx="26" cy="24" r="7" fill="#5a6a88" stroke="#2a3448" stroke-width="2.5"/></svg>';
 const ADM_CSS=`.adm{position:relative;width:1180px;height:640px;padding:52px 20px 18px;box-sizing:border-box;display:flex;gap:14px}
-.adm nav{display:flex;flex-direction:column;gap:8px;width:190px;flex:none}
+.adm nav{display:flex;flex-direction:column;gap:5px;width:190px;flex:none;overflow:auto}.adm nav .tab{padding-top:3px;padding-bottom:3px;font-size:17px}
 .adm nav .tab{width:100%;font-size:19px;height:46px}
 .adm .pane{flex:1;overflow:auto;padding:14px 18px;font-size:17px}
 .adm h4{margin:4px 0 8px;font-size:21px}
@@ -1176,7 +1176,7 @@ function openAdmin(){
   <p class="stk" style="font-size:14px;margin:12px 0 0;opacity:.9">Mã mặc định 1234, đổi được trong bảng quản trị.</p></div>`;
   const ok=()=>{if($('pinIn').value===S.cfg.pin){adminOK=true;m.remove();openAdmin();}else{toast('Sai mã PIN');$('pinIn').value='';}};
   $('pinOk').onclick=ok;$('pinIn').onkeydown=e=>{if(e.key==='Enter')ok();};$('pinNo').onclick=()=>m.remove();setTimeout(()=>$('pinIn').focus(),50);return;}
- const tabs=[['res','Tài nguyên'],['inv','Kho đồ'],['hero','Nhẫn giả'],['prog','Tiến độ'],['bal','Cân bằng'],['battle','Trận đấu'],['data','Dữ liệu'],['sec','Bảo mật']];
+ const tabs=[['res','Tài nguyên'],['inv','Kho đồ'],['hero','Nhẫn giả'],['prog','Tiến độ'],['bal','Cân bằng'],['battle','Trận đấu'],['mat','Nguyên liệu'],['grow','Bồi dưỡng'],['mode','Chế độ chơi'],['evt','Sự kiện'],['data','Dữ liệu'],['sec','Bảo mật']];
  m.innerHTML=`<div class="wood adm"><div class="title-rib stk">Bảng quản trị</div>
   <nav>${tabs.map(([k,n])=>`<button class="tab stk${k===adminTab?' on':''}" data-at="${k}">${n}</button>`).join('')}<button class="gb red sm" id="admClose" style="margin-top:auto">Đóng</button></nav>
   <div class="parch pane" id="admPane"></div></div>`;
@@ -1197,17 +1197,17 @@ function openAdmin(){
  }
  else if(adminTab==='inv'){
   P.innerHTML=`<h4>Kho đồ</h4><div class="row"><label for="iDp">Ngọc đột phá</label>${num('iDp',S.mats.dp)}<button class="gb sm green" id="iDpS">Lưu</button></div>
-   <div class="row"><label for="iR">Tặng trang bị</label><select id="iR">${EQR.map((r,i)=>`<option value="${i}">Hạng ${r[0]}</option>`).join('')}</select><input type="number" id="iN" value="4" min="1" max="40"><button class="gb sm" id="iGive">Tặng ngẫu nhiên</button></div>
+   <div class="row"><label for="iR">Tặng trang bị</label><select id="iR">${EQR.map((r,i)=>`<option value="${i}">${r[3]||'Hạng '+r[0]}</option>`).join('')}</select><input type="number" id="iN" value="4" min="1" max="40"><button class="gb sm" id="iGive">Tặng ngẫu nhiên</button></div>
    <div class="row"><button class="gb sm blue" id="iPets">Mở khoá mọi linh thú</button><label for="iT" style="min-width:0">Tháp đã qua</label>${num('iT',S.tower,0,100)}<button class="gb sm" id="iTS">Lưu tầng</button></div>
    <p class="note2">Kho hiện có ${S.inv.length} trang bị.</p>`;
   $('iDpS').onclick=()=>{S.mats.dp=val('iDp');done();};$('iGive').onclick=()=>{const r=+$('iR').value,n=Math.min(40,Math.max(1,+$('iN').value||1));for(let i=0;i<n;i++)newEq(EQS[Math.floor(Math.random()*4)][0],r);done('Đã tặng '+n+' trang bị');};
   $('iPets').onclick=()=>{PETS.forEach(p=>{if(!S.pets[p.id])S.pets[p.id]={lv:1};});done();};$('iTS').onclick=()=>{S.tower=Math.min(100,val('iT'));done();};
  }
  else if(adminTab==='hero'){
-  P.innerHTML=`<h4>Nhẫn giả</h4><div class="row"><button class="gb sm green" id="hAll">Sở hữu tất cả</button><button class="gb sm" id="hMax">Tất cả cấp 60 · 5 sao</button><button class="gb sm blue" id="hSh">+50 mảnh cho tất cả</button><button class="gb sm red" id="hClr">Gỡ nhẫn giả ngoài đội</button></div>
+  P.innerHTML=`<h4>Nhẫn giả</h4><div class="row"><button class="gb sm green" id="hAll">Sở hữu tất cả</button><button class="gb sm" id="hMax">Tất cả cấp 1000 · đột phá 14</button><button class="gb sm blue" id="hSh">+50 mảnh cho tất cả</button><button class="gb sm red" id="hClr">Gỡ nhẫn giả ngoài đội</button></div>
    <table><thead><tr><th>Nhẫn giả</th><th>Hạng</th><th>Sở hữu</th><th>Cấp</th><th>Sao</th><th>Mảnh</th></tr></thead><tbody>${POOL.map(h=>{const o=S.owned[h.id];return`<tr><td>${h.n}</td><td>${h.rar}</td>
-    <td><input type="checkbox" data-own="${h.id}" ${o?'checked':''} aria-label="Sở hữu ${h.n}"></td><td><input type="number" data-lv="${h.id}" value="${o?o.lv:1}" min="1" max="60" style="width:80px" ${o?'':'disabled'}></td>
-    <td><select data-st="${h.id}" ${o?'':'disabled'}>${[1,2,3,4,5].map(n=>`<option ${o&&o.star===n?'selected':''}>${n}</option>`).join('')}</select></td><td><input type="number" data-sh="${h.id}" value="${o?o.sh:0}" min="0" style="width:90px" ${o?'':'disabled'}></td></tr>`;}).join('')}</tbody></table>
+    <td><input type="checkbox" data-own="${h.id}" ${o?'checked':''} aria-label="Sở hữu ${h.n}"></td><td><input type="number" data-lv="${h.id}" value="${o?o.lv:1}" min="1" max="1000" style="width:80px" ${o?'':'disabled'}></td>
+    <td><select data-st="${h.id}" ${o?'':'disabled'}>${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option ${o&&o.star===n?'selected':''}>${n}</option>`).join('')}</select></td><td><input type="number" data-sh="${h.id}" value="${o?o.sh:0}" min="0" style="width:90px" ${o?'':'disabled'}></td></tr>`;}).join('')}</tbody></table>
    <div class="row"><button class="gb green" id="hSave">Lưu bảng</button></div>`;
   $('hAll').onclick=()=>{POOL.forEach(h=>{if(!S.owned[h.id])S.owned[h.id]={lv:1,star:1,sh:0};});done('Đã mở khoá toàn bộ');};
   $('hMax').onclick=()=>{Object.values(S.owned).forEach(o=>{o.star=5;o.br=14;o.lv=1000;});done('Đã nâng tối đa');};
@@ -1216,7 +1216,7 @@ function openAdmin(){
   $('hSave').onclick=()=>{POOL.forEach(h=>{const own=P.querySelector(`[data-own="${h.id}"]`).checked;
     if(!own){if(S.team.includes(h.id)&&S.team.filter(Boolean).length>1)S.team[S.team.indexOf(h.id)]=null;if(!S.team.includes(h.id))delete S.owned[h.id];return;}
     const o=S.owned[h.id]||(S.owned[h.id]={lv:1,star:1,sh:0});const lvEl=P.querySelector(`[data-lv="${h.id}"]`);
-    if(!lvEl.disabled){o.lv=Math.min(60,Math.max(1,+lvEl.value||1));o.star=+P.querySelector(`[data-st="${h.id}"]`).value;o.sh=Math.max(0,+P.querySelector(`[data-sh="${h.id}"]`).value||0);}});done();};
+    if(!lvEl.disabled){o.lv=Math.min(1000,Math.max(1,+lvEl.value||1));o.star=+P.querySelector(`[data-st="${h.id}"]`).value;o.sh=Math.max(0,+P.querySelector(`[data-sh="${h.id}"]`).value||0);}});done();};
  }
  else if(adminTab==='prog'){
   P.innerHTML=`<h4>Tiến độ</h4>
@@ -1262,6 +1262,7 @@ function openAdmin(){
   $('dReset').onclick=()=>{$('dConfirm').hidden=false;};$('dNo').onclick=()=>{$('dConfirm').hidden=true;};
   $('dYes').onclick=()=>{const pin=S.cfg.pin;for(const k of Object.keys(S))delete S[k];Object.assign(S,fresh());S.cfg=Object.assign({},CFG_DEF,{pin});done('Đã đặt lại trò chơi');};
  }
+ else if(['mat','grow','mode','evt'].includes(adminTab)){admExt(adminTab,P,done,num,val);}
  else if(adminTab==='sec'){
   P.innerHTML=`<h4>Bảo mật</h4><div class="row"><label for="sP">Mã PIN mới (4–8 chữ số)</label><input id="sP" type="password" inputmode="numeric" maxlength="8"><button class="gb sm green" id="sSave">Đổi PIN</button></div>
    <div class="row"><button class="gb sm red" id="sOut">Khoá bảng quản trị</button></div>
@@ -3550,6 +3551,68 @@ const _dgR16=dgReward;dgReward=function(k,t,RW){if(k!=='bt')return _dgR16(k,t,RW
 const _dgT16=dgTxt;dgTxt=function(r){const a=_dgT16(r);return[a,r.bt?r.bt+' bí tịch':'',r.th?r.th+' Tinh Hồn':''].filter(Boolean).join(', ');};
 const _dgG16=dgGive;dgGive=function(k,t,RW){if(k!=='bt')return _dgG16(k,t,RW);const r=dgReward(k,t,RW);S.mats.th+=r.th;const got=[];for(let i=0;i<r.bt;i++)got.push(dropBt(t));S.medal=(S.medal||0)+3;
  return `${r.th} Tinh Hồn, ${got.map(b=>BTR[b.r][0]+' '+BTK[b.k][0]).join(', ')}`;};
+
+/* =========================================================
+   17: BẢNG QUẢN TRỊ MỞ RỘNG
+   ========================================================= */
+function admExt(tab,P,done,num,val){ens7();S.mats.th=S.mats.th||0;S.mats.ld=S.mats.ld||0;S.mats.tt=S.mats.tt||0;S.mats.da=S.mats.da||0;
+ const row=(lab,id,v,add)=>`<div class="row"><label for="${id}">${lab}</label>${num(id,v)}${add?`<button class="gb sm" data-q="${id}:${add}">+${fmt(add)}</button>`:''}</div>`;
+ const bindQ=()=>P.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const[id,v]=b.dataset.q.split(':');$(id).value=(+$(id).value||0)+(+v);});
+ if(tab==='mat'){
+  P.innerHTML=`<h4>Nguyên liệu mới</h4><p class="note2">Sửa số rồi bấm Lưu. Nút “+” cộng nhanh vào ô.</p>
+   ${row('Vé Đặc biệt','mVdb',S.vdb||0,10)}${row('Huân chương','mMed',S.medal||0,1000)}${row('Đá cường hoá','mDa',S.mats.da,1000)}${row('Tinh Thiết Thần Binh','mTt',S.mats.tt,200)}
+   ${row('Ấn Thức Tỉnh','mAn',S.mats.an,50)}${row('Linh Đan (Khai Mạch)','mLd',S.mats.ld,1000)}${row('Tinh Hồn (Thăng Tinh)','mTh',S.mats.th,1000)}${row('Ngọc đột phá','mDp',S.mats.dp,1000)}
+   ${Object.keys(EL).map(k=>row('Linh thạch '+EL[k].n,'mLs'+k,S.mats.ls[k],500)).join('')}
+   ${row('Điểm Đặc biệt (chọn UR)','mSp',S.spPts||0,160)}${row('Rương chọn UR','mUr',S.urSel||0,1)}
+   <div class="row"><button class="gb green" id="mSave">Lưu</button><button class="gb sm blue" id="mAll">Cộng gói lớn mọi nguyên liệu</button></div>`;bindQ();
+  $('mSave').onclick=()=>{S.vdb=val('mVdb');S.medal=val('mMed');S.mats.da=val('mDa');S.mats.tt=val('mTt');S.mats.an=val('mAn');S.mats.ld=val('mLd');S.mats.th=val('mTh');S.mats.dp=val('mDp');
+   Object.keys(EL).forEach(k=>S.mats.ls[k]=val('mLs'+k));S.spPts=val('mSp');S.urSel=val('mUr');done();};
+  $('mAll').onclick=()=>{S.vdb=(S.vdb||0)+20;S.medal=(S.medal||0)+5000;S.mats.da+=5000;S.mats.tt+=1000;S.mats.an+=200;S.mats.ld+=5000;S.mats.th+=5000;S.mats.dp+=5000;Object.keys(EL).forEach(k=>S.mats.ls[k]+=2000);S.coins+=1e9;S.gems+=50000;done('Đã cộng gói lớn');};}
+ else if(tab==='grow'){
+  const ids=Object.keys(S.owned).sort((a,b)=>RK.indexOf(HB[a].rar)-RK.indexOf(HB[b].rar));
+  P.innerHTML=`<h4>Bồi dưỡng tướng đang sở hữu (${ids.length})</h4>
+   <div class="row"><button class="gb sm red" id="gMaxAll">Tối đa toàn bộ (cấp 1000 · 10★ · TT III · Khai Mạch 80 · Thần Binh 5★)</button><button class="gb sm" id="gTeam">Chỉ tối đa đội hình</button></div>
+   <div class="row"><button class="gb sm blue" id="gBt">Tặng 21 bí tịch Cam (3 mỗi loại)</button><button class="gb sm blue" id="gSk">Mở mọi trang phục</button><button class="gb sm red" id="gCs0">Xoá Chuyển Sinh của tất cả</button></div>
+   <table><thead><tr><th>Nhẫn giả</th><th>Hạng</th><th>Cấp</th><th>Sao</th><th>Đột phá</th><th>TT</th><th>Khai Mạch</th><th>Thần Binh</th><th>Chuyển Sinh</th></tr></thead><tbody>
+   ${ids.map(id=>{const o=S.owned[id],h=HB[id];return`<tr><td>${h.n}</td><td>${h.rar}</td><td><input type="number" data-g="lv" data-id="${id}" value="${o.lv}" min="1" max="1000" style="width:78px"></td>
+    <td><input type="number" data-g="star" data-id="${id}" value="${o.star}" min="1" max="10" style="width:56px"></td><td><input type="number" data-g="br" data-id="${id}" value="${o.br||0}" min="0" max="14" style="width:56px"></td>
+    <td><input type="number" data-g="aw" data-id="${id}" value="${o.aw|0}" min="0" max="3" style="width:50px"></td><td><input type="number" data-g="km" data-id="${id}" value="${o.km||0}" min="0" max="80" style="width:60px"></td>
+    <td>${tbHas(id)?`<input type="number" data-g="tb" data-id="${id}" value="${o.tb||0}" min="0" max="5" style="width:50px">`:'—'}</td><td><input type="number" data-g="cs" data-id="${id}" value="${o.cs||0}" min="0" max="5" style="width:50px"></td></tr>`;}).join('')}</tbody></table>
+   <div class="row"><button class="gb green" id="gSave">Lưu bảng</button></div>`;
+  const mx=o=>{o.lv=1000;o.star=10;o.br=14;o.aw=3;o.km=80;o.tb=5;};
+  $('gMaxAll').onclick=()=>{ids.forEach(id=>{mx(S.owned[id]);if(!tbHas(id))delete S.owned[id].tb;});for(const k in PCACHE)delete PCACHE[k];done('Đã tối đa toàn bộ');};
+  $('gTeam').onclick=()=>{S.team.filter(Boolean).forEach(id=>{mx(S.owned[id]);if(!tbHas(id))delete S.owned[id].tb;});for(const k in PCACHE)delete PCACHE[k];done('Đã tối đa đội hình');};
+  $('gBt').onclick=()=>{Object.keys(BTK).forEach(k=>{for(let i=0;i<3;i++)newBt(k,3);});done('Đã tặng bí tịch');};
+  $('gSk').onclick=()=>{S.skins=Object.keys(SKINS);done('Đã mở mọi trang phục');};
+  $('gCs0').onclick=()=>{ids.forEach(id=>S.owned[id].cs=0);done();};
+  $('gSave').onclick=()=>{const lim={lv:[1,1000],star:[1,10],br:[0,14],aw:[0,3],km:[0,80],tb:[0,5],cs:[0,5]};
+   P.querySelectorAll('[data-g]').forEach(i=>{const k=i.dataset.g,[a,b]=lim[k];S.owned[i.dataset.id][k]=Math.min(b,Math.max(a,Math.round(+i.value||0)));});for(const k in PCACHE)delete PCACHE[k];done();};}
+ else if(tab==='mode'){
+  P.innerHTML=`<h4>Chế độ chơi</h4>
+   <div class="row"><b style="min-width:150px">Ải Thức Tỉnh</b>${Object.keys(EL).map(k=>`<label for="a_${k}" style="min-width:0">${EL[k].n}</label><input type="number" id="a_${k}" value="${S.ai[k]}" min="0" max="${AIMAX}" style="width:70px">`).join('')}<button class="gb sm" id="aAll">Đặt tất cả = ${AIMAX}</button></div>
+   <div class="row"><b style="min-width:150px">Phó bản (tầng đã qua)</b>${DG.map(d=>`<label for="d_${d.k}" style="min-width:0">${d.n.split(' ').slice(0,2).join(' ')}</label><input type="number" id="d_${d.k}" value="${(S.dgc||{})[d.k]||0}" min="0" max="10" style="width:56px">`).join('')}</div>
+   <div class="row"><button class="gb sm blue" id="mRst">Hồi lượt hôm nay (phó bản, Ải quét, sự kiện, boss, đấu trường)</button></div>
+   <div class="row"><label for="mPity">Bảo hiểm UR (Đặc biệt)</label>${num('mPity',S.pityUR||0,0,79)}<span class="note2">Đủ 80 chắc chắn ra UR.</span></div>
+   <div class="row"><label for="mAr">Điểm đấu trường</label>${num('mAr',S.arena.pts)}<button class="gb sm" id="mArC">Cho nhận lại thưởng hạng</button></div>
+   <div class="row"><label for="mTst">Đánh thử</label><select id="mTst">${Object.keys(EL).map(k=>`<option value="ai:${k}">Ải Thức Tỉnh ${EL[k].n}</option>`).join('')}${DG.map(d=>`<option value="dg:${d.k}">${d.n}</option>`).join('')}</select>
+    <label for="mTf" style="min-width:0">Tầng</label><input type="number" id="mTf" value="1" min="1" max="${AIMAX}" style="width:80px"><button class="gb sm red" id="mGo">Vào trận</button></div>
+   <div class="row"><button class="gb green" id="mSave2">Lưu</button></div>`;
+  $('aAll').onclick=()=>{Object.keys(EL).forEach(k=>$('a_'+k).value=AIMAX);};
+  $('mRst').onclick=()=>{S.dg={date:today(),n:{}};S.aiSw={date:today(),n:{}};if(S.ev&&S.ev.tries)S.ev.tries={d:'',n:0};if(S.boss)S.boss.tries=0;S.arena.ref=5;done('Đã hồi lượt');};
+  $('mArC').onclick=()=>{S.arena.claim=0;done();};
+  $('mSave2').onclick=()=>{Object.keys(EL).forEach(k=>S.ai[k]=Math.min(AIMAX,val('a_'+k)));S.dgc=S.dgc||{};DG.forEach(d=>S.dgc[d.k]=Math.min(10,val('d_'+d.k)));S.pityUR=Math.min(79,val('mPity'));S.arena.pts=val('mAr');done();};
+  $('mGo').onclick=()=>{const [t,k]=$('mTst').value.split(':');const f=Math.max(1,+$('mTf').value||1);save();$('admM').remove();
+   if(t==='ai')startBattle({kind:'ai',el:k,floor:Math.min(AIMAX,f)});else{const d=DG.find(x=>x.k===k),tt=Math.min(9,f-1);startBattle({kind:'dg2',dg:k,t:tt,name:`${d.n} · Tầng ${tt+1}`,lv:DGT[tt],foes:dgFoes2(k,tt),theme:d.th});}};}
+ else if(tab==='evt'){const {e,left}=evNow();const st=evState();
+  P.innerHTML=`<h4>Sự kiện tuần</h4><p class="note2">Đang chạy: <b>${e.n}</b>${EV_FORCE?' (đang ép thử)':''} · còn ${evLeftTxt(left)}. Ép sự kiện chỉ có tác dụng trong phiên chơi hiện tại (tải lại trang sẽ về lịch thật).</p>
+   <div class="row"><label for="eF">Ép sự kiện</label><select id="eF"><option value="">Theo lịch thật</option>${EVS.map(x=>`<option value="${x.id}" ${EV_FORCE===x.id?'selected':''}>${x.n}</option>`).join('')}</select><button class="gb sm" id="eFGo">Áp dụng</button></div>
+   ${row(e.tok,'eTok',st.tok,1000)}<div class="row"><label for="eSt">Ải sự kiện đã qua</label>${num('eSt',st.stage,0,15)}</div>
+   <div class="row"><button class="gb sm blue" id="eDone">Hoàn thành mọi nhiệm vụ</button><button class="gb sm" id="eRst">Đặt lại tiến trình sự kiện</button><button class="gb sm" id="eBuy">Cho mua lại cửa hàng</button></div>
+   <div class="row"><button class="gb green" id="eSave">Lưu</button></div>`;bindQ();
+  $('eFGo').onclick=()=>{EV_FORCE=$('eF').value||null;done('Đã đổi sự kiện');};
+  $('eDone').onclick=()=>{EVMIS.forEach(mm=>{st.p[mm.k]=Math.max(st.p[mm.k]||0,mm.n);});done();};
+  $('eRst').onclick=()=>{S.ev=null;evState();done('Đã đặt lại');};$('eBuy').onclick=()=>{st.buy={};done();};
+  $('eSave').onclick=()=>{st.tok=val('eTok');st.stage=Math.min(15,val('eSt'));st.earned=Math.max(st.earned,st.tok);done();};}}
 
 go('hub');
 </script>
