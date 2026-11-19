@@ -4539,12 +4539,12 @@ VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;co
 
 /* =========================================================
    21: NHÂN VẬT VROID TRONG TRẬN – khung xương chuyển động, trang phục riêng từng tướng
-   – Nạp models/vroid_nam.glb + models/vroid_nu.glb một lần, mỗi tướng là bản sao dùng chung lưới
+   – Nạp models/vroid_nam.json + models/vroid_nu.json một lần, mỗi tướng là bản sao dùng chung lưới
    – Thay c3Build/c3Pose; khi chưa nạp xong dùng mô hình 3D cũ
    ========================================================= */
 const VRS={ok:false,err:false};
 (function vrBoot(){if(!C3.ok||!THREE.GLTFLoader||!THREE.SkeletonUtils)return;
- Promise.all([VR.load('nam','models/vroid_nam.glb'),VR.load('nu','models/vroid_nu.glb')]).then(()=>{VRS.ok=true;
+ Promise.all([VR.load('nam','models/vroid_nam.json'),VR.load('nu','models/vroid_nu.json')]).then(()=>{VRS.ok=true;
   for(const [k,g] of C3.models){c3Dispose(g);}C3.models.clear();C3.cache={};for(const k in PCACHE)delete PCACHE[k];
   setTimeout(()=>{if(document.querySelector('.modal')||(typeof B!=='undefined'&&B))return;try{if(typeof VS_LAST!=='undefined')go(VS_LAST[0],VS_LAST[1]);}catch(e){}},60);
  }).catch(e=>{VRS.err=true;console.warn('VRoid lỗi',e);});})();

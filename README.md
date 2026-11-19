@@ -16,6 +16,6 @@ Chơi tại: https://benphandz.github.io/nhan-gioi-hai-van/
 - Model GLB vẫn giữ hiệu ứng thức tỉnh: I vòng nguyên tố + ánh phát sáng, II cánh, III cánh vàng + áo choàng + hào quang.
 
 ## Mô hình nhân vật VRoid
-- `models/vroid_nam.glb`: mẫu do chủ dự án dựng bằng VRoid Studio (pixiv).
-- `models/vroid_nu.glb`: mẫu chính thức `VRM1_Constraint_Twist_Sample` của pixiv Inc., giấy phép VRM Public License 1.0 (cho phép dùng thương mại, chỉnh sửa và phân phối lại; không bắt buộc ghi công). (c) 2022 pixiv Inc.
+- `models/vroid_nam.json` (glTF, dữ liệu nhúng): mẫu do chủ dự án dựng bằng VRoid Studio (pixiv).
+- `models/vroid_nu.json` (glTF, dữ liệu nhúng): mẫu chính thức `VRM1_Constraint_Twist_Sample` của pixiv Inc., giấy phép VRM Public License 1.0 (cho phép dùng thương mại, chỉnh sửa và phân phối lại; không bắt buộc ghi công). (c) 2022 pixiv Inc.
 - Trang phục, kiểu tóc, râu, phụ kiện và chuyển động khớp được tạo bằng code trong `index.html` (mục 21).
