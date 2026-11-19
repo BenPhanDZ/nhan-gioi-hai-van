@@ -1,6 +1,6 @@
 # Nhẫn Giới Hải Vân
 
-Game đấu tướng theo lượt chạy trên trình duyệt: 40 nhẫn giả (B đến SSS), đội 6 người, Nộ chung, combo Truy Kích, kỹ năng phụ, thiên phú, Điểm Tốc, ngũ hành tương khắc, chiêu mộ, trang bị, đột phá, thức tỉnh, Duyên, đồ giám, linh thú, vượt ải 5 chương, tháp 100 tầng, boss thế giới, phó bản, cửa hàng, đấu trường, nhiệm vụ và thành tựu.
+Game đấu tướng theo lượt chạy trên trình duyệt: 40 nhẫn giả (B đến SSS), đội 6 người, Nộ chung, combo Truy Kích, kỹ năng phụ, thiên phú, Điểm Tốc, ngũ hành tương khắc, chiêu mộ, trang bị, đột phá, thức tỉnh, Duyên, đồ giám, linh thú, vượt ải 20 chương, tháp 100 tầng, boss thế giới, phó bản, cửa hàng, đấu trường, nhiệm vụ và thành tựu.
 
 Chơi tại: https://benphandz.github.io/nhan-gioi-hai-van/
 
@@ -19,3 +19,13 @@ Chơi tại: https://benphandz.github.io/nhan-gioi-hai-van/
 - `models/vroid_nam.json` (glTF, dữ liệu nhúng): mẫu do chủ dự án dựng bằng VRoid Studio (pixiv).
 - `models/vroid_nu.json` (glTF, dữ liệu nhúng): mẫu chính thức `VRM1_Constraint_Twist_Sample` của pixiv Inc., giấy phép VRM Public License 1.0 (cho phép dùng thương mại, chỉnh sửa và phân phối lại; không bắt buộc ghi công). (c) 2022 pixiv Inc.
 - Trang phục, kiểu tóc, râu, phụ kiện và chuyển động khớp được tạo bằng code trong `index.html` (mục 21).
+
+## Tài nguyên dựng bằng Blender
+Toàn bộ tài nguyên dưới đây do script Blender 4.2 LTS trong `tools/` dựng tự động (không dùng mô hình của bên thứ ba):
+- `models/weapons.json`: 22 loại vũ khí (`tools/weapons.py`).
+- `models/thanbinh.json`: 15 thần binh lịch sử và vòng phù văn thần binh (`tools/thanbinh.py`).
+- `models/headgear.json`: mũ trụ, mũ rồng, vương miện, nón lá (`tools/headgear.py`).
+- `models/phap_*.json`: 5 pháp tướng thần thú (`tools/phap.py`).
+- `bg/*.jpg`: nền chiến trường chương 6–20 render Cycles (`tools/bgscene.py`).
+- `fx/*.png`: voi chiến, ngựa sắt, cọc Bạch Đằng (`tools/props.py`); `ui/*.png`: biểu tượng giao diện (`tools/icons.py`).
+Thư viện dùng chung: `tools/blib.py`; chuyển GLB sang glTF nhúng: `tools/glb2json.py`.

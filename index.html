@@ -457,7 +457,7 @@ const CHAP=[
  {n:'Đèo Hải Vân',boss:'Hắc Triều Vương',d:'Trận quyết chiến trên đỉnh đèo mây phủ.'}];
 const STG=['Trinh sát','Phục kích','Giữ cầu','Đột kích','Tử thủ'];
 const ARENA_NAMES=['Sóng Mỹ Khê','Rồng Đêm 99','Voọc Sơn Trà','Gió Hải Vân','Đá Non Nước'];
-const stageLv=idx=>1+Math.round(idx*1.75);
+let stageLv=idx=>1+Math.round(idx*1.75);
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 function pickTeam(rnd,n){const p=POOL.filter(h=>!['SS','SSS','UR'].includes(h.rar)).map(h=>h.id);const out=[];while(out.length<n){const id=p[Math.floor(rnd()*p.length)];if(!out.includes(id))out.push(id);}
  // xếp thủ/công lên trước
@@ -524,7 +524,7 @@ function standTeam(c,t,ids,pos,sc){ids.forEach((id,i)=>{if(!id)return;const[x,y]
 const VIEWS={
  hub(){
   const ids=S.team.filter(Boolean);const lead=ids[0]||'thach';
-  const ch=Math.min(5,Math.floor(S.prog/6)+1),sg=S.prog>=30?6:S.prog%6+1;
+  const ch=Math.min(CHAP.length,Math.floor(S.prog/6)+1),sg=S.prog>=CHAP.length*6?6:S.prog%6+1;
   const cv=sceneCanvas('lang',(c,t,cam)=>{cam.x=640+Math.sin(t*0.12)*70;const pos=ids.map((_,i)=>[300+i*120,520+(i%2)*34]);standTeam(c,t,ids,pos,1.05);if(typeof PB!=='undefined'&&PB[S.pet]&&S.pets[S.pet])drawPet(c,PB[S.pet],190,400,1.2,t,1);});
   scr.appendChild(cv);
   scr.insertAdjacentHTML('beforeend',`
@@ -541,11 +541,11 @@ const VIEWS={
     <button class="bb" data-go="team"><span class="ic">${IC.team}</span><b class="stk">Đội hình</b></button>
     <button class="bb" data-go="gacha"><span class="ic">${IC.summon}</span><b class="stk">Chiêu mộ</b></button>
     <button class="bb" data-go="story"><span class="ic">${IC.map}</span><b class="stk">Bản đồ</b></button>
-    <div class="gostage"><button class="gb red" id="goStage">${IC.swords}Vượt ải</button><small class="stk">${S.prog>=30?'Đã phá đảo · đánh lại tuỳ ý':`Chương ${ch} · Ải ${sg}`}</small></div>
+    <div class="gostage"><button class="gb red" id="goStage">${IC.swords}Vượt ải</button><small class="stk">${S.prog>=CHAP.length*6?'Đã phá đảo · đánh lại tuỳ ý':`Chương ${ch} · Ải ${sg}`}</small></div>
    </div>`);
   const av=portraitURL(lead,120);const ac=document.createElement('canvas');ac.width=ac.height=120;ac.getContext('2d').drawImage(av,0,0);$('ava').appendChild(ac);
   $('admBtn').onclick=openAdmin;
-  $('goStage').onclick=()=>startBattle({kind:'story',idx:Math.min(S.prog,29)});
+  $('goStage').onclick=()=>startBattle({kind:'story',idx:Math.min(S.prog,CHAP.length*6-1)});
  },
  guide(){
   scr.appendChild(sceneCanvas('nguhanh'));
@@ -567,7 +567,7 @@ const VIEWS={
   $('claim').onclick=()=>{S.daily=today();S.tickets+=3;S.coins+=3000;S.gems+=120;save();toast('Đã nhận 3 vé, 3.000 xu, 120 ngọc');go('hub');};
  },
  story(ch){
-  const maxCh=Math.min(5,Math.floor(S.prog/6)+1);ch=ch||maxCh;
+  const maxCh=Math.min(CHAP.length,Math.floor(S.prog/6)+1);ch=ch||maxCh;
   scr.appendChild(sceneCanvas(THEME_OF_CH[ch-1]));
   // đường đi qua 6 ải
   const pts=[[230,520],[400,430],[560,520],[730,420],[890,510],[1080,400]];
@@ -575,7 +575,7 @@ const VIEWS={
   scr.insertAdjacentHTML('beforeend',`${backB()}${curBar()}
    <svg style="position:absolute;inset:0" viewBox="0 0 1280 720"><path d="${path}" stroke="#fff" stroke-width="10" stroke-dasharray="4 18" stroke-linecap="round" fill="none" opacity=".85"/></svg>
    <div class="wood" style="position:absolute;left:110px;top:104px;width:1060px;padding:10px 16px;display:flex;gap:10px;align-items:center">
-    ${[1,2,3,4,5].map(i=>`<button class="tab${i===ch?' on':''} stk" ${i>maxCh?'disabled style="filter:grayscale(1);opacity:.6"':''} data-go="story:${i}">Chương ${i}</button>`).join('')}
+    ${CHAP.map((_,k)=>k+1).map(i=>`<button class="tab${i===ch?' on':''} stk" ${i>maxCh?'disabled style="filter:grayscale(1);opacity:.6"':''} data-go="story:${i}">Chương ${i}</button>`).join('')}
     <div class="stk" style="margin-left:8px;font-size:19px;font-weight:800">${CHAP[ch-1].n}</div></div>
    <div class="parch" style="position:absolute;left:110px;top:186px;width:520px;padding:8px 14px;font-size:17px;line-height:1.35">${CHAP[ch-1].d}</div>`);
   pts.forEach(([x,y],i)=>{const idx=(ch-1)*6+i,stars=S.stars[idx]||0,lock=idx>S.prog,boss=i===5;
@@ -661,7 +661,7 @@ const VIEWS={
      <button class="gb red" id="tFight">${IC.swords}Đánh</button></div>
     <div class="grid" id="tg" style="flex:1;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden"></div></div>`);
   scr.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{teamF=b.dataset.f;go('team');});
-  $('tFight').onclick=()=>startBattle({kind:'story',idx:Math.min(S.prog,29)});
+  $('tFight').onclick=()=>startBattle({kind:'story',idx:Math.min(S.prog,CHAP.length*6-1)});
   const g=$('tg');
   Object.keys(S.owned).filter(id=>teamF==='all'||HB[id].r===teamF).sort((a,b)=>S.team.includes(b)-S.team.includes(a)||powerOf(HB[b],S.owned[b].lv,S.owned[b].star)-powerOf(HB[a],S.owned[a].lv,S.owned[a].star)).forEach(id=>{
    const c=heroCard(id,{name:1,in:S.team.includes(id)});c.onclick=()=>{const j=S.team.indexOf(id);
@@ -994,13 +994,13 @@ function showResult(win){const r=$('result');r.hidden=false;let txt='';
  if(B.quit){txt='Bạn đã rút lui khỏi trận.';}
  else if(win){const alv=alive(0).length;const stars=alv>=5?3:alv>=3?2:1;
   if(B.cfg.kind==='story'){const idx=B.cfg.idx;const first=!S.stars[idx];const RW=S.cfg.reward||1,coins=Math.round((600+idx*120)*RW),gems=Math.round((first?60:10)*RW),tk=first&&idx%6===5?3:first?1:0;
-   S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<30)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;
+   S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<CHAP.length*6)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;
    txt=`${'★'.repeat(stars)}${'☆'.repeat(3-stars)}<br>Nhận ${coins.toLocaleString('vi-VN')} xu, ${gems} ngọc${tk?`, ${tk} vé chiêu mộ`:''}.`;}
   else{S.arena.pts+=25;S.arena.w++;S.coins+=1500;S.gems+=40;txt='Điểm hạng +25 · Nhận 1.500 xu, 40 ngọc.';}
   save();}
  else{if(B.cfg.kind==='arena'){S.arena.pts=Math.max(0,S.arena.pts-15);S.arena.l++;save();}txt='Gợi ý: nâng cấp nhẫn giả, tăng sao, hoặc xếp nhẫn giả có Truy Kích nối được với nhau (ví dụ Hất Tung → Quật Ngã → Hất Tung).';}
  r.innerHTML=`<div class="rbox"><h3>${B.quit?'Rút lui':win?'Chiến thắng':'Thất bại'}</h3><p>${txt}</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn primary" id="rOk">Về làng</button>${B.cfg.kind==='story'&&!B.quit?'<button class="btn" id="rAgain">Đánh lại</button>':''}</div></div>`;
- $('rOk').onclick=closeBattle;const ag=$('rAgain');if(ag)ag.onclick=()=>{const c=B.cfg;cancelAnimationFrame(RAF);startBattle(c.kind==='story'&&win&&c.idx+1<=S.prog&&c.idx+1<30?{kind:'story',idx:c.idx}:c);};
+ $('rOk').onclick=closeBattle;const ag=$('rAgain');if(ag)ag.onclick=()=>{const c=B.cfg;cancelAnimationFrame(RAF);startBattle(c.kind==='story'&&win&&c.idx+1<=S.prog&&c.idx+1<CHAP.length*6?{kind:'story',idx:c.idx}:c);};
  renderRes();}
 /* ---------- cut-in Bí kỹ ---------- */
 async function cutin(u,sk){if(B&&B.skip)return;const ci=$('cutin');ci.innerHTML='';const band=document.createElement('div');band.className='band';
@@ -1132,13 +1132,13 @@ function showResult(win){const r=$('result');r.hidden=false;let rew='',stars=0;
  if(B.quit){}
  else if(win){const alv=alive(0).length;stars=alv>=5?3:alv>=3?2:1;
   if(B.cfg.kind==='story'){const idx=B.cfg.idx;const first=!S.stars[idx];const coins=600+idx*120,gems=first?60:10,tk=first&&idx%6===5?3:first?1:0;
-   S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<30)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;
+   S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<CHAP.length*6)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;
    rew=[[IC.coin,fmt(coins)],[IC.gem,gems]].concat(tk?[[IC.ticket,tk]]:[]);}
   else{const RW=S.cfg.reward||1;S.arena.pts+=25;S.arena.w++;S.coins+=Math.round(1500*RW);S.gems+=Math.round(40*RW);rew=[[IC.coin,fmt(1500*RW)],[IC.gem,Math.round(40*RW)]];}
   save();}
  else if(B.cfg.kind==='arena'){S.arena.pts=Math.max(0,S.arena.pts-15);S.arena.l++;save();}
  const title=B.quit?'Rút lui':win?'Chiến thắng':'Thất bại';
- const next=B.cfg.kind==='story'&&win&&B.cfg.idx+1<=Math.min(S.prog,29)&&B.cfg.idx<29;
+ const next=B.cfg.kind==='story'&&win&&B.cfg.idx+1<=Math.min(S.prog,CHAP.length*6-1)&&B.cfg.idx<CHAP.length*6-1;
  r.innerHTML=`<div class="modal"><div class="wood pop" style="position:relative;width:640px;padding:60px 30px 26px;text-align:center">
   <div class="title-rib stk" style="${win?'':'background:linear-gradient(180deg,#8a8a9a,#4a4a5a);border-color:#1a1a24'}">${title}</div>
   ${win&&!B.quit?`<div style="font-size:74px;line-height:1;letter-spacing:6px;margin:-6px 0 6px">${[0,1,2].map(i=>`<span class="pop" style="display:inline-block;animation-delay:${0.25+i*0.18}s;color:${i<stars?'#ffd24a':'#3b1e0c'};text-shadow:0 4px 0 #6b3608">★</span>`).join('')}</div>
@@ -1223,12 +1223,12 @@ function openAdmin(){
  }
  else if(adminTab==='prog'){
   P.innerHTML=`<h4>Tiến độ</h4>
-   <div class="row"><label for="pR">Ải đã mở tới</label><input type="range" id="pR" min="0" max="30" value="${S.prog}"><b id="pRv"></b></div>
+   <div class="row"><label for="pR">Ải đã mở tới</label><input type="range" id="pR" min="0" max="120" value="${S.prog}"><b id="pRv"></b></div>
    <div class="row"><button class="gb sm" id="p3">3 sao mọi ải đã mở</button><button class="gb sm red" id="p0">Xoá sao</button></div>
    <div class="row"><label for="pPity">Bộ đếm bảo hiểm S</label>${num('pPity',S.pity,0,39)} <label for="pPity2" style="min-width:0">SS</label>${num('pPity2',S.pity2||0,0,119)}<span class="note2">Đủ 40 lần thì chắc chắn ra hạng S.</span></div>
    <div class="row"><button class="gb sm blue" id="pDaily">Cho nhận lại quà ngày</button><button class="gb sm blue" id="pFree">Cho chiêu mộ miễn phí lại</button></div>
    <div class="row"><button class="gb green" id="pSave">Lưu</button></div>`;
-  const lab=v=>v>=30?'Đã phá đảo':`Chương ${Math.floor(v/6)+1} · Ải ${v%6+1}`;$('pRv').textContent=lab(S.prog);$('pR').oninput=e=>$('pRv').textContent=lab(+e.target.value);
+  const lab=v=>v>=CHAP.length*6?'Đã phá đảo':`Chương ${Math.floor(v/6)+1} · Ải ${v%6+1}`;$('pRv').textContent=lab(S.prog);$('pR').oninput=e=>$('pRv').textContent=lab(+e.target.value);
   $('p3').onclick=()=>{for(let i=0;i<Math.min(30,S.prog);i++)S.stars[i]=3;done();};$('p0').onclick=()=>{S.stars={};done();};
   $('pDaily').onclick=()=>{S.daily='';done();};$('pFree').onclick=()=>{S.free='';done();};
   $('pSave').onclick=()=>{S.prog=+$('pR').value;S.pity=Math.min(39,val('pPity'));S.pity2=Math.min(119,val('pPity2'));done();};
@@ -1659,7 +1659,7 @@ showResult=function(win){const r=$('result');r.hidden=false;let rew=[],stars=0,e
  else if(B.quit){AU.lose();}
  else if(win){const alv=alive(0).length;stars=alv>=5?3:alv>=3?2:1;S.stats.wins++;qAdd('win');
   if(c.kind==='story'){const idx=c.idx;const first=!S.stars[idx];const coins=Math.round((600+idx*120)*RW),gems=Math.round((first?60:10)*RW),tk=first&&idx%6===5?3:first?1:0;
-   S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<30)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;add(IC.coin,fmt(coins));add(IC.gem,gems);if(tk)add(IC.ticket,tk);
+   S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<CHAP.length*6)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;add(IC.coin,fmt(coins));add(IC.gem,gems);if(tk)add(IC.ticket,tk);
    if(idx%6===5||Math.random()<0.55)drop.push(dropEq(idx/30));if(idx%6===5){S.mats.dp+=5;extra='+5 ngọc đột phá';}}
   else if(c.kind==='tower'){const f=c.floor;S.tower=Math.max(S.tower,f);qAdd('tower');const coins=Math.round((400+f*60)*RW);S.coins+=coins;S.gems+=Math.round(20*RW);add(IC.coin,fmt(coins));add(IC.gem,Math.round(20*RW));
    if(f%10===0){S.tickets+=3;S.mats.dp+=10;add(IC.ticket,3);drop.push(newEq(EQS[Math.floor(Math.random()*4)][0],f>=50?3:2));extra='+10 ngọc đột phá';
@@ -1669,7 +1669,7 @@ showResult=function(win){const r=$('result');r.hidden=false;let rew=[],stars=0,e
   save();AU.win();}
  else{if(c.kind==='arena'){S.arena.pts=Math.max(0,S.arena.pts-15);S.arena.l++;save();}AU.lose();}
  const title=B.quit?'Rút lui':c.kind==='boss'?'Kết thúc':win?'Chiến thắng':'Thất bại';
- const next=c.kind==='story'&&win&&c.idx+1<=Math.min(S.prog,29)&&c.idx<29;const nextT=c.kind==='tower'&&win&&c.floor<100;
+ const next=c.kind==='story'&&win&&c.idx+1<=Math.min(S.prog,CHAP.length*6-1)&&c.idx<CHAP.length*6-1;const nextT=c.kind==='tower'&&win&&c.floor<100;
  r.innerHTML=`<div class="modal"><div class="wood pop" style="position:relative;width:700px;padding:60px 30px 26px;text-align:center">
   <div class="title-rib stk" style="${win||c.kind==='boss'?'':'background:linear-gradient(180deg,#8a8a9a,#4a4a5a);border-color:#1a1a24'}">${title}</div>
   ${(win||c.kind==='boss')&&!B.quit?`${c.kind!=='boss'?`<div style="font-size:74px;line-height:1;letter-spacing:6px;margin:-6px 0 6px">${[0,1,2].map(i=>`<span class="pop" style="display:inline-block;animation-delay:${0.25+i*0.18}s;color:${i<stars?'#ffd24a':'#3b1e0c'};text-shadow:0 4px 0 #6b3608">★</span>`).join('')}</div>`:''}
@@ -1933,7 +1933,7 @@ function dungeonFoes(cfg){const d=DG.find(x=>x.k===cfg.dg),rnd=mulberry(cfg.diff
 function sweep(idx,n){const RW=S.cfg.reward||1;let coins=0,eqs=[];for(let i=0;i<n;i++){coins+=Math.round((600+idx*120)*RW*0.8);if(Math.random()<0.3)eqs.push(dropEq(idx/30));}
  S.coins+=coins;qAdd('win',n);save();AU.coin();toast(`Quét ${n} lần: +${fmt(coins)} xu${eqs.length?`, ${eqs.length} trang bị`:''}`);}
 const _story=VIEWS.story;
-VIEWS.story=function(ch){_story(ch);const maxCh=Math.min(5,Math.floor(S.prog/6)+1);ch=ch||maxCh;
+VIEWS.story=function(ch){_story(ch);const maxCh=Math.min(CHAP.length,Math.floor(S.prog/6)+1);ch=ch||maxCh;
  scr.querySelectorAll('button.pop').forEach((b,i)=>{const idx=(ch-1)*6+i;if((S.stars[idx]||0)<3)return;const f=b.onclick;
   b.onclick=()=>{const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="wood pop" style="position:relative;width:520px;padding:54px 24px 22px;text-align:center"><div class="title-rib stk">Ải ${ch}-${i+1}</div>
    <p class="stk" style="font-size:18px;margin:0 0 16px">Ải đã đạt 3 sao, có thể quét nhanh để nhận thưởng mà không cần đánh.</p>
@@ -4536,6 +4536,7 @@ VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;co
    for(let i=0;i<7;i++){const a=(i/6-0.5)*2.2;const r=V(Math.sin(a)*0.6,0.82,Math.cos(a)*0.4-0.25);const d=V(Math.sin(a)*0.9,0.5,-0.7).normalize();HG.add(hairMesh(VR.strandGeo([r,r.clone().add(d.clone().multiplyScalar(0.5)),r.clone().add(d.clone().multiplyScalar(0.9)).add(V(0,-0.2,0))],0.2,0.02,0.45),HC));}break;}
  }
  // ---------- MŨ / KHĂN ----------
+ const hgB=(nm,mm)=>{const src=VR.HGM&&VR.HGM.getObjectByName(nm);if(!src)return false;const MC={};const c=src.clone(true);c.position.set(0,0,0);c.traverse(o=>{if(o.isMesh){const k=(o.material&&o.material.name)||'metal';o.material=MC[k]||(MC[k]=(mm[k]||(()=>TM('#888')))());}});HG.add(c);return true;};
  const band=(c,y,r)=>{const b=add(tor(r||1.02,0.09,8,40),TM(c),0,y,0.0,HG,0.02);b.rotation.x=Math.PI/2-0.18;return b;};
  switch(st.hair){
   case 'khan':{ // khăn quấn đầu (khăn vấn nam)
@@ -4554,6 +4555,7 @@ VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;co
    if(st.a==='nutuong'){add(sph(0.12),TM(gold,gold),0,0.5,1.12,HG,0.03);const pl=new T.Group();pl.position.set(0,1.0,-0.3);HG.add(pl);add(cone(0.12,0.9,8),TM('#c81a1a'),0,0.45,0,pl,0.02);sway(pl,0.05,2.2);}
    break;}
   case 'helm':{ // mũ trụ: chóp, vành, chắn tai, chùm tua đỏ
+   if(hgB('hg_helm',{metal:()=>TM(metal),gold:()=>TM(gold),gem:()=>TM(h.ec,h.ec)})){const pl=new T.Group();pl.position.set(0,1.62,-0.05);HG.add(pl);for(let i=0;i<7;i++){const a=i/7*Math.PI*2;const c=add(cone(0.08,0.7,6),TM('#c81a1a'),Math.cos(a)*0.08,-0.3,Math.sin(a)*0.08-0.15,pl,0);c.rotation.set(Math.PI+0.5,a,0);}sway(pl,0.05,2.6);break;}
    const hm=TM(metal);add(new T.SphereGeometry(1.12,32,18,0,Math.PI*2,0,Math.PI*0.52),hm,0,0.08,-0.02,HG,0.02);
    const br=add(tor(1.12,0.09,8,44),TM(gold),0,0.1,-0.02,HG,0.02);br.rotation.x=Math.PI/2;
    const vis=add(new T.CylinderGeometry(1.2,1.32,0.12,40,1,true,-Math.PI*0.35,Math.PI*0.7),TM(metal).clone(),0,0.05,-0.02,HG,0.02);vis.material.side=T.DoubleSide;
@@ -4561,10 +4563,10 @@ VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;co
    const nb=add(box(0.6,0.8,0.08),hm,0,-0.32,-1.0,HG,0.02);nb.rotation.x=-0.2;
    add(cyl(0.05,0.08,0.4,8),TM(gold),0,1.3,-0.05,HG,0);const pl=new T.Group();pl.position.set(0,1.45,-0.05);HG.add(pl);for(let i=0;i<7;i++){const a=i/7*Math.PI*2;const c=add(cone(0.08,0.7,6),TM('#c81a1a'),Math.cos(a)*0.08,-0.3,Math.sin(a)*0.08-0.15,pl,0);c.rotation.set(Math.PI+0.5,a,0);}sway(pl,0.05,2.6);
    if(st.g==='m'){}break;}
-  case 'dragon':{const hm=TM(aw>=3?gold:'#4a5a3a');add(new T.SphereGeometry(1.12,32,18,0,Math.PI*2,0,Math.PI*0.52),hm,0,0.08,-0.02,HG,0.02);add(tor(1.12,0.08,8,40),TM(gold),0,0.1,-0.02,HG,0).rotation.x=Math.PI/2;
+  case 'dragon':{if(hgB('hg_dragon',{jade:()=>TM(aw>=3?gold:'#3a6a4a'),gold:()=>TM(gold),ivory:()=>TM('#f0e6c8'),ec:()=>TM(h.ec,h.ec)}))break;const hm=TM(aw>=3?gold:'#4a5a3a');add(new T.SphereGeometry(1.12,32,18,0,Math.PI*2,0,Math.PI*0.52),hm,0,0.08,-0.02,HG,0.02);add(tor(1.12,0.08,8,40),TM(gold),0,0.1,-0.02,HG,0).rotation.x=Math.PI/2;
    [-1,1].forEach(sx=>{const g=VR.strandGeo([V(sx*0.6,0.8,-0.1),V(sx*0.95,1.3,-0.5),V(sx*1.0,1.75,-1.1)],0.16,0.02,1.0,8);HG.add(hairMesh(g,'#f0e6c8'));});
    add(sph(0.12),TM(h.ec,h.ec),0,0.75,1.0,HG,0.03);break;}
-  case 'crown':{const CG=new T.Group();CG.position.set(0,0.78,-0.1);CG.rotation.x=-0.2;HG.add(CG);const cm=TM(gold,'#aa7700').clone();cm.side=T.DoubleSide;
+  case 'crown':{if(hgB('hg_crown',{gold:()=>TM(gold,'#aa7700'),ruby:()=>TM('#ff3a3a','#c8201a'),ec:()=>TM(h.ec,h.ec)})){[-1,1].forEach(sx=>{const tz=new T.Group();tz.position.set(sx*0.95,0.6,0);HG.add(tz);for(let i=0;i<3;i++)add(sph(0.05),TM(gold),0,-0.15-i*0.14,0,tz,0);sway(tz,0.06,2.8);});break;}const CG=new T.Group();CG.position.set(0,0.78,-0.1);CG.rotation.x=-0.2;HG.add(CG);const cm=TM(gold,'#aa7700').clone();cm.side=T.DoubleSide;
    const cb=new T.Mesh(cyl(0.72,0.78,0.36,32,1,true),cm);CG.add(cb);add(tor(0.78,0.04,6,40),TM(gold),0,-0.18,0,CG,0).rotation.x=Math.PI/2;add(tor(0.72,0.04,6,40),TM(gold),0,0.18,0,CG,0).rotation.x=Math.PI/2;
    for(let i=0;i<9;i++){const a=i/9*Math.PI*2+Math.PI/2;add(cone(0.09,0.34,6),TM(gold),Math.cos(a)*0.74,0.34,Math.sin(a)*0.74,CG,0);add(sph(0.05),TM('#ff3a3a','#c8201a'),Math.cos(a)*0.76,0.02,Math.sin(a)*0.76,CG,0);}
    add(sph(0.12),TM(h.ec,h.ec),0,0.05,0.8,CG,0);
@@ -4573,7 +4575,7 @@ VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;co
   case 'tiara':{const ti=add(tor(1.0,0.05,6,40,Math.PI),TM(gold),0,0.45,0.05,HG,0);ti.rotation.x=-0.35;add(sph(0.12),TM(h.ec,h.ec),0,1.32,0.42,HG,0);
    [-1,1].forEach(sx=>{const f=add(cone(0.1,0.5,5),TM(gold),sx*0.55,1.22,0.25,HG,0);f.rotation.z=-sx*0.6;add(sph(0.06),TM(gold),sx*0.95,0.9,0.1,HG,0);});
    const veil=new T.Group();veil.position.set(0,0.8,-0.6);HG.add(veil);const vg=new T.PlaneGeometry(1.6,2.6,4,8);vg.translate(0,-1.3,0);const vm=TM(shade(st.pal.cloth,0.5),null,0.55,T.DoubleSide);const vv=new T.Mesh(vg,vm);vv.rotation.x=0.25;veil.add(vv);sway(veil,0.06,1.9);break;}
-  case 'hat':{const hat=add(cone(2.1,0.85,40),TM('#e8d6a0'),0,1.05,-0.05,HG,0.02);for(let i=1;i<6;i++){const r=add(tor(2.1*i/6,0.012,4,40),TM('#b89a60'),0,1.05+0.425-0.85*i/6,-0.05,HG,0);r.rotation.x=Math.PI/2;}
+  case 'hat':{if(hgB('hg_hat',{straw:()=>TM('#e8d6a0'),straw2:()=>TM('#b89a60')})){[-1,1].forEach(sx=>{const s=add(cyl(0.02,0.02,1.2,6),TM('#5a3a20'),sx*0.7,0.0,0.3,HG,0);s.rotation.z=-sx*0.35;});break;}const hat=add(cone(2.1,0.85,40),TM('#e8d6a0'),0,1.05,-0.05,HG,0.02);for(let i=1;i<6;i++){const r=add(tor(2.1*i/6,0.012,4,40),TM('#b89a60'),0,1.05+0.425-0.85*i/6,-0.05,HG,0);r.rotation.x=Math.PI/2;}
    [-1,1].forEach(sx=>{const s=add(cyl(0.02,0.02,1.2,6),TM('#5a3a20'),sx*0.7,0.0,0.3,HG,0);s.rotation.z=-sx*0.35;});break;}
   case 'hood':{const hm=TM(shade(st.pal.cloth,-0.1));const hd=add(new T.SphereGeometry(1.15,32,20,0,Math.PI*2,0,Math.PI*0.62),hm,0,0.12,-0.12,HG,0.02);hd.rotation.x=-0.3;
    const tail=new T.Group();tail.position.set(0,0.3,-1.15);HG.add(tail);add(box(0.25,1.0,0.05),hm,0,-0.5,0,tail,0.02);sway(tail,0.1,2.4,{zA:0.08});break;}
@@ -4640,7 +4642,16 @@ VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;co
   flag:()=>{add(cyl(0.02,0.02,1.4),wd,0,-0.2,0,Wm);const fl=new T.Group();fl.position.set(0,-0.75,0.02);Wm.add(fl);add(box(0.02,0.36,0.5),TM('#c8201a'),0,0,0.26,fl);sway(fl,0.1,3.0);},
   lantern:()=>{add(sph(0.12),TM('#e8402a','#c82a00'),0,-0.2,0.06,Wm).scale.set(1,1.2,1);},
   fist:()=>{['L','R'].forEach(Sd=>{const p=W(`J_Bip_${Sd}_Hand`);const gl=add(sph(0.04*S),TM(acc),p.x,p.y-0.03*S,p.z+0.01*S,G,0.05);gl.scale.set(1,1.3,1);toLocal(`J_Bip_${Sd}_Hand`,gl);});}};
- (wb[wpn]||wb.sword)();toLocal('J_Bip_L_Hand',Wg);rig.weapon=Wg;
+ const TBL=h.tb|0,TBN0=TBL&&VR.TBM?VR.TBM.getObjectByName('tb_'+h.id):null;
+ const WS=TBN0||(VR.WPN&&wpn!=='fist'?VR.WPN.getObjectByName(wpn):null);const DIV=TBL&&!TBN0;
+ if(WS){const MC={};const glowC=h.ec||'#9fe8ff';const WMAT=nm=>MC[nm]||(MC[nm]=(DIV&&nm==='metal'?()=>TM(shade(glowC,0.55),glowC):DIV&&nm==='wood'?()=>wg:null)?.()||({metal:()=>wm,gold:()=>wg,wood:()=>wd,iron:()=>TM('#3a3c44'),bronze:()=>TM('#9a6a2a','#3a2000'),goldglow:()=>TM('#ffd25a','#c88a00'),jade:()=>TM('#3ab87a','#0a4a2a'),rope:()=>TM('#a08858'),yellow:()=>TM('#ffd21a'),straw:()=>TM('#e0c070'),silk:()=>TM('#f4e4a8'),yellowsilk:()=>TM('#ffd23a','#6a4a00'),ivory:()=>TM('#f6f0e0'),bamboo:()=>TM('#9aa848'),reed:()=>TM('#c8b888'),plume:()=>TM('#f8f4ec','#605850'),glow:()=>TM(shade(glowC,0.6),glowC),redwood:()=>TM('#7a1810'),oldwood:()=>TM('#5a3a1e'),cloth:()=>TM('#2a1a1e'),dark:()=>TM('#2a2a36'),red:()=>TM('#c8201a'),gem:()=>TM(h.ec,h.ec),ec:()=>TM(h.ec,h.ec),acc:()=>TM(acc,null,null,T.DoubleSide),paper:()=>TM('#f4ecd0'),string:()=>TM('#ece6d6'),ink:()=>TM('#141414'),lamp:()=>TM('#e8402a','#c82a00')}[nm]||(()=>wm))());
+  const c=WS.clone(true);c.position.set(0,0,0);c.traverse(o=>{if(o.isMesh){o.material=WMAT((o.material&&o.material.name)||'metal');o.castShadow=false;}});Wm.add(c);
+  if(wpn==='flag'&&!TBN0){const fl=new T.Group();fl.position.set(0,-0.75,0.02);Wm.add(fl);add(box(0.02,0.36,0.5),TM('#c8201a',null,null,T.DoubleSide),0,0,0.26,fl);sway(fl,0.1,3.0);}
+  if(TBN0&&h.id==='tranquoctoan'){const fl=new T.Group();fl.position.set(0,-0.72,0.02);Wm.add(fl);const fc=document.createElement('canvas');fc.width=256;fc.height=320;const x=fc.getContext('2d');x.fillStyle='#b8140e';x.fillRect(0,0,256,320);x.strokeStyle='#ffd24a';x.lineWidth=10;x.strokeRect(8,8,240,304);x.fillStyle='#ffd24a';x.font='bold 64px serif';x.textAlign='center';x.textBaseline='middle';
+   ['破強敵','報皇恩'].forEach((c3,ci)=>[...c3].forEach((ch,k)=>x.fillText(ch,190-ci*124,62+k*98)));const tx=new T.CanvasTexture(fc);const fm=new T.MeshBasicMaterial({map:tx,side:T.DoubleSide});const pl=new T.Mesh(new T.PlaneGeometry(0.42,0.52),fm);pl.rotation.y=Math.PI/2;pl.position.set(0,-0.02,0.24);fl.add(pl);sway(fl,0.12,2.6);}
+  if(TBL){const AU=VR.TBM&&VR.TBM.getObjectByName('tb_aura');if(AU){const a=AU.clone(true);a.traverse(o=>{if(o.isMesh)o.material=TM(shade(glowC,0.6),glowC);});const long=['spear','glaive','trident','staff','oar','scythe','flag'].includes(wpn);a.position.set(0,long?-0.85:-0.35,0);a.scale.setScalar(0.8+0.12*TBL);Wm.add(a);sway(a,0.5,1.4);}}
+  if(TBN0&&h.id==='haibatrung'){const pR=W('J_Bip_R_Hand');const W2=new T.Group();W2.position.copy(pR).add(V(0,-0.012*S,0.012*S));G.add(W2);const P2=new T.Group();W2.add(P2);P2.scale.setScalar(0.6*S);P2.rotation.set(0.25,0,-(Math.PI-0.12));const c2=c.clone(true);P2.add(c2);toLocal('J_Bip_R_Hand',W2);rig.weapon2=W2;}}
+ else (wb[wpn]||wb.sword)();toLocal('J_Bip_L_Hand',Wg);rig.weapon=Wg;
  // ---------- THỨC TỈNH ----------
  const rc=B.radAt(B.restY.chest);
  if(aw===2||(aw>=3&&!st.phap)){const WG=new T.Group();WG.position.set(0,yC+0.01*S,rc.cz-rc.rz*0.85);G.add(WG);const wc=aw>=3?gold:h.ec;
@@ -4873,7 +4884,7 @@ let EYE=null;const BUILD={
   return {H,J,upd(t,k){J.rotation.x=0.2+0.4*k+0.05*Math.sin(t*2);H.rotation.x=-0.12*k+0.05*Math.sin(t*1.4);H.rotation.y=0.1*Math.sin(t*0.7);}};}};
 // ---- mô hình dựng bằng Blender (glTF) ----
 const PHM={};VR.PHM=PHM;
-VR.phapPreload=function(pre){return Promise.all(['kim','moc','thuy','hoa','tho'].map(el=>new Promise(res=>{try{new T.GLTFLoader().load(pre+'phap_'+el+'.json',g=>{PHM[el]=g.scene;res();},null,()=>res());}catch(e){res();}})));};
+VR.phapPreload=function(pre){return Promise.all([new Promise(res=>{try{new T.GLTFLoader().load(pre+'weapons.json',g=>{VR.WPN=g.scene;res();},null,()=>res());}catch(e){res();}}),new Promise(res=>{try{new T.GLTFLoader().load(pre+'headgear.json',g=>{VR.HGM=g.scene;res();},null,()=>res());}catch(e){res();}}),new Promise(res=>{try{new T.GLTFLoader().load(pre+'thanbinh.json',g=>{VR.TBM=g.scene;res();},null,()=>res());}catch(e){res();}})].concat(['kim','moc','thuy','hoa','tho'].map(el=>new Promise(res=>{try{new T.GLTFLoader().load(pre+'phap_'+el+'.json',g=>{PHM[el]=g.scene;res();},null,()=>res());}catch(e){res();}}))));};
 function fromBlender(el,R,M,E,EYE,S){const src=PHM[el];if(!src)return null;const g=src.clone(true);g.scale.setScalar(S);R.add(g);const N={};
  g.traverse(o=>{if(o.name)N[o.name]=N[o.name]||o;if(o.isMesh){const mn=(o.material&&o.material.name)||'';let nn='',q=o;while(q&&!nn){if(/^(eye|head|jaw|body|glow|wingL|wingR)$/.test(q.name))nn=q.name;q=q.parent;}
   o.material=nn==='eye'?EYE:(mn==='E'||mn==='glow')?E:M;}});
@@ -5558,6 +5569,201 @@ SIGDRAW.hich=function(c,p,k,t){SIGDRAW.chieu(c,Object.assign(p,{T:[]}),k,t);if(k
   c.save();c.globalAlpha=fade24(k)*e;c.fillStyle='#c81a1a';c.font='900 26px serif';c.textAlign='center';c.fillText('殺韃',q.x,q.y-150);c.restore();});}};
 /* Bà Triệu cưỡi voi trắng */
 {const _v=SIGDRAW.voi;SIGDRAW.voi=function(c,p,k,t){if(p.hero==='batrieu'){c.save();c.filter='brightness(1.9) saturate(0.3)';_v(c,p,k,t);c.restore();}else _v(c,p,k,t);};}
+
+/* =========================================================
+   MỞ RỘNG 28: 5 CHƯƠNG MỚI (6–10) theo địa danh Đà Nẵng (sau hợp nhất với Quảng Nam từ 1/7/2025)
+   + nền chiến trường render bằng Blender cho các chương mới
+   ========================================================= */
+CHAP.push(
+ {n:'Thành Điện Hải',boss:'Hắc Triều Vương',d:'Hắc Triều chiếm thành cổ Điện Hải bên sông Hàn, nơi năm 1858 quân dân Đà Nẵng đánh trả liên quân Pháp – Tây Ban Nha. Giành lại thành cổ.'},
+ {n:'Bà Nà – Núi Chúa',boss:'Hắc Triều Vương',d:'Mây đen phủ kín đỉnh Núi Chúa cao gần 1.500 m. Từ trên cao, Hắc Triều muốn khống chế cả thành phố.'},
+ {n:'Phố cổ Hội An',boss:'Hắc Triều Vương',d:'Đèn lồng phố Hội lần lượt tắt. Bóng tối đang lan về phía Chùa Cầu bên sông Thu Bồn.'},
+ {n:'Thánh địa Mỹ Sơn',boss:'Hắc Triều Vương',d:'Hắc Triều tìm cách chiếm sức mạnh trong thung lũng đền tháp Chăm Pa cổ, di sản văn hoá thế giới.'},
+ {n:'Cù Lao Chàm',boss:'Hắc Triều Vương · Chân thân',d:'Trận cuối ngoài khơi Cù Lao Chàm, khu dự trữ sinh quyển thế giới, nơi Hắc Triều Vương lập sào huyệt sau cùng.'});
+THEME_OF_CH.push('dienhai_day','bana_day','hoian_dusk','myson_day','culaocham_day');
+Object.assign(DLG,{
+ 30:[['lead','Thành Điện Hải bên cửa sông Hàn đã rơi vào tay Hắc Triều.'],['lead','Năm 1858, quân dân Đà Nẵng từng giữ thành này trước liên quân Pháp – Tây Ban Nha. Hôm nay đến lượt chúng ta.']],
+ 35:[['trieu','Thành cổ này sẽ thành pháo đài của Hắc Triều.'],['lead','Tinh thần giữ thành năm xưa vẫn còn ở đây. Ngươi không giữ nổi nó đâu.']],
+ 36:[['lead','Mây đen phủ kín Núi Chúa. Từ đỉnh Bà Nà, Hắc Triều có thể nhìn xuống cả thành phố.']],
+ 41:[['trieu','Trên biển mây này, ta là chúa tể.'],['lead','Mây có dày đến đâu rồi cũng tan. Cả đội, lên!']],
+ 42:[['lead','Đèn lồng phố Hội tắt dần. Bóng tối đang bò về phía Chùa Cầu.']],
+ 47:[['trieu','Một phố cổ yên bình… thật dễ nuốt chửng.'],['lead','Phố Hội đã đứng vững qua mấy trăm năm. Không gục vì ngươi đâu.']],
+ 48:[['lead','Giữa thung lũng Mỹ Sơn, các đền tháp Chăm Pa cổ phát sáng kỳ lạ.']],
+ 53:[['trieu','Sức mạnh ngủ yên hơn ngàn năm ở đây sẽ thuộc về ta.'],['lead','Di sản của tiền nhân không phải chiến lợi phẩm của ngươi.']],
+ 54:[['lead','Sào huyệt cuối cùng của Hắc Triều nằm ngoài khơi Cù Lao Chàm.']],
+ 59:[['trieu','Biển cả là nhà của Hắc Triều. Các ngươi sẽ chìm ở đây.'],['lead','Biển này là biển của chúng ta. Cả đội, trận cuối cùng!']]});
+ACH.push(['ch10','Phá đảo 10 chương',()=>S.prog>=60,{gems:1000,tickets:20}]);
+// thanh chọn chương gọn lại khi có 10 chương
+(function(){const st=document.createElement('style');st.textContent='.chtabs{gap:5px!important}.chtabs .tab{padding:6px 0!important;width:36px;text-align:center;font-size:15px!important;min-width:0!important}';document.head.appendChild(st);
+ const _sv=VIEWS.story;VIEWS.story=function(ch){_sv(ch);const t=scr.querySelector('[data-go^="story:"]');if(t&&t.parentNode){t.parentNode.classList.add('chtabs');t.parentNode.insertAdjacentHTML('afterbegin','<b class="stk" style="font-size:16px">Chương</b>');t.parentNode.querySelectorAll('[data-go^="story:"]').forEach(b=>{const n=b.dataset.go.split(':')[1];b.title='Chương '+n;b.textContent=n;});}};})();
+// ---------- nền Blender (ảnh render: bg/<cảnh>_<giờ>.jpg) ----------
+const BGI={};const BGFB={dienhai:'caurong',bana:'haivan',hoian:'lang',myson:'nguhanh',culaocham:'mykhe'};
+const bgBase=n=>n.split('_')[0];
+function bgLoad(n){if(BGI[n])return;BGI[n]='…';const a=new Image();a.onload=()=>{BGI[n]=a;delete scnCache[n];};a.onerror=()=>{BGI[n]='x';};a.src='bg/'+n+'.jpg';}
+const _bs28=buildScene;buildScene=function(name){const base=bgBase(name);
+ if(BGFB[base]){bgLoad(name);const I=BGI[name];if(!(I instanceof Image)){const r=_bs28(BGFB[base]);delete scnCache[BGFB[base]];return scnCache[name]=r;}
+  const night=/_night$/.test(name);
+  const[far,f]=mk(),[mid,m]=mk(),[gr,g]=mk(360);f.drawImage(I,0,0,LW,LH);
+  // lớp đất phía trước: phần dưới đường chân trời của cùng ảnh, mờ dần ở mép trên
+  const Y0=LH*0.66;g.drawImage(I,0,Y0*I.height/LH,I.width,I.height-Y0*I.height/LH,0,Y0,LW,LH-Y0);
+  g.globalCompositeOperation='destination-in';const fg=g.createLinearGradient(0,Y0,0,Y0+26);fg.addColorStop(0,'rgba(0,0,0,0)');fg.addColorStop(1,'rgba(0,0,0,1)');g.fillStyle=fg;g.fillRect(0,Y0,LW,LH-Y0);g.globalCompositeOperation='source-over';
+  g.drawImage(I,0,I.height-2,I.width,2,0,LH-1,LW,361);
+  const r=rnd2(name.length*131);const anim={clouds:(base==='bana'||base==='culaocham')&&!night?'#ffffffcc':null,petals:base==='hoian'?'#ffcf7a':base==='myson'?'#9be06a':null,water:null,fire:null,lanterns:[],fog:/_mist$/.test(name)?1:0};
+  return scnCache[name]={far,mid,gr,anim,clouds:[...Array(7)].map(()=>({x:r()*LW,y:60+r()*200,s:0.6+r()*0.9,v:6+r()*14}))};}
+ return _bs28(name);};
+
+/* =========================================================
+   MỞ RỘNG 29: tới CHƯƠNG 20 · cân lại lực chiến tướng theo phẩm cấp ·
+   độ khó ải theo đường phát triển chuẩn của đội · 3 tướng mới (khiên đầu trận, hồi sinh, bất tử)
+   ========================================================= */
+// ---------- 1. Chương 11–20 ----------
+CHAP[9].boss='Hắc Triều Vương';CHAP[9].d='Hắc Triều dựng căn cứ ngoài khơi Cù Lao Chàm, khu dự trữ sinh quyển thế giới. Phá căn cứ, mở đường ra biển.';
+CHAP.push(
+ {n:'Làng gốm Thanh Hà',boss:'Hắc Triều Vương',d:'Làng gốm lâu đời bên sông Thu Bồn (Hội An). Lò gốm nguội lạnh vì Hắc Triều chiếm bến sông.'},
+ {n:'Đỉnh Bàn Cờ – Sơn Trà',boss:'Hắc Triều Vương',d:'Tương truyền tiên ông từng đánh cờ trên đỉnh núi Sơn Trà. Hắc Triều chiếm đỉnh để quan sát cả vịnh Đà Nẵng.'},
+ {n:'Rừng dừa Bảy Mẫu',boss:'Hắc Triều Vương',d:'Rừng dừa nước ở Cẩm Thanh (Hội An), nơi ngư dân chèo thuyền thúng. Bóng tối ẩn trong các rặng dừa.'},
+ {n:'Tháp Chăm Khương Mỹ',boss:'Hắc Triều Vương',d:'Cụm ba tháp Chăm cổ ở Tam Kỳ. Hắc Triều bày trận pháp giữa ba ngọn tháp.'},
+ {n:'Hòn Kẽm Đá Dừng',boss:'Hắc Triều Vương',d:'Hẻm núi trên sông Thu Bồn, hai bên vách đá dựng đứng. Sương dày che giấu quân địch.'},
+ {n:'Điện Hải – Đêm giữ thành',boss:'Hắc Triều Vương',d:'Hắc Triều phản công thành Điện Hải trong đêm. Giữ vững cổng thành đến rạng sáng.'},
+ {n:'Phố Hội – Đêm rằm',boss:'Hắc Triều Vương',d:'Đêm rằm phố Hội thắp đèn lồng. Hắc Triều muốn dập tắt lễ hội và nhấn chìm phố cổ trong bóng tối.'},
+ {n:'Mỹ Sơn – Đêm trăng',boss:'Hắc Triều Vương',d:'Dưới trăng, các đền tháp Mỹ Sơn rung chuyển. Hắc Triều sắp mở được phong ấn cổ.'},
+ {n:'Núi Chúa – Bão mây',boss:'Hắc Triều Vương',d:'Bão mây đen nổi lên trên đỉnh Núi Chúa. Đây là tuyến phòng thủ cuối cùng của Hắc Triều trên đất liền.'},
+ {n:'Biển Cù Lao Chàm – Quyết chiến',boss:'Hắc Triều Vương · Chân thân',d:'Trận chung kết giữa biển đêm. Hắc Triều Vương hiện chân thân. Đánh bại hắn để trả lại bình yên cho Đà Nẵng.'});
+THEME_OF_CH.push('hoian_day','bana_dusk','culaocham_dusk','myson_dusk','bana_mist','dienhai_night','hoian_night','myson_night','bana_night','culaocham_night');
+Object.assign(DLG,{
+ 60:[['lead','Lò gốm Thanh Hà nguội lạnh cả tuần nay. Bến sông đầy bóng đen.']],
+ 65:[['trieu','Đất sét ở đây sẽ nặn thành đội quân của ta.'],['lead','Đất này nặn ra bát, ra chum cho người dân. Không phải cho ngươi.']],
+ 66:[['lead','Đỉnh Bàn Cờ. Đứng đây nhìn thấy cả vịnh Đà Nẵng.']],
+ 71:[['trieu','Ván cờ này ta đã tính trước mười nước.'],['lead','Vậy thì nước thứ mười một là của chúng ta!']],
+ 72:[['lead','Rừng dừa Bảy Mẫu yên ắng quá. Cẩn thận, chúng nấp trong rặng dừa.']],
+ 77:[['trieu','Trong rừng dừa này, các ngươi không thấy nổi bóng ta.'],['lead','Thuyền thúng của bà con đã chỉ đường cho chúng ta rồi.']],
+ 78:[['lead','Ba ngọn tháp Khương Mỹ đang phát sáng. Hắc Triều bày trận ở đây.']],
+ 83:[['trieu','Trận pháp ba tháp sẽ nuốt chửng các ngươi.'],['lead','Phá trận từ ngọn tháp giữa. Cả đội, tiến lên!']],
+ 84:[['lead','Sương dày đặc trên Hòn Kẽm Đá Dừng. Bám sát nhau, đừng để lạc.']],
+ 89:[['trieu','Sương mù là đồng minh của ta.'],['lead','Sương sẽ tan khi mặt trời lên. Và ngươi cũng vậy.']],
+ 90:[['lead','Hắc Triều phản công thành Điện Hải trong đêm. Giữ cổng thành!']],
+ 95:[['trieu','Đêm nay thành này sẽ đổi chủ.'],['lead','Thành này có chủ từ lâu rồi. Đó là người Đà Nẵng.']],
+ 96:[['lead','Đêm rằm mà đèn lồng phố Hội lại tắt dần…']],
+ 101:[['trieu','Ánh đèn yếu ớt này không ngăn nổi bóng tối.'],['lead','Một ngọn đèn thì yếu. Cả phố đèn thì không.']],
+ 102:[['lead','Trăng sáng mà đền tháp Mỹ Sơn rung lên từng hồi.']],
+ 107:[['trieu','Phong ấn cổ sắp mở. Sức mạnh ấy sẽ là của ta.'],['lead','Chúng ta đến để giữ phong ấn, không phải để tranh nó.']],
+ 108:[['lead','Bão mây trên Núi Chúa. Tuyến phòng thủ cuối cùng của chúng trên đất liền.']],
+ 113:[['trieu','Lên đến đây là các ngươi đã kiệt sức rồi.'],['lead','Càng lên cao càng thấy rõ đường về. Đánh thôi!']],
+ 114:[['lead','Biển đêm Cù Lao Chàm. Trận cuối cùng bắt đầu từ đây.']],
+ 119:[['trieu','Đây là chân thân của ta. Biển cả sẽ nhấn chìm các ngươi.'],['lead','Biển này là biển của chúng ta. Cả đội, trận cuối cùng!']]});
+ACH.push(['ch15','Phá đảo 15 chương',()=>S.prog>=90,{gems:1500,tickets:25}],['ch20','Phá đảo cả 20 chương',()=>S.prog>=120,{gems:3000,tickets:50}]);
+
+// ---------- 5. Ba tướng mới ----------
+{const mk=(id,n,t,el,r,tal,bio,u)=>{const h=genHero(id,n,t,'thanthoai',el,r,'UR',900+GI++,bio);TAL[id]=tal;h.tp={k:tal[0],v:tal[1]};if(u)Object.assign(h.u,u);return h;};
+ mk('hothanh','Hộ Thành Điện Hải','Thần Giữ Thành','tho','thu',['aegis',.25],'Nhân vật sáng tác: vị thần giữ thành Điện Hải, lấy cảm hứng từ tinh thần giữ thành của quân dân Đà Nẵng.',
+  {n:'Tường Thành Bất Hoại',cost:40,tg:'front',m:1.3,st:'nga',fx:'tho',shieldAll:.35,eff:[['stun',.4,1]],d:'Đánh hàng trước địch 130% tấn công, có thể gây Choáng; cả đội nhận khiên 35% máu.'});
+ mk('linhmau','Linh Mẫu Núi Chúa','Mẹ Rừng Bà Nà','moc','ho',['raise',.5],'Nhân vật sáng tác: linh mẫu giữ rừng trên đỉnh Núi Chúa (Bà Nà), hồi sinh những người ngã xuống vì quê hương.',
+  {n:'Hồi Sinh Vạn Mộc',cost:40,tg:'allyall',m:0,fx:'moc',heal:.32,cleanse:1,shieldAll:.15,d:'Cả đội hồi 32% máu, xoá hiệu ứng xấu, nhận khiên 15% máu.'});
+ mk('batdiet','Bất Diệt Chiến Thần','Chiến Thần Mỹ Sơn','kim','cong',['undying',.3],'Nhân vật sáng tác: chiến thần canh giữ thung lũng đền tháp, chỉ gục ngã khi không còn ai sát cánh.',
+  {n:'Bất Diệt Trảm',cost:40,tg:'all',m:1.7,h:2,st:'tung',fx:'kim',eff:[['defdown',.7,2]],d:'Đánh toàn bộ địch hai đợt, mỗi đợt 170% tấn công, có thể Phá giáp.'});
+ for(const k in PCACHE)delete PCACHE[k];}
+
+// ---------- 2. Cân lại lực chiến tướng theo phẩm cấp ----------
+// Mọi tướng cùng cấp, cùng sao: phẩm cao luôn mạnh hơn phẩm thấp. Trong cùng phẩm chỉ chênh tối đa ±3,5% (cá tính riêng).
+(function(){const RS=['B','A','S','SS','SSS','UR'];const pw=s=>s.hp/6+s.atk*2.2+s.def*1.6+s.spd*4;
+ const T={};RS.forEach(r=>{T[r]=['thu','cong','am','ho'].reduce((a,ro)=>a+pw(stat(stdStat(r,ro),100,5)),0)/4;});
+ const G={};POOL.forEach(h=>{const k=h.rar+h.r;(G[k]=G[k]||[]).push(pw(stat(h,100,5)));});
+ POOL.forEach(h=>{if(!T[h.rar])return;const a=G[h.rar+h.r],mean=a.reduce((x,y)=>x+y,0)/a.length;const s=stat(h,100,5),P=pw(s),sp=s.spd*4;
+  const d=Math.max(-0.035,Math.min(0.035,(P/mean-1)*0.5));const k=(T[h.rar]*(1+d)-sp)/(P-sp);['hp','atk','def'].forEach(q=>h[q]=Math.max(1,Math.round(h[q]*k)));});
+ for(const k in PCACHE)delete PCACHE[k];})();
+
+// ---------- 3. Độ khó ải theo đội chuẩn ----------
+// Đội chuẩn ở mỗi ải: cấp, sao, đột phá, thức tỉnh, trang bị đúng nhịp phát triển. Địch được đặt sức mạnh theo tỉ lệ so với đội chuẩn.
+stageLv=idx=>idx<30?1+Math.round(idx*1.75):Math.round(52*Math.pow(700/52,(idx-29)/90));
+function refBuild(idx){const L=stageLv(idx);let br=0;while(br<LCAP.length-1&&LCAP[br]<L)br++;const aw=br>=8?3:br>=5?2:br>=2?1:0;
+ return{L,br,aw,star:Math.min(10,1+Math.floor(idx/12)),rar:idx<12?'A':idx<24?'S':idx<36?'SS':idx<66?'SSS':'UR',rE:Math.min(5,Math.floor(idx/20)),lvE:Math.min(20,Math.floor(idx/5))};}
+function refPow(idx){const R=refBuild(idx);const e=k=>1+EQB[k]*EQR[R.rE][1]*(1+0.1*R.lvE)/100;const f=(1+0.12*R.br)*(1+[0,.15,.32,.55][R.aw]);
+ return['thu','cong','am','ho'].reduce((p,ro)=>{const s=stat(stdStat(R.rar,ro),R.L,R.star);return p+s.hp*f*e('hp')/6+s.atk*f*e('atk')*2.2+s.def*f*e('def')*1.6+s.spd*4;},0)/4;}
+const STAGE_R=[0.74,0.8,0.86,0.92,0.98,0.9];let DIFF29=1;
+// hệ số hiệu chỉnh theo chương, đo bằng mô phỏng trận với đội chuẩn (ải trùm: đội chuẩn thắng, còn khoảng 40–60% máu)
+let K29=window.K29||[0.967,0.92,0.51,0.605,0.684,0.755,0.898,0.898,0.92,0.834,1.0,1.0,0.92,0.92,1.177,1.3,1.121,1.121,1.121,1.121];
+const stageRatio=idx=>STAGE_R[idx%6]*(idx<6?0.72:idx<12?0.85:1)*DIFF29*(K29[Math.floor(idx/6)]||1);
+{const _mk29=mkUnit;mkUnit=function(id,lv,star,side,slot,bm){const u=_mk29(id,lv,star,side,slot,bm);
+ if(u&&side===1&&typeof CURCFG!=='undefined'&&CURCFG&&CURCFG.kind==='story'){const idx=CURCFG.idx;const raw=powerOf(HB[id],lv,star);const F=Math.max(0.25,stageRatio(idx)*refPow(idx)/raw);
+  u.maxhp=Math.round(u.maxhp*F);u.hp=u.maxhp;u.atk=Math.round(u.atk*F);u.def=Math.round(u.def*F);u.refF=F;}return u;};}
+// lực chiến đề xuất cho mỗi ải (hiển thị ở bản đồ)
+const recPower=idx=>Math.round(refPow(idx)*6*(idx%6===5?1.1:1)*stageRatio(idx)/(STAGE_R[4]));
+
+// ---------- 4. Thiên phú mới ----------
+Object.assign(TALN,{aegis:['Khiên Hộ Thành',v=>`Vào trận, cả đội nhận khiên ${Math.round(v*100)}% máu tối đa của mỗi người.`],
+ raise:['Hoàn Hồn',v=>`Đồng đội đầu tiên ngã xuống được hồi sinh với ${Math.round(v*100)}% máu (Thức tỉnh III: 2 lần mỗi trận).`],
+ undying:['Bất Tử',v=>`Khi còn đồng đội sống: lần đầu nhận đòn chí tử thì không chết, hồi ${Math.round(v*100)}% máu và bất tử (không xuống dưới 1 máu) đến hết 2 hiệp sau.`]});
+{const _sb29=startBattle;startBattle=function(cfg,...a){const r=_sb29(cfg,...a);
+ try{if(B&&B.U&&B.cfg===cfg){B.U.filter(u=>u.h.tp&&u.h.tp.k==='aegis').forEach(src=>{const al=B.U.filter(x=>x.side===src.side&&x.alive);al.forEach(x=>{x.shield=(x.shield||0)+Math.round(x.maxhp*src.h.tp.v);});
+   addText(src.x,src.y-200,'Khiên Hộ Thành!','#9fe8ff',1.1);if(typeof burst==='function')al.forEach(x=>burst(x.x,x.y-60,'#9fe8ff',10,'heal'));});if(typeof updCards==='function')updCards();}}catch(e){console.warn(e);}return r;};}
+{const _hit29=hit;hit=function(t,d,...a){
+  if(t&&t.undyEnd&&B&&B.round<=t.undyEnd){const cap=Math.max(0,t.hp+(t.shield||0)-1);if(d>cap)d=cap;}
+  const was=t&&t.alive;const r=_hit29(t,d,...a);
+  if(t&&was&&!t.alive&&B){
+   const tp=t.h.tp;
+   if(tp&&tp.k==='undying'&&!t.undyUsed&&B.U.some(x=>x!==t&&x.side===t.side&&x.alive)){t.undyUsed=1;t.undyEnd=B.round+2;t.alive=true;t.dying=0;t.hp=Math.round(t.maxhp*tp.v);addText(t.x,t.y-190,'Bất Tử!','#ff6a4a',1.3);if(typeof burst==='function')burst(t.x,t.y-60,'#ff6a4a',30,'heal');}
+   else{const rs=B.U.find(x=>x!==t&&x.side===t.side&&x.alive&&x.h.tp&&x.h.tp.k==='raise'&&(x.raiseN||0)<((x.aw|0)>=3?2:1));
+    if(rs){rs.raiseN=(rs.raiseN||0)+1;t.alive=true;t.dying=0;t.eff=[];t.hp=Math.round(t.maxhp*rs.h.tp.v);addText(t.x,t.y-190,'Hoàn Hồn!','#7affb0',1.3);addText(rs.x,rs.y-200,'Hoàn Hồn Chú','#7affb0',.9);if(typeof burst==='function')burst(t.x,t.y-60,'#7affb0',30,'heal');}}
+   if(t.alive&&typeof updCards==='function')updCards();}
+  return r;};}
+
+// ---------- 6. Bản đồ: lực chiến đề xuất cho từng ải, so với lực chiến đội hiện tại ----------
+{const _sv29=VIEWS.story;VIEWS.story=function(ch){_sv29(ch);try{const maxCh=Math.min(CHAP.length,Math.floor(S.prog/6)+1);ch=ch||maxCh;const tp=teamPower();
+  scr.querySelectorAll('button.pop').forEach((b,i)=>{const idx=(ch-1)*6+i;if(idx>=CHAP.length*6)return;const rp=recPower(idx);const ok=tp>=rp;
+   b.insertAdjacentHTML('beforeend',`<span class="stk" style="font-size:13px;font-weight:800;color:${ok?'#8aff8a':'#ff8a7a'}">Đề xuất ${fmt(rp)}</span>`);b.title=`Lực chiến đề xuất ${fmt(rp)} · Đội bạn ${fmt(tp)}`;});
+  const d=scr.querySelector('.parch');if(d)d.insertAdjacentHTML('beforeend',`<div style="margin-top:6px;font-weight:800">Lực chiến đội: ${fmt(tp)} · Đề xuất chương: ${fmt(recPower((ch-1)*6))} → ${fmt(recPower((ch-1)*6+5))}</div>`);}catch(e){console.warn(e);}};}
+
+/* =========================================================
+   30: THẦN BINH HIỆN TRÊN TAY TƯỚNG
+   – Tướng UR/SSS đã rèn Thần Binh: 15 thần binh lịch sử có mô hình Blender riêng (Gươm Thuận Thiên, Nỏ Thần Cổ Loa…)
+   – Các tướng khác: vũ khí hoá thần (lưỡi phát sáng theo hệ, cán vàng) và vòng phù văn xoay quanh, to dần theo số sao rèn
+   ========================================================= */
+const tbLevel=id=>{const o=S.owned&&S.owned[id];return o&&o.tb&&typeof tbHas==='function'&&tbHas(id)?o.tb|0:0;};
+{const _vb30=vrBuild;vrBuild=function(h,look,aw){const tb=tbLevel(h.id);const hh=tb?Object.assign({},h,{tb}):h;
+  if(tb&&HB[h.id]){const o=HB[h.id];const keep=o.tb;o.tb=tb;try{const g=_vb30(hh,look,aw);g.userData.tb=tb;return g;}finally{o.tb=keep;}}
+  const g=_vb30(hh,look,aw);g.userData.tb=0;return g;};}
+{const _cm30=c3Model;c3Model=function(h,look,aw,force){let g=_cm30(h,look,aw,force);
+  if(g&&g.userData&&g.userData.vr&&h&&HB[h.id]){const tb=tbLevel(h.id);if((g.userData.tb|0)!==tb){c3Invalidate(h.id);g=_cm30(h,look,aw,true);}}return g;};}
+
+/* =========================================================
+   31: ĐẠO CỤ CHIÊU THỨC RENDER BẰNG BLENDER
+   – Voi chiến (xám; voi trắng cho Bà Triệu), ngựa sắt Phù Đổng, cọc Bạch Đằng: ảnh 3D render Cycles, 8 khung hình bước đi
+   ========================================================= */
+const FXI={};['voi','voitrang','ngua','coc'].forEach(n=>{const im=new Image();im.onload=()=>FXI[n]=im;im.src='fx/'+n+'.png';});
+const fxFrame=(c,im,k,spd,x,y,w,h,n)=>{n=n||8;const fw=im.width/n,f=Math.floor(k*spd)%n;c.drawImage(im,f*fw,0,fw,im.height,x,y,w,h);};
+{const _voi=SIGDRAW.voi;SIGDRAW.voi=function(c,p,k,t){const im=FXI[p.hero==='batrieu'?'voitrang':'voi'];if(!im)return _voi(c,p,k,t);
+ const dir=p.dir,x=p.x0+dir*k*1900,y=p.y+30;
+ if(Math.random()<0.7&&B)for(let i=0;i<2;i++)fxAdd({x:x-dir*60+(Math.random()-0.5)*80,y:y-10,vx:-dir*(60+Math.random()*60),vy:-30-Math.random()*40,life:1.0,t:0,kind:'smoke',size:16+Math.random()*12,col:'#a08060'});
+ c.save();c.translate(x,y);c.scale(dir*1.9,1.9);c.globalAlpha=fade24(k);
+ c.fillStyle='rgba(0,0,0,0.25)';c.beginPath();c.ellipse(5,2,80,9,0,0,7);c.fill();
+ fxFrame(c,im,k,40,-97,-142,210,157);
+ // cờ trên bành voi
+ c.strokeStyle='#5a3a1a';c.lineWidth=3;c.beginPath();c.moveTo(-8,-120);c.lineTo(-8,-196);c.stroke();
+ const wv=Math.sin(t*12)*5;c.fillStyle='#c81a1a';c.beginPath();c.moveTo(-8,-196);c.quadraticCurveTo(14,-192+wv,38,-196);c.lineTo(38,-164);c.quadraticCurveTo(14,-168+wv,-8,-164);c.closePath();c.fill();
+ c.fillStyle='#ffe066';c.font='800 18px serif';c.textAlign='center';c.save();c.scale(dir,1);c.fillText(p.hero==='batrieu'?'趙':'徵',15*dir,-174);c.restore();
+ c.restore();c.globalAlpha=1;
+ (p.T||[]).forEach(q=>{if(!q.hit&&Math.abs(q.x-x)<70){q.hit=1;fxAdd({x:q.x,y:q.y,life:0.5,t:0,kind:'ring',col:'#d8b070'});for(let i=0;i<5;i++)fxAdd({x:q.x,y:q.y-20,vx:(Math.random()-0.5)*300,vy:-200-Math.random()*200,life:0.7,t:0,kind:'rock',size:4+Math.random()*4,spin:9,seed:i,gy:q.y});}});};}
+{const _gf=SIGDRAW.giongfire;SIGDRAW.giongfire=function(c,p,k,t){const im=FXI.ngua;if(!im)return _gf(c,p,k,t);
+ const dir=p.dir,x=p.x0+dir*k*1900,y=p.y+20;
+ c.save();c.translate(x,y);c.scale(dir*1.8,1.8);c.globalAlpha=fade24(k);
+ c.fillStyle='rgba(0,0,0,0.25)';c.beginPath();c.ellipse(5,2,60,7,0,0,7);c.fill();
+ fxFrame(c,im,k,56,-83,-122,187,137);
+ for(let i=0;i<7;i++){const fx=40+i*3,fy=-70-i*3;c.fillStyle=i%2?'#ffb02a':'#ff5a1a';c.beginPath();c.moveTo(fx,fy);c.quadraticCurveTo(fx-14,fy-18-Math.sin(t*20+i)*6,fx-26,fy-6);c.fill();}
+ c.fillStyle='#2a2e36';c.fillRect(-8,-118,18,50);c.beginPath();c.arc(1,-128,12,0,7);c.fill();
+ c.save();c.translate(10,-108);c.rotate(-0.9+Math.sin(t*10)*0.9);c.strokeStyle='#6a9a3a';c.lineWidth=6;c.beginPath();c.moveTo(0,0);c.lineTo(0,-110);c.stroke();
+ for(let i=0;i<5;i++){c.fillStyle='#8ac04a';c.beginPath();c.ellipse((i%2?10:-10),-60-i*12,12,4,(i%2?0.6:-0.6),0,7);c.fill();}c.restore();
+ c.restore();c.globalAlpha=1;
+ if(B)for(let i=0;i<3;i++)fxAdd({x:x+dir*150,y:y-170+(Math.random()-0.5)*20,vx:dir*(260+Math.random()*200),vy:(Math.random()-0.5)*60,life:0.45,t:0,col:'#ffa03a',size:10+Math.random()*6,kind:'fire',g:0});
+ (p.T||[]).forEach(q=>{if(!q.hit&&Math.abs(q.x-x)<80){q.hit=1;for(let i=0;i<4;i++)fxAdd({x:q.x,y:q.y-60,vx:(Math.random()-0.5)*260,vy:-180-Math.random()*160,life:0.9,t:0,col:'#7ac04a',size:6,kind:'leaf',g:300});}});};}
+{const _coc=SIGDRAW.coc;SIGDRAW.coc=function(c,p,k,t){const im=FXI.coc;if(!im)return _coc(c,p,k,t);const W=1280,y0=p.y+30;const tide=k<0.35?k/0.35:k<0.55?1:1-(k-0.55)/0.45;
+ c.save();c.globalAlpha=0.75*Math.min(1,tide*1.4);const wg=c.createLinearGradient(0,y0-120*tide,0,y0+40);wg.addColorStop(0,'#5ab8f0');wg.addColorStop(1,'#14508a');c.fillStyle=wg;
+ c.beginPath();c.moveTo(0,y0+60);for(let x=0;x<=W;x+=20)c.lineTo(x,y0-100*tide+Math.sin(x*0.02+t*6)*10);c.lineTo(W,y0+60);c.closePath();c.fill();
+ c.strokeStyle='#ffffffaa';c.lineWidth=3;c.beginPath();for(let x=0;x<=W;x+=20)c.lineTo(x,y0-100*tide+Math.sin(x*0.02+t*6)*10);c.stroke();c.restore();
+ if(k>0.5){const e=Math.min(1,(k-0.5)/0.12);(p.T||[]).forEach((q,qi)=>{for(let j=-2;j<=2;j++){const sx=q.x+j*26,h=(140+((qi*7+j*13)%5)*16)*e,lean=j*0.08;if(h<4)continue;
+   c.save();c.translate(sx,q.y+20);c.rotate(lean);const sc=h/1.52;c.drawImage(im,-0.25*sc,-1.55*sc,0.5*sc,1.6*sc);c.restore();}
+  if(!q.hit){q.hit=1;for(let i=0;i<10;i++){const a=-Math.random()*Math.PI;fxAdd({x:q.x,y:q.y,vx:Math.cos(a)*300,vy:Math.sin(a)*400,life:0.7,t:0,kind:'drop',size:4+Math.random()*4});}fxAdd({x:q.x,y:q.y+10,life:0.6,t:0,kind:'ring',col:'#9fd8ff'});}});}};}
+// ---------- biểu tượng giao diện 3D render bằng Blender (giữ thẻ <svg> để không đổi bố cục) ----------
+['coin','gem','ticket','swords','gift','tower','summon','map'].forEach(k=>{if(IC[k])IC[k]=`<svg viewBox="0 0 48 48"><image href="ui/${k}.png" x="-2" y="-2" width="52" height="52"/></svg>`;});
 
 go('hub');
 </script>
