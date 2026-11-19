@@ -3973,6 +3973,38 @@ portrait=(function(old){return function(cv,h,big){if(big)return old(cv,h,big);co
  const rg=c.createRadialGradient(W*0.5,Hh*0.4,4,W*0.5,Hh*0.4,W*0.6);rg.addColorStop(0,hexA(EL[h.el].c,0.45));rg.addColorStop(1,hexA(EL[h.el].c,0));c.fillStyle=rg;c.fillRect(0,0,W,Hh);
  const k=Hh/235,s=k*300/158;C3FORCE=true;drawNinja(c,h,W*0.5,(350-28)*k,s,1,{bob:0},0.5);C3FORCE=false;};})(portrait);
 for(const k in PCACHE)delete PCACHE[k];
+/* =========================================================
+   20: NHÂN VẬT VROID DỰNG SẴN (ảnh 3D render trước, mỗi tướng 1 tấm 4 bậc thức tỉnh)
+   – Nạp sprites/<id>.webp (1600x500: aw0..aw3, mỗi khung 400x500, chân ở y=437.5)
+   – Chỉ dùng cho ngoại hình gốc; trang phục sưu tầm vẫn dùng mô hình 3D dựng trực tiếp
+   ========================================================= */
+const VSPR=new Set(["long", "khe", "son", "ho", "phao", "mien", "tieu", "thach", "ngu", "phong", "truc", "than", "cat", "longvuong", "bachhac", "giong", "sontinh", "thuytinh", "laclong", "thachsanh", "bantay", "maiantiem", "cuoi", "namo", "hoavang", "thapcham", "tuyloan", "luoithep", "kimquy", "trutroi", "chudongtu", "anduongvuong", "yetkieu", "datuong", "langlieu", "caolo", "sodua", "truongchi", "coc", "gachaivan", "thoda", "ngoquyen", "hungdao", "leloi", "quangtrung", "lythuongkiet", "dinhbolinh", "lehoan", "lynamde", "trieuquangphuc", "maithucloan", "phunghung", "nguyentrai", "tranquangkhai", "phamngulao", "tranquoctoan", "tranbinhtrong", "lelai", "lycongtuan", "kinhduongvuong", "lyongtrong", "thandongco", "trannhatduat", "trankhanhdu", "lephunghieu", "phuonghoang", "nguyetanh", "xichlong", "thachthan", "huyenvu", "kimuyen", "hacdiem", "thanhlong", "chutuoc", "kyhoang", "thuongthan", "amdasat", "huyetanh", "thienco", "phongluu", "gss3", "gss5", "gss7", "gss8", "gss9", "gss10", "gss11", "gss12", "gss16", "gss17", "gss21", "gss22", "gs1", "gs3", "gs4", "gs7", "gs9", "gs10", "gs12", "gs13", "gs17", "gs18", "gs20", "gs21", "gs22", "ga1", "ga3", "ga5", "ga8", "ga12", "ga13", "ga14", "gb0", "gb3", "gb4", "gb5", "gb9"]);
+const VS={st:{},cv:{}};
+function vsKey(h,aw,pose){return h.id+'|'+h.look.join(',')+'|'+aw+'|'+pose;}
+function vsLoad(id,cb){if(!VSPR.has(id)||VS.st[id])return;VS.st[id]='load';const im=new Image();
+ im.onload=()=>{const h=HB[id];if(!h){VS.st[id]='err';return;}
+  VS.cv[id]=[];for(let a=0;a<4;a++){const c=document.createElement('canvas');c.width=400;c.height=500;c.getContext('2d').drawImage(im,a*400,0,400,500,0,0,400,500);VS.cv[id].push(c);}
+  VS.st[id]='ok';if(typeof c3Invalidate==='function')c3Invalidate(id);vsEnsure(h);for(const k in PCACHE)if(k.startsWith(id))delete PCACHE[k];cb&&cb();};
+ im.onerror=()=>{VS.st[id]='err';};im.src='sprites/'+id+'.webp';}
+// tướng đang có: nạp trước, xong thì vẽ lại màn hình đang mở (nếu không có hộp thoại)
+let VS_LAST=['hub'];const _go20=go;go=function(v,a){VS_LAST=[v,a];return _go20(v,a);};
+let VS_T=0;function vsRefresh(){clearTimeout(VS_T);VS_T=setTimeout(()=>{if(document.querySelector('.modal')||(typeof B!=='undefined'&&B))return;
+ if(['hub','team','roster','codex'].includes(VS_LAST[0]))try{go(VS_LAST[0],VS_LAST[1]);}catch(e){}},450);}
+(function vsBoot(){Object.keys(S.owned||{}).filter(id=>VSPR.has(id)).forEach(id=>vsLoad(id,vsRefresh));})();
+// tướng có ảnh VRoid: không dựng model trực tiếp, dùng ảnh (khoá cache C3 chuẩn: id|look|aw|pose)
+function vsDef(h,look){const d=HB[h.id];return d&&look&&look.join(',')===d.look.join(',');}
+function vsEnsure(h){const cv=VS.cv[h.id];if(!cv)return;for(let a=0;a<4;a++){const k=vsKey(h,a,'idle');if(C3.cache[k]!==cv[a]){C3.cache[k]=cv[a];C3.cache[vsKey(h,a,'atk')]=cv[a];}}}
+if(typeof c3Model==='function'){const _cm20=c3Model;c3Model=function(h,look,aw,force){if(h&&VS.st[h.id]==='ok'&&vsDef(h,look)){vsEnsure(h);return null;}return _cm20(h,look,aw,force);};}
+if(typeof c3Sprite==='function'){const _cs20=c3Sprite;c3Sprite=function(h,look,aw,pose){if(h&&VS.st[h.id]==='ok'&&vsDef(h,look)){vsEnsure(h);return VS.cv[h.id][aw|0];}return _cs20(h,look,aw,pose);};}
+// tướng khác: nạp khi lần đầu cần vẽ
+const _dn20=drawNinja;
+drawNinja=function(c,h,x,y,s,face,p,t){if(h&&h.id&&VSPR.has(h.id)){if(!VS.st[h.id])vsLoad(h.id,vsRefresh);else if(VS.st[h.id]==='ok')vsEnsure(h);}return _dn20(c,h,x,y,s,face,p,t);};
+const _pt20=portrait;
+portrait=function(cv,h,big){if(h&&VSPR.has(h.id)&&!VS.st[h.id])vsLoad(h.id,vsRefresh);return _pt20(cv,h,big);};
+
+// sửa dữ liệu: các nhân vật nữ bị gắn nhầm giới tính trong dữ liệu ngoại hình
+["mylan", "auco", "vannu", "tam", "miquang", "moclinh", "tuyetlan"].forEach(id=>{if(HB[id]&&HB[id].look)HB[id].look[6]=1;});for(const k in PCACHE)delete PCACHE[k];
+
 go('hub');
 </script>
 
