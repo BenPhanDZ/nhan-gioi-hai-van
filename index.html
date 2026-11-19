@@ -993,7 +993,7 @@ function finish(winner){if(B.over)return;B.over=true;B.winner=winner;setTimeout(
 function showResult(win){const r=$('result');r.hidden=false;let txt='';
  if(B.quit){txt='Bạn đã rút lui khỏi trận.';}
  else if(win){const alv=alive(0).length;const stars=alv>=5?3:alv>=3?2:1;
-  if(B.cfg.kind==='story'){const idx=B.cfg.idx;const first=!S.stars[idx];const RW=S.cfg.reward||1,coins=Math.round((600+idx*120)*RW),gems=Math.round((first?60:10)*RW),tk=first&&idx%6===5?3:first?1:0;
+  if(B.cfg.kind==='story'){const idx=B.cfg.idx;const first=!S.stars[idx];const RW=S.cfg.reward||1,coins=Math.round(SCOIN(idx,first)*RW),gems=Math.round((first?60:10)*RW),tk=first&&idx%6===5?3:first?1:0;
    S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<CHAP.length*6)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;
    txt=`${'★'.repeat(stars)}${'☆'.repeat(3-stars)}<br>Nhận ${coins.toLocaleString('vi-VN')} xu, ${gems} ngọc${tk?`, ${tk} vé chiêu mộ`:''}.`;}
   else{S.arena.pts+=25;S.arena.w++;S.coins+=1500;S.gems+=40;txt='Điểm hạng +25 · Nhận 1.500 xu, 40 ngọc.';}
@@ -1131,7 +1131,7 @@ async function cutin(u,sk){if(B&&B.skip)return;const ci=$('cutin');ci.innerHTML=
 function showResult(win){const r=$('result');r.hidden=false;let rew='',stars=0;
  if(B.quit){}
  else if(win){const alv=alive(0).length;stars=alv>=5?3:alv>=3?2:1;
-  if(B.cfg.kind==='story'){const idx=B.cfg.idx;const first=!S.stars[idx];const coins=600+idx*120,gems=first?60:10,tk=first&&idx%6===5?3:first?1:0;
+  if(B.cfg.kind==='story'){const idx=B.cfg.idx;const first=!S.stars[idx];const coins=SCOIN(idx,first),gems=first?60:10,tk=first&&idx%6===5?3:first?1:0;
    S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<CHAP.length*6)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;
    rew=[[IC.coin,fmt(coins)],[IC.gem,gems]].concat(tk?[[IC.ticket,tk]]:[]);}
   else{const RW=S.cfg.reward||1;S.arena.pts+=25;S.arena.w++;S.coins+=Math.round(1500*RW);S.gems+=Math.round(40*RW);rew=[[IC.coin,fmt(1500*RW)],[IC.gem,Math.round(40*RW)]];}
@@ -1658,7 +1658,7 @@ showResult=function(win){const r=$('result');r.hidden=false;let rew=[],stars=0,e
   qAdd('boss');save();if(best)pushBoss(dmg);extra=`Tổng sát thương: <b>${fmt(dmg)}</b>${best?' · kỷ lục hôm nay!':''}`;win=true;stars=3;AU.win();}
  else if(B.quit){AU.lose();}
  else if(win){const alv=alive(0).length;stars=alv>=5?3:alv>=3?2:1;S.stats.wins++;qAdd('win');
-  if(c.kind==='story'){const idx=c.idx;const first=!S.stars[idx];const coins=Math.round((600+idx*120)*RW),gems=Math.round((first?60:10)*RW),tk=first&&idx%6===5?3:first?1:0;
+  if(c.kind==='story'){const idx=c.idx;const first=!S.stars[idx];const coins=Math.round(SCOIN(idx,first)*RW),gems=Math.round((first?60:10)*RW),tk=first&&idx%6===5?3:first?1:0;
    S.stars[idx]=Math.max(S.stars[idx]||0,stars);if(idx===S.prog&&S.prog<CHAP.length*6)S.prog++;S.coins+=coins;S.gems+=gems;S.tickets+=tk;add(IC.coin,fmt(coins));add(IC.gem,gems);if(tk)add(IC.ticket,tk);
    if(idx%6===5||Math.random()<0.55)drop.push(dropEq(idx/30));if(idx%6===5){S.mats.dp+=5;extra='+5 ngọc đột phá';}}
   else if(c.kind==='tower'){const f=c.floor;S.tower=Math.max(S.tower,f);qAdd('tower');const coins=Math.round((400+f*60)*RW);S.coins+=coins;S.gems+=Math.round(20*RW);add(IC.coin,fmt(coins));add(IC.gem,Math.round(20*RW));
@@ -1930,7 +1930,7 @@ function dungeonFoes(cfg){const d=DG.find(x=>x.k===cfg.dg),rnd=mulberry(cfg.diff
  return{lv,name:d.n+' · '+DGD[cfg.diff][0],team:pickTeam(rnd,6).map((id,i)=>({id,slot:i,m:1,star:1+cfg.diff})),theme:d.th};}
 
 /* ---------- bản đồ ải: quét ải 3 sao ---------- */
-function sweep(idx,n){const RW=S.cfg.reward||1;let coins=0,eqs=[];for(let i=0;i<n;i++){coins+=Math.round((600+idx*120)*RW*0.8);if(Math.random()<0.3)eqs.push(dropEq(idx/30));}
+function sweep(idx,n){const RW=S.cfg.reward||1;let coins=0,eqs=[];for(let i=0;i<n;i++){coins+=Math.round(SCOIN(idx,false)*RW*0.8);if(Math.random()<0.3)eqs.push(dropEq(idx/30));}
  S.coins+=coins;qAdd('win',n);save();AU.coin();toast(`Quét ${n} lần: +${fmt(coins)} xu${eqs.length?`, ${eqs.length} trang bị`:''}`);}
 const _story=VIEWS.story;
 VIEWS.story=function(ch){_story(ch);const maxCh=Math.min(CHAP.length,Math.floor(S.prog/6)+1);ch=ch||maxCh;
@@ -1962,7 +1962,7 @@ function statsHTML(){const us=B.U.filter(u=>u.side===0).sort((a,b)=>(b.dealt||0)
 const _sr3=showResult;
 showResult=function(win){const c=B.cfg;
  if(c.kind==='dungeon'&&!B.quit){const r=$('result');r.hidden=false;S.dg.n[c.dg]=(S.dg.n[c.dg]||0)+1;let txt='',drop=[];const mul=DGD[c.diff][2]*(S.cfg.reward||1);
-  if(win){S.medal+=3;if(c.dg==='gold'){const v=Math.round(6000*mul*(1+avgLv()/30));S.coins+=v;txt=`+${fmt(v)} xu`;}else if(c.dg==='dp'){const v=Math.round(6*mul*(1+avgLv()/60));S.mats.dp+=v;txt=`+${v} ngọc đột phá`;}else if(c.dg==='da'){const v=Math.round(25*mul*(1+avgLv()/80));S.mats.da=(S.mats.da||0)+v;let tt=0;if(c.diff===2){tt=2+Math.floor(avgLv()/150);S.mats.tt=(S.mats.tt||0)+tt;}txt=`+${v} đá cường hoá${tt?` · +${tt} Tinh Thiết`:''}`;}else{for(let i=0;i<1+c.diff;i++)drop.push(dropEq(0.3+c.diff*0.35));txt=`+${drop.length} trang bị`;}txt+=' · +3 huân chương';qAdd('win');AU.win();}
+  if(win){S.medal+=3;if(c.dg==='gold'){const v=Math.round(Math.max(6000*(1+avgLv()/30),lvCost(Math.round(avgLv()))*4)*mul);S.coins+=v;txt=`+${fmt(v)} xu`;}else if(c.dg==='dp'){const v=Math.round(6*mul*(1+avgLv()/60));S.mats.dp+=v;txt=`+${v} ngọc đột phá`;}else if(c.dg==='da'){const v=Math.round(25*mul*(1+avgLv()/80));S.mats.da=(S.mats.da||0)+v;let tt=0;if(c.diff===2){tt=2+Math.floor(avgLv()/150);S.mats.tt=(S.mats.tt||0)+tt;}txt=`+${v} đá cường hoá${tt?` · +${tt} Tinh Thiết`:''}`;}else{for(let i=0;i<1+c.diff;i++)drop.push(dropEq(0.3+c.diff*0.35));txt=`+${drop.length} trang bị`;}txt+=' · +3 huân chương';qAdd('win');AU.win();}
   else{txt='Thua vẫn mất lượt. Hãy thử độ khó thấp hơn.';AU.lose();}save();
   r.innerHTML=`<div class="modal"><div class="wood pop" style="position:relative;width:700px;padding:60px 30px 26px;text-align:center"><div class="title-rib stk">${win?'Thành công':'Thất bại'}</div><p class="stk" style="font-size:21px;margin:0 0 12px">${txt}</p>
    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:14px">${drop.map(e=>`<div class="parch pop" style="width:150px;padding:6px 4px;font-size:13px"><div style="width:50px;height:50px;margin:0 auto">${eqIcon(e.s,e.r)}</div><b>${eqName(e)}</b><br>${STN[eqStat(e)]} +${eqVal(e)}</div>`).join('')}</div>${statsHTML()}<button class="gb" id="rOk">Về làng</button></div></div>`;$('rOk').onclick=closeBattle;return;}
@@ -4280,7 +4280,7 @@ function make(h,aw,st){if(aw>=3&&VR.aw3)st=VR.aw3(Object.assign({},st,{pal:Objec
  // phụ kiện, tóc, râu, vũ khí, thức tỉnh
  const G=new T.Group();G.add(src);
  const rig={vr:true,B,bones,src,face,st,G,aw,sway:[],spin:[],mats:rig0mats,t0:Math.random()*10,rx:{h:0,d:0,w:0,o:0,l:0},lt:0};
- rig.headS=new T.Vector3(B.headScale*(st.headS?st.headS[0]:1),B.headScale*(st.headS?st.headS[1]:1),B.headScale*(st.headS?st.headS[0]:1));
+ {const hp=st.headP||1;rig.headS=new T.Vector3(B.headScale*hp*(st.headS?st.headS[0]:1),B.headScale*hp*(st.headS?st.headS[1]:1),B.headScale*hp*(st.headS?st.headS[0]:1));}
  // ---- dáng tóc riêng: hất ra, dựng lên, rẽ ngang, dài/ngắn, rối – xoay xương tóc gốc
  rig.hairD=[];const hs=st.hairShape;if(hs&&B.base.hair.length){applyBase(B,bones,null);src.updateMatrixWorld(true);const hbw=V(0,0,0).setFromMatrixPosition(bones['J_Bip_C_Head'].matrixWorld).add(V(0,0.06*S,0));const rnd=VR.mul(st.seed||1);
   for(const hh of B.base.hair){const b=bones[hh.n];if(!b||!b.children.length)continue;const p=V(0,0,0).setFromMatrixPosition(b.matrixWorld),c=V(0,0,0).setFromMatrixPosition(b.children[0].matrixWorld);const d=c.clone().sub(p);if(d.lengthSq()<1e-8)continue;d.normalize();
@@ -4290,15 +4290,17 @@ function make(h,aw,st){if(aw>=3&&VR.aw3)st=VR.aw3(Object.assign({},st,{pal:Objec
    b.quaternion.copy(nl);src.updateMatrixWorld(true);}
   applyBase(B,bones,rig);src.updateMatrixWorld(true);}
  syncAim(B,bones,src);VR.dress(rig,h,aw,st);if(st.phap&&VR.phap)VR.phap(rig,h);
+ // chân dài hơn cho tướng cao: kéo dài đùi và cẳng chân bằng dời khớp, nâng hông để chân chạm đất (đồ đã gắn xương đi theo)
+ if(st.legL&&st.legL!==1){const LL=st.legL;['L','R'].forEach(sd=>['J_Bip_'+sd+'_LowerLeg','J_Bip_'+sd+'_Foot'].forEach(n=>{const b=bones[n];if(b)b.position.multiplyScalar(LL);}));const hb=bones['J_Bip_C_Hips'];if(hb){const pw=new T.Vector3();hb.parent.getWorldScale(pw);hb.position.y+=(B.restY.hips-B.restY.ankle)*(LL-1)/(pw.y||1);}}
  // ---- vết vẽ trên mặt: sọc chiến, hình xăm Lạc Việt, sẹo, chấm trán, má hồng
  if(st.mark){const fm=meshes.find(o=>o.geometry===B.meshes.find(m=>m.k==='face').o.geometry);if(fm){const mm=markMat(B,st.mark,st.markC||'#c81a1a');const mk=new T.SkinnedMesh(markGeo(B),mm);mk.bind(fm.skeleton,fm.bindMatrix);mk.frustumCulled=false;fm.parent.add(mk);}}
  // cân chiều cao trong khung C3 (~1.95)
- const holder=new T.Group();holder.add(G);holder.scale.setScalar(1.95/(B.H*1.0));rig.holder=holder;
+ const holder=new T.Group();holder.add(G);holder.scale.setScalar(1.95/(B.H*1.0)*(st.height||1));rig.height=st.height||1;rig.holder=holder;
  const out3=new T.Group();out3.add(holder);out3.userData.rig=rig;out3.userData.vr=true;
  setFace(rig,st.expr||0);
  return out3;}
 function setFace(rig,e){let ex=[{Fcl_BRW_Angry:0.5,Fcl_MTH_Close:0.35},{Fcl_BRW_Fun:0.5,Fcl_MTH_Fun:0.5,Fcl_EYE_Fun:0.12},{Fcl_BRW_Angry:0.85,Fcl_EYE_Angry:0.4,Fcl_MTH_Angry:0.35},{Fcl_BRW_Joy:0.4,Fcl_MTH_Joy:0.3},{Fcl_BRW_Sorrow:0.35,Fcl_MTH_Close:0.3,Fcl_EYE_Joy:0.1}][e%5];
- const ET=[{},{Fcl_EYE_Angry:0.3},{Fcl_EYE_Joy:0.2},{Fcl_EYE_Close:0.22},{Fcl_EYE_Fun:0.22},{Fcl_EYE_Angry:0.55,Fcl_BRW_Angry:0.6}][(rig.st&&rig.st.eyeT)|0];ex=Object.assign({},ex,ET);rig.exBase=ex;applyEx(rig,ex);}
+ const ET=[{},{Fcl_EYE_Angry:0.3},{Fcl_EYE_Joy:0.2},{Fcl_EYE_Close:0.22},{Fcl_EYE_Fun:0.22},{Fcl_EYE_Angry:0.55,Fcl_BRW_Angry:0.6}][(rig.st&&rig.st.eyeT)|0];ex=Object.assign({},ex,ET);if(rig.st&&rig.st.face)for(const k in rig.st.face)ex[k]=Math.min(1,(ex[k]||0)+rig.st.face[k]);rig.exBase=ex;applyEx(rig,ex);}
 function applyEx(rig,ex){(rig.face||[]).forEach(f=>{f.morphTargetInfluences.fill(0);for(const k in ex){const i=f.morphTargetDictionary[k];if(i!=null)f.morphTargetInfluences[i]=ex[k];}});}
 
 /* ---------------- chuyển động khớp theo tham số trận đấu ---------------- */
@@ -4384,9 +4386,9 @@ const OV={
  tranquoctoan:{a:'giap',hair:'bun',beard:'none',age:'teen',pal:{cloth:'#b8202a'},expr:2},
  lelai:{a:'giap',hair:'khan',beard:'stache',age:'adult',pal:{cloth:'#d8c060'},expr:0},
  dinhbolinh:{a:'giap',hair:'bun',beard:'none',age:'young',expr:3},
- lehoan:{a:'vuong',hair:'crown',beard:'stache',age:'adult',expr:0},
- lynamde:{a:'vuong',hair:'crown',beard:'goatee',age:'adult',expr:0},
- lycongtuan:{a:'vuong',hair:'crown',beard:'goatee',age:'adult',pal:{cloth:'#e0b02a',trim:'#b8201a'},expr:4},
+ lehoan:{a:'vuong',hair:'binhthien',beard:'stache',age:'adult',expr:0},
+ lynamde:{a:'vuong',hair:'binhthien',beard:'goatee',age:'adult',expr:0},
+ lycongtuan:{a:'vuong',hair:'binhthien',beard:'goatee',age:'adult',pal:{cloth:'#e0b02a',trim:'#b8201a'},expr:4},
  anduongvuong:{a:'vuong',hair:'crown',beard:'full',age:'adult',expr:0},
  kinhduongvuong:{a:'vuong',hair:'crown',beard:'long',age:'old',expr:4},
  laclong:{a:'than',hair:'dragon',beard:'stache',age:'adult',expr:0},
@@ -4394,15 +4396,15 @@ const OV={
  maithucloan:{a:'giap',hair:'wild',beard:'full',age:'adult',expr:2},
  phunghung:{a:'quyen',hair:'wild',beard:'full',age:'adult',expr:2},
  lephunghieu:{a:'giap',hair:'wild',beard:'stache',age:'adult',expr:2},
- nguyentrai:{a:'van',hair:'khandong',beard:'long',age:'old',pal:{cloth:'#3a4a6a',trim:'#1a1a22'},expr:4},
- trannhatduat:{a:'van',hair:'khandong',beard:'stache',age:'adult',expr:3},
+ nguyentrai:{a:'van',hair:'canhchuon',beard:'long',age:'old',pal:{cloth:'#3a4a6a',trim:'#1a1a22'},expr:4},
+ trannhatduat:{a:'van',hair:'canhchuon',beard:'stache',age:'adult',expr:3},
  trankhanhdu:{a:'nhan',hair:'hood',beard:'stache',age:'adult',expr:2},
  yetkieu:{a:'nhan',hair:'bun',beard:'none',age:'young',pal:{cloth:'#1c4a6a'},expr:3},
  datuong:{a:'giap',hair:'khan',beard:'full',age:'adult',expr:2},
  caolo:{a:'dan',hair:'khan',beard:'goatee',age:'adult',expr:4},
  giong:{a:'giap',hair:'helm',beard:'none',age:'teen',metal:'#6a7484',pal:{cloth:'#8a3a1a'},expr:2},
- sontinh:{a:'than',hair:'crown',beard:'stache',age:'adult',expr:0},
- thuytinh:{a:'than',hair:'crown',beard:'full',age:'adult',expr:2},
+ sontinh:{a:'than',hair:'sonmien',beard:'stache',age:'adult',expr:0},
+ thuytinh:{a:'than',hair:'thuymien',beard:'full',age:'adult',expr:2},
  kimquy:{a:'than',hair:'crown',beard:'long',age:'old',expr:4},
  thachsanh:{a:'dan',hair:'bun',beard:'none',age:'young',pal:{cloth:'#5a4030'},expr:3},
  maiantiem:{a:'dan',hair:'bun',beard:'stache',age:'adult',expr:3},
@@ -4488,6 +4490,13 @@ function style(h){const o=OV[h.id]||{};const n=h.n;const [hair0,hc,skin,out,acc,
  if(o.big||['lyongtrong','phunghung','thachthan','dialinh','kyhoang','datuong'].includes(h.id)){body.w=1.2;body.arm=1.25;body.leg=1.15;body.belly=1.12;}
  if(age==='old'){body.belly=Math.max(body.belly,1.06);}
  const headS=age==='teen'?[1.06,1.06]:[R(0.94,1.06),R(0.96,1.05)];
+ // chiều cao riêng: võ tướng vạm vỡ, văn nhân/đạo sĩ cao gầy, ninja vừa, thiếu niên thấp; tướng phẩm cao thêm uy vóc. Người cao đầu nhỏ lại (tỉ lệ người lớn)
+ let height=(g==='f'?0.95:1.0)+({giap:0.08,nutuong:0.05,quyen:0.06,van:0.07,dao:0.08,tien:0.06,than:0.08,vuong:0.06,nhan:-0.02,kiem:0.04,dan:-0.03}[a]||0)+({UR:0.07,SSS:0.04,SS:0.02}[h.rar]||0)+R(-0.06,0.06);
+ if(age==='teen')height-=0.12;if(age==='old')height-=0.03;if(body.w>=1.2)height+=0.06;height=Math.max(0.82,Math.min(1.25,height));
+ // phụ kiện tạo dáng riêng: vạt áo khoác sau lưng, tấm che trước (bì tất), áo choàng vai ngắn
+ const accs={tails:['van','dao','kiem','than','nhan'].includes(a)?r2()<0.6:r2()<0.25,apron:['giap','nutuong','vuong','quyen'].includes(a)?r2()<0.7:r2()<0.2,mantle:r2()<(h.rar==='UR'||h.rar==='SSS'?0.45:0.2)};
+ const headP=Math.max(0.8,Math.min(1.1,1-(height-1)*1.25));const legL=height>1?1+(height-1)*1.3:1;
+ const face={Fcl_BRW_Angry:R(0,0.3),Fcl_BRW_Sorrow:R(0,0.2),Fcl_EYE_Close:R(0,0.12),Fcl_EYE_Angry:a==='giap'||a==='quyen'||a==='nhan'?R(0.05,0.3):R(0,0.1),Fcl_EYE_Joy:a==='tien'||a==='dan'?R(0.05,0.2):0};
  const HSH={wild:{out:0.55,up:0.15,messy:0.5,len:1.15},spiky:{out:0.35,up:0.6,messy:0.25,len:0.95},flame:{out:0.3,up:0.8,messy:0.3},long:{len:1.5,out:0.1},pony:{out:-0.15,len:1.05},twin:{out:0.1},short:{side:R(-0.4,0.4),out:R(0,0.2),messy:0.1},bun:{out:-0.1,len:0.95},tiara:{len:1.15},crown:{len:1.1}};
  let hairShape=Object.assign({},HSH[hair]||{});if(g==='m'&&r2()<0.35)hairShape.side=(hairShape.side||0)+R(-0.5,0.5);if(r2()<0.3)hairShape.messy=(hairShape.messy||0)+0.25;
  const eyeT=o.eyeT!=null?o.eyeT:a==='nhan'||a==='quyen'?[1,5][k%2]:a==='tien'||a==='dao'?[2,3,4][k%3]:a==='giap'||a==='nutuong'?[1,0,5][k%3]:k%6;
@@ -4496,7 +4505,7 @@ function style(h){const o=OV[h.id]||{};const n=h.n;const [hair0,hc,skin,out,acc,
  const MK={giap:[0,1,4,0],nutuong:[0,1,0],quyen:[3,1,4],nhan:[0,4,6],than:[2,6,2],tien:[5,2,0],dao:[2,0,6],kiem:[0,4,0,5],dan:[0,0,5],van:[0,0],vuong:[0,0]};
  let mark=o.mark!=null?o.mark:(MK[a]||[0])[(k>>2)%(MK[a]||[0]).length];if(['laclong','auco','kinhduongvuong','thanhlong'].includes(h.id))mark=3;if(g==='f'&&mark===4)mark=5;
  const markC=mark===2?(a==='than'?'#ffd24a':'#c81a1a'):mark===3?'#1a3a6a':mark===6?h.ec:'#c81a1a';
- return{g,a,hair,beard,age,pal,hairC,eye:real?eyeC:shade(eyeC,-0.05),body,headS,hairShape,eyeT,mark,markC,expr:o.expr!=null?o.expr:k%5,garment,hideHair:['helm','hood','shave','khan','khandong','dragon'].includes(hair)&&g==='m'||hair==='hood',flame:hair==='flame',seed:k,tier,pat,glow,sk};}
+ return{g,a,hair,beard,age,pal,hairC,eye:real?eyeC:shade(eyeC,-0.05),body,headS,height:o.height||height,headP,legL,face,accs,hairShape,eyeT,mark,markC,expr:o.expr!=null?o.expr:k%5,garment,hideHair:['helm','hood','shave','khan','khandong','dragon','binhthien','canhchuon'].includes(hair)&&g==='m'||hair==='hood',flame:hair==='flame',seed:k,tier,pat,glow,sk};}
 VR.HGZ=0.3;VR.style=style;
 
 /* ---------------- phụ kiện ---------------- */
@@ -4555,6 +4564,8 @@ VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;co
    for(let i=0;i<3;i++){const s=add(tor(1.16,0.05,6,44,Math.PI*1.2),TM(shade(kc,0.25)),0,0.32+i*0.12,-0.1,HG,0);s.rotation.set(Math.PI/2-0.22,0,i*1.1);}
    if(st.a==='nutuong'){add(sph(0.12),TM(gold,gold),0,0.5,1.12,HG,0.03);const pl=new T.Group();pl.position.set(0,1.0,-0.3);HG.add(pl);add(cone(0.12,0.9,8),TM('#c81a1a'),0,0.45,0,pl,0.02);sway(pl,0.05,2.2);}
    break;}
+  case 'binhthien':case 'canhchuon':case 'sonmien':case 'thuymien':{if(hgB('hg_'+st.hair,{black:()=>TM('#141418'),gold:()=>TM(gold,'#8a6000'),ruby:()=>TM('#e02a2a','#a01010'),pearl:()=>TM('#f6f2e8'),jade:()=>TM('#2a9a6a','#0a3a2a'),silver:()=>TM('#d8e0ea'),wave:()=>TM('#3a8ae8','#1a4aa8')}))break;
+   const cg=new T.Group();HG.add(cg);add(new T.CylinderGeometry(1.1,1.12,0.5,32),TM(st.hair==='thuymien'?'#3a8ae8':gold),0,0.3,0,cg,0);break;}
   case 'helm':{ // mũ trụ: chóp, vành, chắn tai, chùm tua đỏ
    if(hgB('hg_helm',{metal:()=>TM(metal),gold:()=>TM(gold),gem:()=>TM(h.ec,h.ec)})){const pl=new T.Group();pl.position.set(0,1.62,-0.05);HG.add(pl);for(let i=0;i<7;i++){const a=i/7*Math.PI*2;const c=add(cone(0.08,0.7,6),TM('#c81a1a'),Math.cos(a)*0.08,-0.3,Math.sin(a)*0.08-0.15,pl,0);c.rotation.set(Math.PI+0.5,a,0);}sway(pl,0.05,2.6);break;}
    const hm=TM(metal);add(new T.SphereGeometry(1.12,32,18,0,Math.PI*2,0,Math.PI*0.52),hm,0,0.08,-0.02,HG,0.02);
@@ -4605,6 +4616,19 @@ VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;co
  const yN=W('J_Bip_C_Neck').y,yC=W('J_Bip_C_UpperChest').y,yS=W('J_Bip_C_Spine').y,yH=W('J_Bip_C_Hips').y;
  const rw=B.radAt((B.restY.spine+B.restY.hips)/2+0.012*S,0.015);const yb=(yS+yH)/2+0.012*S;
  const AG=new T.Group();G.add(AG);
+ {const ac=st.accs||{};const rh=B.radAt(B.restY.hips+0.01*S,0.02);const trimC=st.pal.trim||gold;const clothD=shade(st.pal.cloth,-0.22);
+  if(ac.tails){[-1,1].forEach(sx=>{const tg=new T.Group();tg.position.set(sx*rh.rx*0.45,yH+0.03*S,rh.cz-rh.rz-0.005*S);AG.add(tg);
+    const L=(0.3+0.06*((st.seed|0)%3))*S;const pl=add(box(0.075*S,L,0.006*S),TM(clothD,null,null,T.DoubleSide),0,-L/2,0,tg,0);
+    add(box(0.079*S,0.012*S,0.008*S),TM(trimC),0,-L+0.006*S,0,tg,0);add(box(0.006*S,L,0.008*S),TM(trimC),sx*0.038*S,-L/2,0,tg,0);
+    tg.rotation.set(-0.08,0,sx*0.06);toLocal('J_Bip_C_Hips',tg);sway(tg,0.06,2.2,{run:-0.35});});}
+  if(ac.apron){const ap=new T.Group();ap.position.set(0,yH+0.02*S,rh.cz+rh.rz+0.006*S);AG.add(ap);const L=0.24*S;
+   add(box(0.11*S,L,0.006*S),TM(st.a==='giap'||st.a==='nutuong'?(st.pal.metal||'#8a8a96'):shade(st.pal.cloth,0.15),null,null,T.DoubleSide),0,-L/2,0,ap,0);
+   add(box(0.115*S,0.014*S,0.009*S),TM(trimC),0,-L,0,ap,0);add(sph(0.016*S),TM(gold,aw>=1?h.ec:null),0,-0.03*S,0.006*S,ap,0);
+   ap.rotation.x=0.05;toLocal('J_Bip_C_Hips',ap);sway(ap,0.04,2.4,{run:0.3});}
+  if(ac.mantle&&!(aw>=3)){const rcc=B.radAt(B.restY.chest);const cg=new T.CylinderGeometry(0.21,0.27,1,32,4,true,Math.PI*0.55,Math.PI*0.9);const MT=new T.Group();MT.position.set(0,yN-0.01*S,rcc.cz-0.005*S);G.add(MT);
+   const mm=new T.Mesh(cg,TM(shade(st.pal.trim||st.pal.cloth,-0.15),null,null,T.DoubleSide));mm.scale.set(rcc.rx*2.25/0.44,0.16*S,(rcc.rz*2.3/0.44));mm.position.y=-0.08*S;MT.add(mm);
+   const rim=new T.Mesh(new T.TorusGeometry(0.27,0.012,6,32,Math.PI*0.9),TM(gold));rim.rotation.set(Math.PI/2,0,Math.PI*0.05+Math.PI*0.5);rim.scale.set(rcc.rx*2.25/0.44,rcc.rz*2.3/0.44,1);rim.position.y=-0.16*S;MT.add(rim);
+   toLocal('J_Bip_C_UpperChest',MT);}}
  const belt=add(tor(1,0.13,8,44),TM(st.a==='vuong'?'#b8201a':st.a==='dan'?shade(st.pal.cloth,-0.4):shade(acc,-0.05),aw>=1?h.ec:null),0,yb,rw.cz,AG,0);belt.rotation.x=Math.PI/2;belt.scale.set(rw.rx+0.026*S,rw.rz+0.03*S,0.15*S);
  if(st.a!=='dan'){const kn=add(sph(0.022*S),TM(st.a==='giap'||st.a==='vuong'?gold:acc),0.035*S,yb,rw.cz+rw.rz+0.03*S,AG,0.05);
   const sash=new T.Group();sash.position.set(0.04*S,yb-0.01*S,rw.cz+rw.rz+0.032*S);AG.add(sash);[0.0,0.03*S].forEach((dx,i)=>{const s=add(box(0.026*S,0.16*S,0.006*S),TM(st.a==='vuong'?'#b8201a':acc),dx,-0.08*S,0,sash,0.03);s.rotation.z=i?-0.12:0.1;});sway(sash,0.06,2.3,{zA:0.05});}
@@ -4933,7 +4957,10 @@ VR.phapTick=function(P,tt,k){P.M.uniforms.uT.value=tt;P.E.uniforms.uT.value=tt;c
    ========================================================= */
 const VRS={ok:false,err:false};
 (function vrBoot(){if(!C3.ok||!THREE.GLTFLoader||!THREE.SkeletonUtils)return;
- Promise.all([VR.load('nam','models/vroid_nam.json'),VR.load('nu','models/vroid_nu.json'),VR.phapPreload?VR.phapPreload('models/'):0]).then(()=>{VRS.ok=true;
+ const vrRefresh=()=>{for(const [k,g] of C3.models){c3Dispose(g);}C3.models.clear();C3.cache={};for(const k in PCACHE)delete PCACHE[k];try{if(typeof B!=='undefined'&&B&&B.U)B.U.forEach(u=>{const cv=u.card&&u.card.querySelector('canvas');if(cv)portrait(cv,u.h);});}catch(e){}};
+ Promise.all([VR.load('nam','models/vroid_nam.json'),VR.load('nu','models/vroid_nu.json')]).then(()=>{VRS.ok=true;vrRefresh();
+  // tài nguyên Blender (vũ khí, mũ, thần binh, pháp tướng) nạp nền sau khi nhân vật đã hiện, xong thì dựng lại nhân vật
+  if(VR.phapPreload)VR.phapPreload('models/').then(()=>{vrRefresh();if(!document.querySelector('.modal')&&!(typeof B!=='undefined'&&B))try{go(VS_LAST[0],VS_LAST[1]);}catch(e){}});
   for(const [k,g] of C3.models){c3Dispose(g);}C3.models.clear();C3.cache={};for(const k in PCACHE)delete PCACHE[k];
   setTimeout(()=>{if(document.querySelector('.modal')||(typeof B!=='undefined'&&B))return;try{if(typeof VS_LAST!=='undefined')go(VS_LAST[0],VS_LAST[1]);}catch(e){}},60);
  }).catch(e=>{VRS.err=true;console.warn('VRoid lỗi',e);});})();
@@ -5692,7 +5719,7 @@ function refPow(idx){const R=refBuild(idx);const e=k=>1+EQB0[k]*EQR[R.rE][1]*(1+
  return['thu','cong','am','ho'].reduce((p,ro)=>{const s=stat(stdStat(R.rar,ro),R.L,R.star);return p+s.hp*f*e('hp')/6+s.atk*f*e('atk')*2.2+s.def*f*e('def')*1.6+s.spd*4;},0)/4;}
 const STAGE_R=[0.74,0.8,0.86,0.92,0.98,0.9];let DIFF29=1;
 // hệ số hiệu chỉnh theo chương, đo bằng mô phỏng trận với đội chuẩn (ải trùm: đội chuẩn thắng, còn khoảng 40–60% máu)
-let K29=window.K29||[0.967,0.92,0.51,0.605,0.684,0.755,0.898,0.898,0.92,0.834,1.0,1.0,0.92,0.92,1.177,1.3,1.121,1.121,1.121,1.121];
+let K29=window.K29||[1.196,0.846,0.571,0.73,0.629,0.766,1.138,0.912,0.846,0.89,1.066,0.92,1.225,1.386,1.25,1.456,1.319,1.53,1.256,1.4];
 const stageRatio=idx=>STAGE_R[idx%6]*(idx<6?0.72:idx<12?0.85:1)*DIFF29*(K29[Math.floor(idx/6)]||1);
 {const _mk29=mkUnit;mkUnit=function(id,lv,star,side,slot,bm){const u=_mk29(id,lv,star,side,slot,bm);
  if(u&&side===1&&typeof CURCFG!=='undefined'&&CURCFG&&CURCFG.kind==='story'){const idx=CURCFG.idx;const raw=powerOf(HB[id],lv,star);const F=Math.max(0.25,stageRatio(idx)*refPow(idx)/raw);
@@ -5797,6 +5824,15 @@ function refSpd(idx){const R=refBuild(idx);const s=stat(stdStat(R.rar,'cong'),R.
 // hướng dẫn tăng tốc độ trong bảng tướng
 {const _hd32=heroDetail;heroDetail=function(...a){const r=_hd32(...a);try{const m=document.querySelector('.modal:last-of-type')||document;const box=[...m.querySelectorAll('div')].find(d=>d.childNodes[0]&&d.childNodes[0].textContent==='Tốc độ'&&d.querySelector('b'));
   if(box){box.title='Tăng Tốc độ: Bùa hộ mệnh (chỉ số chính Tốc độ), Bộ Ngũ Hành 2/4 món, Bộ Long Hải 4 món, mỗi sao +3, mỗi bậc đột phá +5, Thức tỉnh I/II/III +6/12/20%. Tổng tốc độ đội cao hơn đối thủ: ra đòn trước và nhận thêm Nộ mỗi hiệp.';box.style.cursor='help';box.insertAdjacentHTML('beforeend','<small style="display:block;font-size:11px;line-height:1.2;opacity:.8">Bùa · Bộ Ngũ Hành · Sao · Đột phá · Thức tỉnh</small>');}}catch(e){}return r;};}
+
+/* =========================================================
+   33: KINH TẾ THEO LỘ TRÌNH 20 CHƯƠNG
+   – Xu thưởng ải cốt truyện theo giá lên cấp của cấp ải (qua lần đầu ×4, đánh lại/quét ×0,8) để đủ nuôi đội theo kịp chương
+   – Phó bản Vàng theo giá lên cấp của cấp trung bình đội
+   – Đội chuẩn dùng đúng điều kiện Thức tỉnh khi đột phá (ĐP6 cần TT I, ĐP8 cần TT II, ĐP10 cần TT III)
+   ========================================================= */
+function SCOIN(idx,first){const L=typeof stageLv==='function'?stageLv(idx):1+idx*1.75;return Math.max(600+idx*120,Math.round(lvCost(L)*(first?4:0.8)));}
+{const _rb33=refBuild;refBuild=function(idx){const R=_rb33(idx);R.aw=R.br>=10?3:R.br>=8?2:R.br>=6?1:0;return R;};}
 
 go('hub');
 </script>
