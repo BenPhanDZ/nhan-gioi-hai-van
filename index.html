@@ -3974,36 +3974,687 @@ portrait=(function(old){return function(cv,h,big){if(big)return old(cv,h,big);co
  const k=Hh/235,s=k*300/158;C3FORCE=true;drawNinja(c,h,W*0.5,(350-28)*k,s,1,{bob:0},0.5);C3FORCE=false;};})(portrait);
 for(const k in PCACHE)delete PCACHE[k];
 /* =========================================================
-   20: NHÂN VẬT VROID DỰNG SẴN (ảnh 3D render trước, mỗi tướng 1 tấm 4 bậc thức tỉnh)
-   – Nạp sprites/<id>.webp (1600x500: aw0..aw3, mỗi khung 400x500, chân ở y=437.5)
-   – Chỉ dùng cho ngoại hình gốc; trang phục sưu tầm vẫn dùng mô hình 3D dựng trực tiếp
+   VROID RUNTIME – nhân vật có khung xương, trang phục may theo thân, tóc/râu riêng, chuyển động khớp
+   Cần: THREE r128, THREE.GLTFLoader, THREE.SkeletonUtils
    ========================================================= */
-const VSPR=new Set(["long", "khe", "son", "ho", "phao", "mien", "tieu", "thach", "ngu", "phong", "truc", "than", "cat", "longvuong", "bachhac", "giong", "sontinh", "thuytinh", "laclong", "thachsanh", "bantay", "maiantiem", "cuoi", "namo", "hoavang", "thapcham", "tuyloan", "luoithep", "kimquy", "trutroi", "chudongtu", "anduongvuong", "yetkieu", "datuong", "langlieu", "caolo", "sodua", "truongchi", "coc", "gachaivan", "thoda", "ngoquyen", "hungdao", "leloi", "quangtrung", "lythuongkiet", "dinhbolinh", "lehoan", "lynamde", "trieuquangphuc", "maithucloan", "phunghung", "nguyentrai", "tranquangkhai", "phamngulao", "tranquoctoan", "tranbinhtrong", "lelai", "lycongtuan", "kinhduongvuong", "lyongtrong", "thandongco", "trannhatduat", "trankhanhdu", "lephunghieu", "phuonghoang", "nguyetanh", "xichlong", "thachthan", "huyenvu", "kimuyen", "hacdiem", "thanhlong", "chutuoc", "kyhoang", "thuongthan", "amdasat", "huyetanh", "thienco", "phongluu", "gss3", "gss5", "gss7", "gss8", "gss9", "gss10", "gss11", "gss12", "gss16", "gss17", "gss21", "gss22", "gs1", "gs3", "gs4", "gs7", "gs9", "gs10", "gs12", "gs13", "gs17", "gs18", "gs20", "gs21", "gs22", "ga1", "ga3", "ga5", "ga8", "ga12", "ga13", "ga14", "gb0", "gb3", "gb4", "gb5", "gb9"]);
-const VS={st:{},cv:{}};
-function vsKey(h,aw,pose){return h.id+'|'+h.look.join(',')+'|'+aw+'|'+pose;}
-function vsLoad(id,cb){if(!VSPR.has(id)||VS.st[id])return;VS.st[id]='load';const im=new Image();
- im.onload=()=>{const h=HB[id];if(!h){VS.st[id]='err';return;}
-  VS.cv[id]=[];for(let a=0;a<4;a++){const c=document.createElement('canvas');c.width=400;c.height=500;c.getContext('2d').drawImage(im,a*400,0,400,500,0,0,400,500);VS.cv[id].push(c);}
-  VS.st[id]='ok';if(typeof c3Invalidate==='function')c3Invalidate(id);vsEnsure(h);for(const k in PCACHE)if(k.startsWith(id))delete PCACHE[k];cb&&cb();};
- im.onerror=()=>{VS.st[id]='err';};im.src='sprites/'+id+'.webp';}
-// tướng đang có: nạp trước, xong thì vẽ lại màn hình đang mở (nếu không có hộp thoại)
-let VS_LAST=['hub'];const _go20=go;go=function(v,a){VS_LAST=[v,a];return _go20(v,a);};
-let VS_T=0;function vsRefresh(){clearTimeout(VS_T);VS_T=setTimeout(()=>{if(document.querySelector('.modal')||(typeof B!=='undefined'&&B))return;
- if(['hub','team','roster','codex'].includes(VS_LAST[0]))try{go(VS_LAST[0],VS_LAST[1]);}catch(e){}},450);}
-(function vsBoot(){Object.keys(S.owned||{}).filter(id=>VSPR.has(id)).forEach(id=>vsLoad(id,vsRefresh));})();
-// tướng có ảnh VRoid: không dựng model trực tiếp, dùng ảnh (khoá cache C3 chuẩn: id|look|aw|pose)
-function vsDef(h,look){const d=HB[h.id];return d&&look&&look.join(',')===d.look.join(',');}
-function vsEnsure(h){const cv=VS.cv[h.id];if(!cv)return;for(let a=0;a<4;a++){const k=vsKey(h,a,'idle');if(C3.cache[k]!==cv[a]){C3.cache[k]=cv[a];C3.cache[vsKey(h,a,'atk')]=cv[a];}}}
-if(typeof c3Model==='function'){const _cm20=c3Model;c3Model=function(h,look,aw,force){if(h&&VS.st[h.id]==='ok'&&vsDef(h,look)){vsEnsure(h);return null;}return _cm20(h,look,aw,force);};}
-if(typeof c3Sprite==='function'){const _cs20=c3Sprite;c3Sprite=function(h,look,aw,pose){if(h&&VS.st[h.id]==='ok'&&vsDef(h,look)){vsEnsure(h);return VS.cv[h.id][aw|0];}return _cs20(h,look,aw,pose);};}
-// tướng khác: nạp khi lần đầu cần vẽ
-const _dn20=drawNinja;
-drawNinja=function(c,h,x,y,s,face,p,t){if(h&&h.id&&VSPR.has(h.id)){if(!VS.st[h.id])vsLoad(h.id,vsRefresh);else if(VS.st[h.id]==='ok')vsEnsure(h);}return _dn20(c,h,x,y,s,face,p,t);};
-const _pt20=portrait;
-portrait=function(cv,h,big){if(h&&VSPR.has(h.id)&&!VS.st[h.id])vsLoad(h.id,vsRefresh);return _pt20(cv,h,big);};
+const VR=(function(){
+const T=THREE,V=(x,y,z)=>new T.Vector3(x,y,z);
+const shade=(hex,k)=>{let h=String(hex||'#888888').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');if(!/^[0-9a-fA-F]{6}/.test(h))h='888888';let c=[0,2,4].map(i=>parseInt(h.substr(i,2),16));c=c.map(x=>Math.max(0,Math.min(255,Math.round(k>0?x+(255-x)*k:x*(1+k)))));return'#'+c.map(x=>x.toString(16).padStart(2,'0')).join('');};
+const col=c=>new T.Color(c);
+const LD=V(0.35,0.6,0.72).normalize();
+/* ---------------- shader chung: tô bóng hoạt hình độc lập ánh sáng cảnh ---------------- */
+const VS=`#include <common>
+#include <morphtarget_pars_vertex>
+#include <skinning_pars_vertex>
+varying vec2 vUv2;varying vec3 vN;varying vec3 vRP;varying float vRg;varying float vTt;varying vec3 vVP;
+uniform float uOut;
+#ifdef GARMENT
+attribute vec3 rp;attribute float rg;attribute float tt;
+#endif
+void main(){vUv2=uv;
+#ifdef GARMENT
+vRP=rp;vRg=rg;vTt=tt;
+#else
+vRP=position;vRg=0.;vTt=0.;
+#endif
+#include <beginnormal_vertex>
+#include <morphnormal_vertex>
+#include <skinbase_vertex>
+#include <skinnormal_vertex>
+#include <defaultnormal_vertex>
+#include <begin_vertex>
+#include <morphtarget_vertex>
+#include <skinning_vertex>
+transformed+=normalize(objectNormal)*uOut;
+#include <project_vertex>
+vN=normalize(transformedNormal);vVP=-mvPosition.xyz;}`;
+const FS=`uniform sampler2D map;uniform float hasMap;uniform vec3 uTint;uniform float uAmt;uniform float uML;uniform float uLit;uniform vec3 uEm;uniform float uAT;uniform float uOutl;uniform vec3 uOC;uniform float uOp;
+uniform vec3 cA;uniform vec3 cB;uniform vec3 cC;uniform vec3 cM;uniform vec4 gP;uniform vec4 gQ;uniform vec4 gF;
+varying vec2 vUv2;varying vec3 vN;varying vec3 vRP;varying float vRg;varying float vTt;varying vec3 vVP;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+#ifdef GARMENT
+// gP: neckY, waistY, cz(tâm trước sau), chest y ; gQ: kiểu cổ, giáp thân, giáp đùi, hoạ tiết ngực ; gF: viền tay, viền chân, sọc, độ dài vạt
+vec3 garment(vec3 base){vec3 p=vRP;float rg=vRg,t=vTt;vec3 c=base;
+ float fr=step(gP.z,p.z);
+ float n1=noise(p.xy*vec2(26.,9.)+p.z*7.);float fold=(n1-.5)*.10+sin(p.y*70.+n1*5.)*.025;
+ if(rg<1.5){ // thân
+  float v=gP.x-p.y;
+  if(gQ.x>.5&&fr>.5){ // cổ giao lĩnh: vạt phải đè vạt trái
+   float ex=-0.035+v*0.62;float d=p.x-ex;
+   if(v>-0.01&&v<0.26&&d<0.&&p.x>-0.05-v*0.15&&v<0.06+ (p.x+0.05)*1.6) c=cC;
+   if(v>-0.01&&v<0.30&&abs(d)<0.011) c=cB;}
+  if(gQ.y>.5&&p.y<gP.x-0.05&&p.y>gP.y-0.02){ // giáp vảy
+   float r=floor((p.y)/0.022);float xs=p.x+mod(r,2.)*0.017+p.z*.4;float cx=fract(xs/0.034);float cy=fract(p.y/0.022);
+   float edge=smoothstep(.0,.12,cx)*smoothstep(1.,.88,cx)*smoothstep(0.,.18,cy);
+   c=mix(cM*0.55,cM*(0.85+0.35*cy),edge);if(abs(p.x)<0.012&&fr>.5)c=cB;}
+  if(gQ.w>.5&&fr>.5){float dd=length(vec2(p.x,(p.y-gP.w)*1.2));if(dd<0.05){c=mix(cB,cC,step(0.036,dd)*0.0+step(dd,0.036)*0.35);float a=atan(p.y-gP.w,p.x);if(dd<0.036&&abs(sin(a*6.+dd*90.))>.85)c=cB;}}
+  if(abs(p.y-gP.y)<0.006)c=c*0.75;}
+ if(rg>2.5&&rg<3.5){if(t>gF.x)c=cB;if(t>gF.x-0.05&&t<gF.x-0.035)c=cB*0.85;}
+ if(rg>1.5&&rg<2.5&&gQ.y>.5&&t<0.45){float cy=fract((p.y)/0.02);c=mix(cM*0.6,cM*(0.9+0.3*cy),smoothstep(0.,.15,cy));}
+ if(rg>3.5&&rg<4.5&&gQ.z>.5&&t<0.55){float r=floor(p.y/0.026);float cx=fract((p.x*sign(p.x)+mod(r,2.)*0.016)/0.032);float cy=fract(p.y/0.026);c=mix(cM*0.55,cM*(0.85+0.35*cy),smoothstep(0.,.12,cx)*smoothstep(1.,.88,cx)*smoothstep(0.,.2,cy));}
+ if(rg>4.5&&rg<5.5){if(t>gF.y)c=cC;if(gF.z>.5&&t>0.35&&fract(t*9.)<0.18)c=cC*0.8;}
+ if(rg>6.5){ // vạt áo
+  float h=t;if(h>0.93)c=cB;else if(h>0.9)c=cC;
+  if(gQ.z>.5&&h<0.6){float r=floor(h/0.09);float cx=fract((atan(p.x,p.z-gP.z)*0.16+mod(r,2.)*0.5*0.06)/0.06);float cy=fract(h/0.09);c=mix(cM*0.55,cM*(0.85+0.35*(1.-cy)),smoothstep(0.,.12,cx)*smoothstep(1.,.88,cx)*smoothstep(1.,.8,cy));}
+  if(gQ.w>.5&&h>0.72&&h<0.88){float w=sin(atan(p.x,p.z-gP.z)*22.)*0.5+0.5;if(abs(fract(h*14.)-w*.5)<0.12)c=mix(c,cB,0.8);}}
+ return c*(1.+fold);}
+#endif
+void main(){
+ if(uOutl>.5){if(hasMap>.5&&uAT>0.){if(texture2D(map,vUv2).a<uAT)discard;}gl_FragColor=vec4(uOC,1.);return;}
+ vec4 c=hasMap>.5?texture2D(map,vUv2):vec4(uTint,1.);if(c.a<uAT)discard;
+ float L=dot(c.rgb,vec3(.299,.587,.114));vec3 rc=uTint*clamp(.25+.75*L/uML,0.,1.55);c.rgb=mix(c.rgb,rc,uAmt);
+#ifdef GARMENT
+ c.rgb=garment(uTint);
+#endif
+ vec3 n=normalize(vN);if(!gl_FrontFacing)n=-n;
+ float d=dot(n,vec3(${LD.x.toFixed(3)},${LD.y.toFixed(3)},${LD.z.toFixed(3)}));
+ float k=uLit>.5?mix(.72,1.,smoothstep(-.08,.08,d))*mix(1.,1.07,smoothstep(.55,.65,d)):1.;
+ float rim=uLit>.5?smoothstep(.55,.85,1.-abs(n.z))*.16:0.;
+ gl_FragColor=vec4(c.rgb*k+rim*vec3(1.,.95,.88)+uEm,c.a*uOp);}`;
+function mat(o){o=o||{};const u={map:{value:o.map||null},hasMap:{value:o.map?1:0},uTint:{value:col(o.tint||'#ffffff')},uAmt:{value:o.amt||0},uML:{value:Math.max(.06,o.ml||.5)},uLit:{value:o.lit===false?0:1},
+ uEm:{value:col(o.em||'#000000')},uAT:{value:o.at||0},uOutl:{value:o.outline?1:0},uOC:{value:col('#2a1820')},uOp:{value:o.op==null?1:o.op},uOut:{value:o.outline||0},
+ cA:{value:col('#ffffff')},cB:{value:col(o.trim||'#d4a020')},cC:{value:col(o.inner||'#f2ece0')},cM:{value:col(o.metal||'#9aa4b4')},gP:{value:new T.Vector4(...(o.gP||[1,0.5,0,0.8]))},gQ:{value:new T.Vector4(...(o.gQ||[0,0,0,0]))},gF:{value:new T.Vector4(...(o.gF||[0.9,0.9,0,0]))}};
+ const m=new T.ShaderMaterial({uniforms:u,vertexShader:VS,fragmentShader:FS,skinning:!!o.skin,morphTargets:!!o.morph,side:o.outline?T.BackSide:(o.side!=null?o.side:T.FrontSide),transparent:!!o.transparent,depthWrite:o.depthWrite!==false});
+ if(o.garment)m.defines={GARMENT:1};return m;}
+/* ---------------- phân loại vật liệu VRoid ---------------- */
+function kind(name){if(/EyeIris/.test(name))return'iris';if(/EyeWhite/.test(name))return'eyewhite';if(/_EYE|_FACE/.test(name))return'facedet';if(/Face_00_SKIN/.test(name))return'face';if(/SKIN/.test(name))return'skin';if(/HAIR/.test(name))return'hair';if(/Bottoms/.test(name))return'bottoms';if(/Shoes/.test(name))return'shoes';if(/Tops|Onepiece/.test(name))return'tops';return'cloth';}
+const MLC=new Map();
+function comp(a,i,c){let v=c===0?a.getX(i):c===1?a.getY(i):c===2?a.getZ(i):a.getW(i);if(a.normalized){const arr=a.array;v/=arr instanceof Uint8Array?255:arr instanceof Uint16Array?65535:1;}return v;}function meanLum(tex){if(!tex||!tex.image)return .5;if(MLC.has(tex))return MLC.get(tex);let v=.5;try{const c=document.createElement('canvas');c.width=c.height=48;const x=c.getContext('2d');x.drawImage(tex.image,0,0,48,48);const d=x.getImageData(0,0,48,48).data;let s=0,n=0;for(let i=0;i<d.length;i+=4){if(d[i+3]<128)continue;s+=(.299*d[i]+.587*d[i+1]+.114*d[i+2])/255;n++;}if(n)v=s/n;}catch(e){}MLC.set(tex,v);return v;}
+/* ---------------- nạp mẫu gốc ---------------- */
+const BASES={};
+function bipOf(b){while(b&&!/^J_Bip_/.test(b.name))b=b.parent;return b?b.name:'';}
+function region(n){if(/Hips|Spine|Chest|Shoulder/.test(n))return 1;if(/UpperArm/.test(n))return 2;if(/LowerArm/.test(n))return 3;if(/UpperLeg/.test(n))return 4;if(/LowerLeg/.test(n))return 5;if(/Neck/.test(n))return 6;if(/Hand|Thumb|Index|Middle|Ring|Little/.test(n))return 9;if(/Foot|Toe/.test(n))return 10;return 11;}
+function load(id,url){return new Promise((res,rej)=>new T.GLTFLoader().load(url,g=>{try{res(prep(id,g));}catch(e){rej(e);}},null,rej));}
+function prep(id,g){const root=g.scene;root.updateMatrixWorld(true);const B={id,root,meshes:[],bones:{}};
+ root.traverse(o=>{if(o.isBone)B.bones[o.name]=o;if(o.isMesh){B.meshes.push({o,k:kind(o.material.name),orig:o.material});}});
+ const eachV=(o,cb)=>{const p=o.geometry.attributes.position,ix=o.geometry.index,v=V(0,0,0),seen=new Uint8Array(p.count),n=ix?ix.count:p.count;for(let k=0;k<n;k++){const i=ix?ix.getX(k):k;if(seen[i])continue;seen[i]=1;v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);cb(v,i);}};
+ const bb=f=>{const b=new T.Box3();B.meshes.filter(f).forEach(({o})=>eachV(o,v=>b.expandByPoint(v)));return b;};
+ B.headBox=bb(m=>m.k==='face');B.all=bb(()=>true);B.H=B.all.max.y;
+ const hs=new T.Vector3();B.headBox.getSize(hs);B.hR=hs.x/2;
+ // mặt: cằm, mũi
+ let chin=9,nose=-9,noseY=0;B.meshes.filter(m=>m.k==='face').forEach(({o})=>eachV(o,v=>{if(v.z>nose){nose=v.z;noseY=v.y;}}));
+ B.meshes.filter(m=>m.k==='face').forEach(({o})=>eachV(o,v=>{if(v.z>nose-0.05&&Math.abs(v.x)<0.03&&v.y<chin)chin=v.y;}));
+ B.chinY=chin;B.noseZ=nose;B.noseY=noseY;B.hC=V(0,B.headBox.max.y-B.hR*1.02,(B.headBox.min.z+B.headBox.max.z)/2);
+ B.radAt=(y,band=0.02)=>{let rx=0,z0=9,z1=-9;B.meshes.filter(m=>m.k==='skin').forEach(({o})=>eachV(o,v=>{if(Math.abs(v.y-y)<band&&Math.abs(v.x)<0.16*B.H/1.16){rx=Math.max(rx,Math.abs(v.x));z0=Math.min(z0,v.z);z1=Math.max(z1,v.z);}}));return{rx,rz:(z1-z0)/2,cz:(z0+z1)/2};};
+ const wp=n=>V(0,0,0).setFromMatrixPosition(B.bones[n].matrixWorld);
+ B.restY={neck:wp('J_Bip_C_Neck').y,chest:wp('J_Bip_C_UpperChest').y,spine:wp('J_Bip_C_Spine').y,hips:wp('J_Bip_C_Hips').y,knee:wp('J_Bip_L_LowerLeg').y,ankle:wp('J_Bip_L_Foot').y,sh:wp('J_Bip_L_UpperArm')};
+ B.skinMesh=B.meshes.find(m=>m.k==='skin').o;
+ // tỷ lệ chibi: phóng đầu để thân hình hai mẫu đồng nhất (~4 đầu)
+ B.headScale=B.H>1.4?1.24:1.0;
+ // tư thế gốc (đứng thủ thế)
+ B.base=poseBase(B);
+ B.garmentCache={};
+ BASES[id]=B;return B;}
+/* ---------------- tư thế: xoay xương về hướng đích (hệ toạ độ mẫu) ---------------- */
+function aimBone(bones,root,bn,cn,dir){const b=bones[bn],c=bones[cn];if(!b||!c)return;root.updateMatrixWorld(true);
+ const a=V(0,0,0).setFromMatrixPosition(b.matrixWorld),p=V(0,0,0).setFromMatrixPosition(c.matrixWorld);const cur=p.sub(a).normalize();
+ const q=new T.Quaternion().setFromUnitVectors(cur,dir.clone().normalize());const bw=new T.Quaternion();b.getWorldQuaternion(bw);const pw=new T.Quaternion();b.parent.getWorldQuaternion(pw);
+ b.quaternion.copy(pw.invert().multiply(q).multiply(bw));root.updateMatrixWorld(true);}
+function fist(bones,root,S,curl){const W=n=>V(0,0,0).setFromMatrixPosition(bones[n].matrixWorld);root.updateMatrixWorld(true);
+ if(!bones[`J_Bip_${S}_Middle1`])return{hd:V(0,-1,0),n:V(0,0,1)};
+ const hd=W(`J_Bip_${S}_Middle1`).sub(W(`J_Bip_${S}_Hand`)).normalize();const side=W(`J_Bip_${S}_Little1`).sub(W(`J_Bip_${S}_Index1`)).normalize();
+ let n=V(0,0,0).crossVectors(hd,side).normalize();if(S==='L')n.negate();
+ const d1=hd.clone().multiplyScalar(1-curl*.55).add(n.clone().multiplyScalar(curl)),d2=hd.clone().multiplyScalar(1-curl*1.5).add(n.clone().multiplyScalar(curl)),d3=hd.clone().multiplyScalar(1-curl*2.1).add(n.clone().multiplyScalar(curl*.5));
+ ['Index','Middle','Ring','Little'].forEach(f=>{aimBone(bones,root,`J_Bip_${S}_${f}1`,`J_Bip_${S}_${f}2`,d1);aimBone(bones,root,`J_Bip_${S}_${f}2`,`J_Bip_${S}_${f}3`,d2);const b3=bones[`J_Bip_${S}_${f}3`];if(b3&&b3.children[0])aimBone(bones,root,`J_Bip_${S}_${f}3`,b3.children[0].name,d3);});
+ aimBone(bones,root,`J_Bip_${S}_Thumb2`,`J_Bip_${S}_Thumb3`,hd.clone().add(n.clone().multiplyScalar(curl*.8)).add(side.clone().multiplyScalar(-.3)));return{hd,n};}
+const ANIM=['J_Bip_C_Hips','J_Bip_C_Spine','J_Bip_C_Chest','J_Bip_C_UpperChest','J_Bip_C_Neck','J_Bip_C_Head','J_Bip_L_UpperArm','J_Bip_L_LowerArm','J_Bip_L_Hand','J_Bip_R_UpperArm','J_Bip_R_LowerArm','J_Bip_R_Hand','J_Bip_L_UpperLeg','J_Bip_L_LowerLeg','J_Bip_R_UpperLeg','J_Bip_R_LowerLeg','J_Bip_L_Foot','J_Bip_R_Foot','J_Bip_L_Shoulder','J_Bip_R_Shoulder'];
+function poseBase(B){const bs=B.bones,r=B.root;const keep={};for(const n in bs)keep[n]=bs[n].quaternion.clone();
+ const hb=bs['J_Bip_C_Head'];if(hb)hb.scale.setScalar(B.headScale);
+ aimBone(bs,r,'J_Bip_L_UpperArm','J_Bip_L_LowerArm',V(0.3,-1,0.22));aimBone(bs,r,'J_Bip_L_LowerArm','J_Bip_L_Hand',V(0.12,-0.25,1));aimBone(bs,r,'J_Bip_L_Hand','J_Bip_L_Middle1',V(0.1,-0.08,1));
+ const gl=fist(bs,r,'L',1.0);
+ aimBone(bs,r,'J_Bip_R_UpperArm','J_Bip_R_LowerArm',V(-0.24,-1,-0.04));aimBone(bs,r,'J_Bip_R_LowerArm','J_Bip_R_Hand',V(-0.1,-1,0.24));aimBone(bs,r,'J_Bip_R_Hand','J_Bip_R_Middle1',V(-0.08,-1,0.18));fist(bs,r,'R',0.5);
+ aimBone(bs,r,'J_Bip_L_UpperLeg','J_Bip_L_LowerLeg',V(0.1,-1,0.02));aimBone(bs,r,'J_Bip_R_UpperLeg','J_Bip_R_LowerLeg',V(-0.1,-1,-0.02));
+ aimBone(bs,r,'J_Bip_L_LowerLeg','J_Bip_L_Foot',V(0.03,-1,0));aimBone(bs,r,'J_Bip_R_LowerLeg','J_Bip_R_Foot',V(-0.03,-1,0));
+ const Q={};for(const n in bs)Q[n]=bs[n].quaternion.clone();
+ // trục quay của từng khớp (đổi từ hệ mẫu sang hệ cục bộ của xương ở tư thế gốc)
+ const ax={};r.updateMatrixWorld(true);ANIM.forEach(n=>{const b=bs[n];if(!b)return;const wq=new T.Quaternion();b.getWorldQuaternion(wq);const iq=wq.clone().invert();ax[n]={x:V(1,0,0).applyQuaternion(iq),y:V(0,1,0).applyQuaternion(iq),z:V(0,0,1).applyQuaternion(iq)};});
+ const hair=[];for(const n in bs)if(/J_Sec_Hair/.test(n)){const b=bs[n];const wq=new T.Quaternion();b.getWorldQuaternion(wq);const iq=wq.clone().invert();hair.push({n,d:Math.min(3,(n.match(/_(\d+)$/)||[0,1])[1]|0),x:V(1,0,0).applyQuaternion(iq),z:V(0,0,1).applyQuaternion(iq)});}
+ const grip=gl;
+ for(const n in bs)bs[n].quaternion.copy(keep[n]);if(hb)hb.scale.setScalar(1);r.updateMatrixWorld(true);
+ return{Q,ax,hair,grip};}
+function applyBase(B,bones){for(const n in B.base.Q)if(bones[n])bones[n].quaternion.copy(B.base.Q[n]);const hb=bones['J_Bip_C_Head'];if(hb)hb.scale.setScalar(B.headScale);}
 
-// sửa dữ liệu: các nhân vật nữ bị gắn nhầm giới tính trong dữ liệu ngoại hình
-["mylan", "auco", "vannu", "tam", "miquang", "moclinh", "tuyetlan"].forEach(id=>{if(HB[id]&&HB[id].look)HB[id].look[6]=1;});for(const k in PCACHE)delete PCACHE[k];
+/* ---------------- may trang phục từ thân người (bám theo da, dùng chung trọng số xương) ---------------- */
+function garmentGeo(B,st){const key=JSON.stringify(st);if(B.garmentCache[key])return B.garmentCache[key];
+ const sm=B.skinMesh;const bones=sm.skeleton.bones;const reg=bones.map(b=>region(bipOf(b)));
+ const bw=n=>{const i=bones.findIndex(b=>b.name===n);const m=new T.Matrix4().copy(sm.skeleton.boneInverses[i]).invert();return V(0,0,0).setFromMatrixPosition(m);};
+ const J={};['L','R'].forEach(S=>{J[S+'ua']=bw(`J_Bip_${S}_UpperArm`);J[S+'la']=bw(`J_Bip_${S}_LowerArm`);J[S+'ha']=bw(`J_Bip_${S}_Hand`);J[S+'ul']=bw(`J_Bip_${S}_UpperLeg`);J[S+'ll']=bw(`J_Bip_${S}_LowerLeg`);J[S+'ft']=bw(`J_Bip_${S}_Foot`);});
+ const along=(v,a,b)=>{const ab=b.clone().sub(a);return Math.max(0,Math.min(1,v.clone().sub(a).dot(ab)/ab.lengthSq()));};
+ const keyOf=(x,y,z)=>Math.round(x*400)+'_'+Math.round(y*400)+'_'+Math.round(z*400);
+ const srcs=B.meshes.filter(m=>['skin','tops','bottoms'].includes(m.k)&&m.o.isSkinnedMesh&&m.o.skeleton.bones.length===bones.length);
+ // pháp tuyến hàn theo vị trí trên toàn bộ nguồn
+ const acc={};srcs.forEach(({o})=>{const P=o.geometry.attributes.position,N=o.geometry.attributes.normal;for(let i=0;i<P.count;i++){const k=keyOf(P.getX(i),P.getY(i),P.getZ(i));const a=acc[k]||(acc[k]=V(0,0,0));a.x+=N.getX(i);a.y+=N.getY(i);a.z+=N.getZ(i);}});
+ const allow={1:1,2:1,3:1,4:1,5:1,6:st.collar?1:0};if(st.sleeve==='none'){allow[2]=0;allow[3]=0;}
+ const s=B.H/1.16;
+ const pos=[],nor=[],si=[],sw=[],rp=[],rg=[],tt=[],uv=[];const idx=[];
+ srcs.forEach(({o,k:mk})=>{const g=o.geometry,P=g.attributes.position,SI=g.attributes.skinIndex,SW=g.attributes.skinWeight,ix=g.index;const map=new Map();
+  const base=mk==='skin'?0:-0.006*s;
+  const domReg=i=>{let bi=0,bwt=-1;for(let c=0;c<4;c++){const w=comp(SW,i,c);if(w>bwt){bwt=w;bi=comp(SI,i,c);}}return reg[bi];};
+  const addV=i=>{if(map.has(i))return map.get(i);const v=V(P.getX(i),P.getY(i),P.getZ(i));const r=domReg(i);let t=0;const S=v.x>=0?'L':'R';
+   if(r===2)t=along(v,J[S+'ua'],J[S+'la']);else if(r===3)t=along(v,J[S+'la'],J[S+'ha']);else if(r===4)t=along(v,J[S+'ul'],J[S+'ll']);else if(r===5)t=along(v,J[S+'ll'],J[S+'ft']);
+   let off=0.011*s;
+   if(r===1)off=(st.armor?0.016:0.012)*s;if(r===6)off=0.008*s;
+   if(r===2)off=0.012*s+(st.sleeve==='wide'?0.01*t*s:0);
+   if(r===3)off=st.sleeve==='wide'?(0.02+0.07*t*t)*s:st.sleeve==='bell'?(0.014+0.035*t*t)*s:0.011*s;
+   if(r===4)off=(0.014+(st.pants==='wide'?0.012*t:0))*s;
+   if(r===5)off=st.pants==='wide'?(0.026+0.03*Math.pow(t,1.4)-(t>0.85?(t-0.85)*0.25:0))*s:(0.013+(t>0.8?0.004:0))*s;
+   off=Math.max(0.003*s,off+base);
+   const n=acc[keyOf(v.x,v.y,v.z)].clone().normalize();
+   pos.push(v.x+n.x*off,v.y+n.y*off,v.z+n.z*off);nor.push(n.x,n.y,n.z);rp.push(v.x,v.y,v.z);rg.push(r);tt.push(t);uv.push(0,0);
+   for(let c=0;c<4;c++){si.push(comp(SI,i,c));sw.push(comp(SW,i,c));}
+   const id=pos.length/3-1;map.set(i,id);return id;};
+  const n=ix.count;for(let q=0;q<n;q+=3){const a=ix.getX(q),b=ix.getX(q+1),c=ix.getX(q+2);const ra=domReg(a),rb=domReg(b),rc=domReg(c);
+   if(!allow[ra]||!allow[rb]||!allow[rc])continue;idx.push(addV(a),addV(b),addV(c));}});
+ const G=new T.BufferGeometry();G.setIndex(idx);G.setAttribute('position',new T.Float32BufferAttribute(pos,3));G.setAttribute('normal',new T.Float32BufferAttribute(nor,3));
+ G.setAttribute('uv',new T.Float32BufferAttribute(uv,2));G.setAttribute('skinIndex',new T.Uint16BufferAttribute(si,4));G.setAttribute('skinWeight',new T.Float32BufferAttribute(sw,4));
+ G.setAttribute('rp',new T.Float32BufferAttribute(rp,3));G.setAttribute('rg',new T.Float32BufferAttribute(rg,1));G.setAttribute('tt',new T.Float32BufferAttribute(tt,1));
+ G.computeVertexNormals();
+ // vạt áo (váy/áo dài/vạt giáp): nón cụt mở hai bên, bám hông + đùi
+ let SK=null;if(st.skirt){const hipsI=bones.findIndex(b=>b.name==='J_Bip_C_Hips'),lI=bones.findIndex(b=>b.name==='J_Bip_L_UpperLeg'),rI=bones.findIndex(b=>b.name==='J_Bip_R_UpperLeg'),llI=bones.findIndex(b=>b.name==='J_Bip_L_LowerLeg'),rlI=bones.findIndex(b=>b.name==='J_Bip_R_LowerLeg');
+  const y0=(B.restY.spine+B.restY.hips)/2+0.01*s;const yEnd=st.skirt==='long'?B.restY.ankle+0.03*s:st.skirt==='mid'?(B.restY.knee+B.restY.ankle)/2:B.restY.knee+0.03*s;
+  const w0=B.radAt(y0,0.012),wH=B.radAt(B.restY.hips-0.05*s,0.02);const R0x=w0.rx+0.02*s,R0z=w0.rz+0.02*s,R1x=Math.max(wH.rx*1.15,R0x)+0.03*s+(st.skirt==='long'?0.05*s:0.02*s),R1z=Math.max(wH.rz,R0z)+0.04*s+(st.skirt==='long'?0.04*s:0.01*s);
+  const segA=40,segH=14,gaps=st.slit?[[Math.PI*0.5,0.22],[-Math.PI*0.5,0.22]]:[];
+  const p2=[],n2=[],s2=[],w2=[],r2=[],g2=[],t2=[],u2=[],i2=[];
+  for(let j=0;j<=segH;j++){const h=j/segH;const y=y0+(yEnd-y0)*h;const e=Math.pow(h,0.8);const rx=R0x+(R1x-R0x)*e,rz=R0z+(R1z-R0z)*e;
+   for(let a=0;a<=segA;a++){const th=-Math.PI+a/segA*Math.PI*2;const x=Math.sin(th)*rx,z=w0.cz+Math.cos(th)*rz+(h>0.1?0.006*s*Math.sin(th*9)*h:0);
+    p2.push(x,y,z);n2.push(Math.sin(th),0.15,Math.cos(th));r2.push(x,y,z);g2.push(7);t2.push(h);u2.push(a/segA,h);
+    const side=x>=0?1:-1;const lw=Math.min(0.75,Math.max(0,(h-0.05))*0.9)*Math.min(1,Math.abs(x)/(rx*0.35)+0.25);const kneeW=st.skirt!=='short'?Math.max(0,h-0.5)*0.5*lw:0;
+    s2.push(hipsI,side>0?lI:rI,side>0?llI:rlI,0);w2.push(1-lw,lw-kneeW,kneeW,0);}}
+  const inGap=th=>gaps.some(([c,w])=>Math.abs(Math.atan2(Math.sin(th-c),Math.cos(th-c)))<w/2);
+  for(let j=0;j<segH;j++)for(let a=0;a<segA;a++){const th=-Math.PI+(a+0.5)/segA*Math.PI*2;if(j>segH*0.25&&inGap(th))continue;const A=j*(segA+1)+a,Bq=A+segA+1;i2.push(A,Bq,A+1,A+1,Bq,Bq+1);}
+  SK=new T.BufferGeometry();SK.setIndex(i2);SK.setAttribute('position',new T.Float32BufferAttribute(p2,3));SK.setAttribute('normal',new T.Float32BufferAttribute(n2,3));SK.setAttribute('uv',new T.Float32BufferAttribute(u2,2));
+  SK.setAttribute('skinIndex',new T.Uint16BufferAttribute(s2,4));SK.setAttribute('skinWeight',new T.Float32BufferAttribute(w2,4));SK.setAttribute('rp',new T.Float32BufferAttribute(r2,3));SK.setAttribute('rg',new T.Float32BufferAttribute(g2,1));SK.setAttribute('tt',new T.Float32BufferAttribute(t2,1));SK.computeVertexNormals();}
+ return B.garmentCache[key]={body:G,skirt:SK};}
+
+function maskGeo(B){if(B.maskGeo)return B.maskGeo;const fm=B.meshes.find(m=>m.k==='face').o;const g=fm.geometry,P=g.attributes.position,N=g.attributes.normal,ix=g.index;
+ const yTop=B.noseY+0.004*B.H/1.16,zc=B.hC.z;const keep=i=>P.getY(i)<yTop&&P.getZ(i)>zc-0.02;const map=new Map(),pos=[],nor=[],si=[],sw=[],idx=[];const SI=g.attributes.skinIndex,SW=g.attributes.skinWeight;
+ const add=i=>{if(map.has(i))return map.get(i);const o=0.006*B.H/1.16;pos.push(P.getX(i)+N.getX(i)*o,P.getY(i)+N.getY(i)*o,P.getZ(i)+N.getZ(i)*o);nor.push(N.getX(i),N.getY(i),N.getZ(i));for(let c=0;c<4;c++){si.push(comp(SI,i,c));sw.push(comp(SW,i,c));}map.set(i,pos.length/3-1);return pos.length/3-1;};
+ for(let q=0;q<ix.count;q+=3){const a=ix.getX(q),b=ix.getX(q+1),c=ix.getX(q+2);if(keep(a)&&keep(b)&&keep(c))idx.push(add(a),add(b),add(c));}
+ const G=new T.BufferGeometry();G.setIndex(idx);G.setAttribute('position',new T.Float32BufferAttribute(pos,3));G.setAttribute('normal',new T.Float32BufferAttribute(nor,3));G.setAttribute('uv',new T.Float32BufferAttribute(new Array(pos.length/3*2).fill(0),2));
+ G.setAttribute('skinIndex',new T.Uint16BufferAttribute(si,4));G.setAttribute('skinWeight',new T.Float32BufferAttribute(sw,4));G.computeVertexNormals();return B.maskGeo=G;}
+/* ---------------- tạo kiểu tóc bằng lọn (dải dẹt có độ dày) ---------------- */
+function strandGeo(pts,w0,w1,th,seg){seg=seg||6;const curve=new T.CatmullRomCurve3(pts);const n=24;const P=[],I=[],U=[];const fr=curve.computeFrenetFrames(n,false);
+ for(let i=0;i<=n;i++){const t=i/n;const c=curve.getPointAt(t);const w=w0+(w1-w0)*Math.pow(t,0.9);const N=fr.normals[i],Bn=fr.binormals[i];
+  for(let k=0;k<seg;k++){const a=k/seg*Math.PI*2;const x=Math.cos(a)*w,y=Math.sin(a)*w*th;P.push(c.x+N.x*x+Bn.x*y,c.y+N.y*x+Bn.y*y,c.z+N.z*x+Bn.z*y);U.push(k/seg,t);}}
+ for(let i=0;i<n;i++)for(let k=0;k<seg;k++){const a=i*seg+k,b=i*seg+(k+1)%seg,c=a+seg,d=b+seg;I.push(a,c,b,b,c,d);}
+ const g=new T.BufferGeometry();g.setIndex(I);g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setAttribute('uv',new T.Float32BufferAttribute(U,2));g.computeVertexNormals();return g;}
+function mergeGeos(gs){let n=0;gs.forEach(g=>n+=g.attributes.position.count);const P=new Float32Array(n*3),N=new Float32Array(n*3),U=new Float32Array(n*2);const I=[];let o=0;
+ gs.forEach(g=>{P.set(g.attributes.position.array,o*3);N.set(g.attributes.normal.array,o*3);U.set(g.attributes.uv.array,o*2);const ix=g.index.array;for(let i=0;i<ix.length;i++)I.push(ix[i]+o);o+=g.attributes.position.count;g.dispose();});
+ const G=new T.BufferGeometry();G.setIndex(I);G.setAttribute('position',new T.BufferAttribute(P,3));G.setAttribute('normal',new T.BufferAttribute(N,3));G.setAttribute('uv',new T.BufferAttribute(U,2));return G;}
+// cụm tóc: gốc (root), hướng, độ dài, độ toả, số lọn – toạ độ đầu chuẩn (bán kính 1)
+function cluster(o){const gs=[];const rnd=mul(o.seed||1);for(let i=0;i<o.n;i++){const a=(i/(o.n-1||1)-0.5)*o.spread;const jr=()=>rnd()-0.5;
+ const r=o.root.clone().add(V(Math.sin(a)*o.rw+jr()*0.04,jr()*0.04,Math.cos(a)*o.rw*0.3));const L=o.len*(0.8+rnd()*0.35);const d=o.dir.clone().add(V(Math.sin(a)*o.fan,0,Math.cos(a)*o.fan*0.4)).normalize();
+ const g=o.grav||0;const pts=[r,r.clone().add(d.clone().multiplyScalar(L*0.35)).add(V(0,-g*0.1,0)),r.clone().add(d.clone().multiplyScalar(L*0.7)).add(V(jr()*0.08,-g*0.35,jr()*0.05)),r.clone().add(d.clone().multiplyScalar(L)).add(V(jr()*0.1+(o.curl||0)*Math.sin(a*3),-g*0.8,jr()*0.06))];
+ gs.push(strandGeo(pts,o.w*(0.85+rnd()*0.3),o.w*0.08,o.th||0.35));}return mergeGeos(gs);}
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ---------------- dựng nhân vật ---------------- */
+function vrMat(o,orig){return mat(Object.assign({map:orig&&orig.map,ml:orig?meanLum(orig.map):.5,at:orig&&orig.alphaTest>0?orig.alphaTest:(orig&&orig.transparent?0.02:0),transparent:orig&&orig.transparent,depthWrite:orig?orig.depthWrite:true,side:orig?orig.side:T.FrontSide,skin:true,morph:!!(orig&&orig.morphTargets)},o));}
+function make(h,aw,st){const B=BASES[st.g==='f'?'nu':'nam']||BASES.nam;const S=B.H/1.16;
+ const src=T.SkeletonUtils.clone(B.root);const bones={};src.traverse(o=>{if(o.isBone)bones[o.name]=o;});
+ applyBase(B,bones);src.updateMatrixWorld(true);
+ const [hair0,hc,skin,out,acc,wpn0,fem]=h.look;const ec=h.ec;
+ const pal=st.pal;const hairC=st.hairC||hc;
+ const meshes=[];src.traverse(o=>{if(o.isMesh)meshes.push(o);});
+ const outl=[];const hidden=st.hideHair;
+ meshes.forEach(o=>{const orig=o.material;const k=kind(orig.name);o.frustumCulled=false;let m=null,ow=0;
+  switch(k){case'hair':if(hidden){o.visible=false;return;}m=vrMat({tint:hairC,amt:1,em:st.flame?'#401000':null},orig);ow=0.0042;break;
+   case'tops':case'bottoms':case'cloth':o.visible=false;return;
+   case'shoes':m=vrMat({tint:pal.boot,amt:0.9},orig);ow=0.0036;break;
+   case'skin':m=vrMat({tint:skin,amt:0.4},orig);ow=0.0036;break;
+   case'face':m=vrMat({tint:skin,amt:0.32,lit:false},orig);ow=0.003;break;
+   case'iris':m=vrMat({tint:st.eye,amt:0.85,lit:false},orig);break;
+   case'eyewhite':m=vrMat({lit:false},orig);break;
+   default:m=vrMat({tint:k==='facedet'&&/Brow/.test(orig.name)?shade(hairC,-0.25):null,amt:/Brow/.test(orig.name)?0.7:0,lit:false},orig);}
+  o.material=m;if(ow)outl.push([o,ow*S,orig]);});
+ outl.forEach(([o,w,orig])=>{const ol=new T.SkinnedMesh(o.geometry,mat({outline:w,skin:true,morph:!!orig.morphTargets,map:orig.alphaTest>0?orig.map:null,at:orig.alphaTest>0?orig.alphaTest:0}));ol.bind(o.skeleton,o.bindMatrix);ol.frustumCulled=false;ol.morphTargetInfluences=o.morphTargetInfluences;ol.morphTargetDictionary=o.morphTargetDictionary;o.parent.add(ol);});
+ // biểu cảm
+ const face=meshes.filter(o=>o.morphTargetDictionary&&o.morphTargetInfluences);
+ // trang phục
+ const body=meshes.find(o=>o.geometry===B.skinMesh.geometry);
+ const gg=garmentGeo(B,st.garment);const gp=[B.restY.neck-0.005*S,(B.restY.spine+B.restY.hips)/2+0.012*S,B.radAt(B.restY.chest).cz,B.restY.chest-0.03*S];
+ const gm=mat({garment:true,skin:true,tint:pal.cloth,trim:pal.trim,inner:pal.inner,metal:pal.metal,gP:gp,gQ:[st.garment.cross?1:0,st.garment.armor?1:0,st.garment.thigh?1:0,st.garment.medal?1:0],gF:[st.garment.cuff||0.88,st.garment.pcuff||0.86,st.garment.wrap?1:0,0],side:T.DoubleSide});
+ const gmesh=new T.SkinnedMesh(gg.body,gm);gmesh.bind(body.skeleton,body.bindMatrix);gmesh.frustumCulled=false;body.parent.add(gmesh);
+ const gol=new T.SkinnedMesh(gg.body,mat({outline:0.0036*S,skin:true}));gol.bind(body.skeleton,body.bindMatrix);gol.frustumCulled=false;body.parent.add(gol);
+ if(gg.skirt){const skm=mat({garment:true,skin:true,tint:pal.skirt||pal.cloth,trim:pal.trim,inner:pal.inner,metal:pal.metal,gP:gp,gQ:[0,0,st.garment.skirtArmor?1:0,st.garment.hem?1:0],gF:[0,0,0,0],side:T.DoubleSide});
+  const s1=new T.SkinnedMesh(gg.skirt,skm);s1.bind(body.skeleton,body.bindMatrix);s1.frustumCulled=false;body.parent.add(s1);
+  const s2=new T.SkinnedMesh(gg.skirt,mat({outline:0.0034*S,skin:true}));s2.bind(body.skeleton,body.bindMatrix);s2.frustumCulled=false;body.parent.add(s2);}
+ // phụ kiện, tóc, râu, vũ khí, thức tỉnh
+ const G=new T.Group();G.add(src);
+ const rig={vr:true,B,bones,src,face,st,G,aw,sway:[],t0:Math.random()*10};
+ VR.dress(rig,h,aw,st);
+ // cân chiều cao trong khung C3 (~1.95)
+ const holder=new T.Group();holder.add(G);holder.scale.setScalar(1.95/(B.H*1.0));rig.holder=holder;
+ const out3=new T.Group();out3.add(holder);out3.userData.rig=rig;out3.userData.vr=true;
+ setFace(rig,st.expr||0);
+ return out3;}
+function setFace(rig,e){const ex=[{Fcl_BRW_Angry:0.5,Fcl_MTH_Close:0.35},{Fcl_BRW_Fun:0.5,Fcl_MTH_Fun:0.5,Fcl_EYE_Fun:0.12},{Fcl_BRW_Angry:0.85,Fcl_EYE_Angry:0.4,Fcl_MTH_Angry:0.35},{Fcl_BRW_Joy:0.4,Fcl_MTH_Joy:0.3},{Fcl_BRW_Sorrow:0.35,Fcl_MTH_Close:0.3,Fcl_EYE_Joy:0.1}][e%5];
+ rig.exBase=ex;applyEx(rig,ex);}
+function applyEx(rig,ex){(rig.face||[]).forEach(f=>{f.morphTargetInfluences.fill(0);for(const k in ex){const i=f.morphTargetDictionary[k];if(i!=null)f.morphTargetInfluences[i]=ex[k];}});}
+
+/* ---------------- chuyển động khớp theo tham số trận đấu ---------------- */
+const qa=new T.Quaternion(),qb=new T.Quaternion();
+function rot(rig,n,ax,ang){const b=rig.bones[n],A=rig.B.base.ax[n];if(!b||!A||!ang)return;qa.setFromAxisAngle(A[ax],ang);b.quaternion.multiply(qa);}
+function pose(g,p,t){const rig=g.userData.rig;if(!rig)return;p=p||{};const B=rig.B,bs=rig.bones;
+ const cl=(v,a,b)=>v<a?a:v>b?b:v;
+ const fa=cl(p.fa!=null?p.fa:-0.4,-3.2,1.6),ba=cl(p.ba!=null?p.ba:0.3,-3,1.6),fl=cl(p.fl!=null?p.fl:-0.12,-1.4,1.4),bl=cl(p.bl!=null?p.bl:0.12,-1.4,1.4);
+ const wind=Math.max(0,-fa-0.6),swing=Math.max(0,fa),run=Math.abs(fl)>0.35;
+ applyBase(B,bs);
+ const tt=t+rig.t0,br=Math.sin(tt*2.6);
+ // thân: thở, vặn người theo đòn
+ rot(rig,'J_Bip_C_Spine','x',br*0.02+swing*0.12-wind*0.06);rot(rig,'J_Bip_C_Spine','y',-wind*0.22+swing*0.35);
+ rot(rig,'J_Bip_C_Chest','x',br*0.015);rot(rig,'J_Bip_C_UpperChest','z',Math.sin(tt*1.3)*0.015);
+ rot(rig,'J_Bip_C_Head','y',Math.sin(tt*0.8)*0.08-swing*0.15);rot(rig,'J_Bip_C_Head','x',-swing*0.08+wind*0.05+Math.sin(tt*1.7)*0.02);
+ // tay: nội suy hướng xương giữa các tư thế khoá (đứng – vung – chém – theo đà), sau đó ngắm xương
+ const wq=new T.Quaternion();rig.src.getWorldQuaternion(wq);const D=(x,y,z)=>V(x,y,z).normalize();
+ const mix=(a,b,k)=>a.clone().lerp(b,k).normalize();const ss=k=>k*k*(3-2*k);
+ const K={idle:[D(0.3,-1,0.22),D(0.12,-0.25,1)],wind:[D(0.85,0.75,-0.1),D(0.15,0.95,-0.35)],strike:[D(0.2,-0.15,1),D(0.05,-0.55,1)],follow:[D(0.3,-1,-0.35),D(0.15,-0.7,-0.7)]};
+ let ua,la;if(fa<=-0.4){const k=ss(cl((-0.4-fa)/2.0,0,1));ua=mix(K.idle[0],K.wind[0],k);la=mix(K.idle[1],K.wind[1],k);}
+ else if(fa<0.6){const k=ss(cl((fa+0.4)/1.0,0,1));ua=mix(K.idle[0],K.strike[0],k);la=mix(K.idle[1],K.strike[1],k);}
+ else{const k=ss(cl((fa-0.6)/1.0,0,1));ua=mix(K.strike[0],K.follow[0],k);la=mix(K.strike[1],K.follow[1],k);}
+ const br2=Math.sin(tt*2.2)*0.03;la.y+=br2;
+ aimBone(bs,rig.src,'J_Bip_L_UpperArm','J_Bip_L_LowerArm',ua.applyQuaternion(wq));aimBone(bs,rig.src,'J_Bip_L_LowerArm','J_Bip_L_Hand',la.clone().applyQuaternion(wq));
+ rot(rig,'J_Bip_L_Hand','x',-wind*0.25+swing*0.3);
+ // tay sau: thủ thế / niệm chú / chạy
+ const KR={idle:[D(-0.24,-1,-0.04),D(-0.1,-1,0.24)],cast:[D(-0.65,0.1,0.75),D(-0.3,0.35,1)],back:[D(-0.3,-0.9,-0.5),D(-0.2,-0.9,-0.3)],fwd:[D(-0.2,-0.6,0.8),D(-0.05,-0.2,1)]};
+ let ub,lb;const cb=p.cast?1:0;
+ if(cb){ub=KR.cast[0].clone();lb=KR.cast[1].clone();}
+ else if(ba<0.3){const k=ss(cl((0.3-ba)/1.6,0,1));ub=mix(KR.idle[0],KR.fwd[0],k);lb=mix(KR.idle[1],KR.fwd[1],k);}
+ else{const k=ss(cl((ba-0.3)/1.2,0,1));ub=mix(KR.idle[0],KR.back[0],k);lb=mix(KR.idle[1],KR.back[1],k);}
+ if(run){const r=Math.sin(tt*14);ub=mix(ub,r>0?KR.fwd[0]:KR.back[0],Math.abs(r)*0.6);lb=mix(lb,D(-0.1,-0.3,1),0.5);}
+ aimBone(bs,rig.src,'J_Bip_R_UpperArm','J_Bip_R_LowerArm',ub.applyQuaternion(wq));aimBone(bs,rig.src,'J_Bip_R_LowerArm','J_Bip_R_Hand',lb.applyQuaternion(wq));
+ // chân
+ rot(rig,'J_Bip_L_UpperLeg','x',(fl+0.12)*0.55);rot(rig,'J_Bip_R_UpperLeg','x',(bl-0.12)*0.55);
+ rot(rig,'J_Bip_L_LowerLeg','x',-Math.max(0,-(fl+0.12))*0.7-(run?Math.max(0,Math.sin(tt*14))*0.35:0));rot(rig,'J_Bip_R_LowerLeg','x',-Math.max(0,-(bl-0.12))*0.7-(run?Math.max(0,-Math.sin(tt*14))*0.35:0));
+ // tóc tung bay
+ for(const hh of B.base.hair){const b=bs[hh.n];if(!b)continue;const k=0.025;qa.setFromAxisAngle(hh.x,Math.sin(tt*2.1-hh.d*0.6)*k+(run?0.04:0)+swing*0.03);qb.setFromAxisAngle(hh.z,Math.sin(tt*1.6+hh.d)*k*0.6);b.quaternion.multiply(qa).multiply(qb);}
+ // vật thể đung đưa (áo choàng, cánh, đuôi tóc, khăn)
+ for(const s of rig.sway){s.o.rotation.x=s.r0.x+(Math.sin(tt*s.f+s.ph)*s.a+(run?s.run:0)+swing*s.sw);if(s.zA)s.o.rotation.z=s.r0.z+Math.sin(tt*s.f*0.8+s.ph)*s.zA;}
+ // biểu cảm: chớp mắt, hét khi ra đòn
+ if(rig.face.length&&rig.exBase){const blink=(tt%3.7)<0.12?1:0;const ex=Object.assign({},rig.exBase);if(blink)ex.Fcl_EYE_Close=1;if(swing>0.3||p.cast){ex.Fcl_MTH_A=0.55;ex.Fcl_BRW_Angry=0.9;}applyEx(rig,ex);}
+ // xoay người hướng 3/4
+ rig.holder.rotation.y=0.42+wind*0.1+swing*0.3;rig.holder.position.y=(run?Math.abs(Math.sin(tt*14))*0.04:0)+br*0.004;}
+return {maskGeo,load,make,pose,BASES,mat,cluster,strandGeo,mergeGeos,shade,V,aimBone,mul};})();
+
+/* =========================================================
+   Hồ sơ ngoại hình từng tướng (giới, kiểu trang phục, tóc, râu, tuổi) + phụ kiện gắn xương
+   ========================================================= */
+(function(){
+const T=THREE,V=VR.V,shade=VR.shade;
+const FEMN=/(^|\s)(Bà|Cô|Nữ|Mẫu|Tiên Tử|Thánh Nữ|Nữ Hoàng|Nữ Chúa|Nữ Hiệp|Nữ Tướng|Đăng Nữ)(\s|$)|Âu Cơ|Tiên Dung|Mỵ Châu|Lê Chân|Bùi Thị Xuân|Hai Bà Trưng|Mỹ Lan|Ngọc Trâm|Tuyết Lan/;
+const MALEN=/Vương|Đế|Lão|Chú|Cậu|Ông|Tử$|Quân$|Chiến Thần|Đại Tướng|Đạo Tổ|Hộ Pháp|Quyền Vương|Đao Vương|Kiếm Thánh/;
+// nhân vật lịch sử/huyền thoại: tạo hình theo hình tượng truyền thống
+const OV={
+ hungdao:{a:'vuong',hair:'khandong',beard:'long',age:'old',pal:{cloth:'#7a1c1c',trim:'#e0b030',skirt:'#5a1414'},expr:0},
+ leloi:{a:'giap',hair:'bun',beard:'goatee',age:'adult',metal:'#b8954a',expr:0},
+ quangtrung:{a:'giap',hair:'khan',beard:'stache',age:'adult',pal:{cloth:'#1d3a7a',trim:'#e8c040'},metal:'#c0c8d4',expr:2},
+ ngoquyen:{a:'giap',hair:'khan',beard:'goatee',age:'adult',metal:'#a8b0bc',expr:0},
+ lythuongkiet:{a:'giap',hair:'helm',beard:'full',age:'adult',metal:'#b8954a',expr:0},
+ tranquangkhai:{a:'giap',hair:'helm',beard:'stache',age:'adult',expr:0},
+ tranbinhtrong:{a:'giap',hair:'helm',beard:'goatee',age:'adult',expr:2},
+ phamngulao:{a:'giap',hair:'khan',beard:'none',age:'young',expr:2},
+ tranquoctoan:{a:'giap',hair:'bun',beard:'none',age:'teen',pal:{cloth:'#b8202a'},expr:2},
+ lelai:{a:'giap',hair:'khan',beard:'stache',age:'adult',pal:{cloth:'#d8c060'},expr:0},
+ dinhbolinh:{a:'giap',hair:'bun',beard:'none',age:'young',expr:3},
+ lehoan:{a:'vuong',hair:'crown',beard:'stache',age:'adult',expr:0},
+ lynamde:{a:'vuong',hair:'crown',beard:'goatee',age:'adult',expr:0},
+ lycongtuan:{a:'vuong',hair:'crown',beard:'goatee',age:'adult',pal:{cloth:'#e0b02a',trim:'#b8201a'},expr:4},
+ anduongvuong:{a:'vuong',hair:'crown',beard:'full',age:'adult',expr:0},
+ kinhduongvuong:{a:'vuong',hair:'crown',beard:'long',age:'old',expr:4},
+ laclong:{a:'than',hair:'dragon',beard:'stache',age:'adult',expr:0},
+ trieuquangphuc:{a:'giap',hair:'khan',beard:'goatee',age:'adult',expr:0},
+ maithucloan:{a:'giap',hair:'wild',beard:'full',age:'adult',expr:2},
+ phunghung:{a:'quyen',hair:'wild',beard:'full',age:'adult',expr:2},
+ lephunghieu:{a:'giap',hair:'wild',beard:'stache',age:'adult',expr:2},
+ nguyentrai:{a:'van',hair:'khandong',beard:'long',age:'old',pal:{cloth:'#3a4a6a',trim:'#1a1a22'},expr:4},
+ trannhatduat:{a:'van',hair:'khandong',beard:'stache',age:'adult',expr:3},
+ trankhanhdu:{a:'nhan',hair:'hood',beard:'stache',age:'adult',expr:2},
+ yetkieu:{a:'nhan',hair:'bun',beard:'none',age:'young',pal:{cloth:'#1c4a6a'},expr:3},
+ datuong:{a:'giap',hair:'khan',beard:'full',age:'adult',expr:2},
+ caolo:{a:'dan',hair:'khan',beard:'goatee',age:'adult',expr:4},
+ giong:{a:'giap',hair:'helm',beard:'none',age:'teen',metal:'#6a7484',pal:{cloth:'#8a3a1a'},expr:2},
+ sontinh:{a:'than',hair:'crown',beard:'stache',age:'adult',expr:0},
+ thuytinh:{a:'than',hair:'crown',beard:'full',age:'adult',expr:2},
+ kimquy:{a:'than',hair:'crown',beard:'long',age:'old',expr:4},
+ thachsanh:{a:'dan',hair:'bun',beard:'none',age:'young',pal:{cloth:'#5a4030'},expr:3},
+ maiantiem:{a:'dan',hair:'bun',beard:'stache',age:'adult',expr:3},
+ cuoi:{a:'dan',hair:'spiky',beard:'none',age:'young',expr:1},
+ sodua:{a:'dan',hair:'short',beard:'none',age:'young',expr:1},
+ langlieu:{a:'van',hair:'bun',beard:'none',age:'young',expr:3},
+ chudongtu:{a:'dan',hair:'hat',beard:'none',age:'young',expr:1},
+ truongchi:{a:'dan',hair:'hat',beard:'none',age:'young',expr:4},
+ namo:{a:'dan',hair:'hat',beard:'long',age:'old',expr:3},
+ hoavang:{a:'dan',hair:'khan',beard:'full',age:'old',expr:3},
+ lyongtrong:{a:'giap',hair:'bun',beard:'full',age:'adult',expr:2},
+ thandongco:{a:'than',hair:'helm',beard:'stache',age:'adult',expr:0},
+ thapcham:{a:'than',hair:'crown',beard:'stache',age:'adult',expr:0},
+ // nữ
+ haibatrung:{g:'f',a:'nutuong',hair:'khanvan',age:'adult',pal:{cloth:'#a81c1c',trim:'#e8c040',skirt:'#2a1a14'},metal:'#c8a050',expr:2},
+ batrieu:{g:'f',a:'nutuong',hair:'khanvan',age:'adult',pal:{cloth:'#d8b030',trim:'#a81c1c'},metal:'#c8a050',expr:2},
+ lechan:{g:'f',a:'nutuong',hair:'khanvan',age:'adult',expr:0},
+ buithixuan:{g:'f',a:'nutuong',hair:'pony',age:'adult',expr:2},
+ auco:{g:'f',a:'tien',hair:'tiara',age:'adult',pal:{cloth:'#f0e2c0',trim:'#d4a020'},expr:4},
+ tiendung:{g:'f',a:'tien',hair:'tiara',age:'young',pal:{cloth:'#f6d0dc'},expr:3},
+ mychau:{g:'f',a:'tien',hair:'tiara',age:'young',pal:{cloth:'#e8d8f4'},expr:4},
+ vannu:{g:'f',a:'tien',hair:'tiara',age:'young',expr:3},
+ tam:{g:'f',a:'dan',hair:'khanvan',age:'young',pal:{cloth:'#e8d0a0',skirt:'#2a2018'},expr:3},
+ mylan:{g:'f',a:'van',hair:'bun',age:'young',expr:3},
+ miquang:{g:'f',a:'kiem',hair:'bun',age:'young',expr:1},
+ moclinh:{g:'f',a:'than',hair:'tiara',age:'adult',expr:4},
+ tuyetlan:{g:'f',a:'dao',hair:'bun',age:'young',pal:{cloth:'#e8f2fa'},expr:4},
+ longmau:{g:'f',a:'than',hair:'flame',age:'adult',expr:2},
+ thuyle:{g:'f',a:'than',hair:'crown',age:'adult',expr:0},
+ bangvan:{g:'f',a:'tien',hair:'bun',age:'young',pal:{cloth:'#dceefa'},expr:4},
+ lietdiem:{g:'f',a:'nutuong',hair:'pony',age:'adult',expr:2},
+ thienloi:{g:'f',a:'than',hair:'long',age:'young',expr:2},
+ haithan:{g:'f',a:'than',hair:'twin',age:'young',expr:1},
+ denlong:{g:'f',a:'tien',hair:'bun',age:'young',pal:{cloth:'#e83a3a'},expr:1}
+};
+const ARCH={ // kiểu may
+ giap:{armor:1,thigh:1,sleeve:'bell',pants:'wide',skirt:'mid',skirtArmor:1,collar:1,cuff:.86,pcuff:.84,cross:0},
+ vuong:{cross:1,sleeve:'wide',pants:'wide',skirt:'long',hem:1,medal:1,collar:1,cuff:.86,pcuff:.9},
+ van:{cross:1,sleeve:'wide',pants:'wide',skirt:'long',slit:1,collar:1,cuff:.86,pcuff:.9},
+ dao:{cross:1,sleeve:'wide',pants:'wide',skirt:'long',slit:1,medal:1,hem:1,collar:1,cuff:.86,pcuff:.9},
+ nhan:{cross:1,sleeve:'tight',pants:'tight',wrap:1,skirt:'short',slit:1,collar:1,cuff:.7,pcuff:.55},
+ kiem:{cross:1,sleeve:'bell',pants:'wide',skirt:'mid',slit:1,collar:1,cuff:.86,pcuff:.84},
+ quyen:{cross:1,sleeve:'none',pants:'wide',wrap:1,skirt:'short',slit:1,collar:0,cuff:.9,pcuff:.6},
+ dan:{cross:1,sleeve:'tight',pants:'wide',collar:1,cuff:.9,pcuff:.72},
+ than:{cross:1,armor:1,sleeve:'wide',pants:'wide',skirt:'long',slit:1,hem:1,medal:0,collar:1,cuff:.86,pcuff:.9},
+ nutuong:{cross:1,armor:1,sleeve:'bell',pants:'wide',skirt:'long',slit:1,hem:1,collar:1,cuff:.86,pcuff:.9},
+ tien:{cross:1,sleeve:'wide',pants:'wide',skirt:'long',hem:1,collar:1,cuff:.86,pcuff:.92}
+};
+function hs(id){let s=0;for(const c of id)s=(s*31+c.charCodeAt(0))>>>0;return s;}
+function style(h){const o=OV[h.id]||{};const n=h.n;const [hair0,hc,skin,out,acc,wpn,fem]=h.look;
+ let g=o.g||(FEMN.test(n)?'f':MALEN.test(n)?'m':(fem?'f':'m'));
+ let a=o.a;if(!a){a=/Thủ Thành|Khiên Thủ|Hộ Vệ|Đại Tướng|Đô Đốc|Lính|Chiến Thần|Thiết Giáp/.test(n)?(g==='f'?'nutuong':'giap'):/Nhẫn Giả|Ảnh Sát|Thích Khách|Sát Thần|Nhẫn/.test(n)?'nhan':/Y Sư|Đạo Sĩ|Đạo Nhân|Âm Sư|Quân Sư|Cao Nhân|Đạo Tổ|Y Tiên/.test(n)?'dao':/Quyền/.test(n)?'quyen':/Kiếm|Đao|Thương|Cung|Hiệp|Khách/.test(n)?'kiem':/Tiên|Thánh Nữ|Linh/.test(n)&&g==='f'?'tien':/Thần|Vương|Long|Đế|Hộ Pháp|Thổ|Hoàng|Quân/.test(n)?'than':/Lão|Thợ|Ngư|Chú|Cậu|Cô |Sọ|Thương Nhân/.test(n)?'dan':'kiem';}
+ let hair=o.hair||hair0;if(g==='f'&&hair==='shave')hair='bun';if(g==='f'&&hair==='helm'&&a!=='giap')hair='khanvan';
+ const k=hs(h.id);const beard=o.beard||(g==='m'&&['giap','than','vuong','quyen'].includes(a)&&k%3===0?['stache','goatee','full'][k%3]:'none');
+ const age=o.age||'adult';
+ const metal=o.metal||(a==='than'?'#d8b44a':['#a8b2c0','#b8954a','#8a96a8'][k%3]);
+ const pal=Object.assign({cloth:out,trim:a==='dan'?shade(out,-0.35):(a==='nhan'?shade(acc,-0.1):'#d8a828'),inner:'#f0eadc',metal,boot:a==='dan'?'#4a3a2a':'#2a2228',skirt:null},o.pal||{});if(!pal.skirt)pal.skirt=a==='giap'||a==='nutuong'?shade(pal.cloth,-0.25):pal.cloth;
+ if(a==='dan'&&!o.pal)pal.cloth=['#6b4a32','#4a5a3a','#3a4a5a','#7a6a4a'][k%4];
+ if(a==='nhan'&&!o.pal)pal.cloth=shade(out,-0.55);
+ const hairC=age==='old'?'#d8d4d0':hc;
+ const garment=Object.assign({},ARCH[a]);if(g==='f'&&a==='giap')Object.assign(garment,ARCH.nutuong);
+ const hideHair=['helm','hood','shave','khan','khandong','dragon'].includes(hair)&&g==='m'||hair==='hood';
+ return{g,a,hair,beard,age,pal,hairC,eye:shade(h.ec,-0.2),expr:o.expr!=null?o.expr:k%5,garment,hideHair,flame:hair==='flame',seed:k};}
+VR.style=style;
+
+/* ---------------- phụ kiện ---------------- */
+let MC={};
+function TM(c,em,op,side){const key=c+'|'+(em||'')+'|'+(op||'')+'|'+(side||'');if(MC[key])return MC[key];return MC[key]=VR.mat({tint:c,amt:0,em:em?shade(em,-0.5):null,op:op,transparent:!!op,depthWrite:!op,side:side||T.FrontSide});}
+const OLM=VR.mat({outline:0});OLM.uniforms.uOutl.value=1;OLM.side=T.BackSide;
+function add(geo,m,x,y,z,par,ol){const me=new T.Mesh(geo,m);me.position.set(x||0,y||0,z||0);par.add(me);if(ol!==0&&!m.transparent){geo.computeBoundingSphere();const r=geo.boundingSphere.radius||0.1;const o=new T.Mesh(geo,OLM);o.scale.setScalar(1+(ol||0.05)*Math.min(1,0.25/r));me.add(o);}return me;}
+const sph=(r,w,h)=>new T.SphereGeometry(r,w||20,h||14),cyl=(a,b,h,s)=>new T.CylinderGeometry(a,b,h,s||16),box=(a,b,c)=>new T.BoxGeometry(a,b,c),cone=(r,h,s)=>new T.ConeGeometry(r,h,s||12),tor=(R,r,a,b,arc)=>new T.TorusGeometry(R,r,a||10,b||28,arc);
+const WMAP={pins:'kunai',tube:'scroll',melon:'orb',branch:'staff',net:'fan',bamboo:'staff',crane:'fan',disc:'shuriken',bowl:'orb',banh:'scroll',pillar:'hammer'};
+function hairMesh(geo,c,em){const m=VR.mat({tint:c,amt:0,em:em||null});const me=new T.Mesh(geo,m);const o=new T.Mesh(geo,OLM);o.scale.setScalar(1.0);me.add(o);
+ // viền cho lọn mảnh: phóng theo pháp tuyến bằng shader outline (uOut) – dùng bản sao material outline có độ dày
+ const om=VR.mat({outline:0.022});o.material=om;return me;}
+VR.dress=function(rig,h,aw,st){const B=rig.B,bs=rig.bones,src=rig.src,G=rig.G;const S=B.H/1.16;const [hair0,hc,skin,out,acc,wpn0]=h.look;const ec=h.ec;const wpn=WMAP[wpn0]||wpn0;
+ const gold='#ffcc3a',metal=st.pal.metal;src.updateMatrixWorld(true);
+ const hb=bs['J_Bip_C_Head'];const hsc=hb.scale.x;hb.scale.setScalar(1);src.updateMatrixWorld(true);
+ // nhóm đầu: gốc tại tâm đầu, đơn vị = bán kính đầu
+ const HG=new T.Group();hb.add(HG);HG.position.copy(hb.worldToLocal(B.hC.clone()));const hq=new T.Quaternion();hb.getWorldQuaternion(hq);HG.quaternion.copy(hq.invert());HG.scale.setScalar(B.hR);
+ hb.scale.setScalar(hsc);src.updateMatrixWorld(true);
+ const hr=B.hR;const nose=V(0,(B.noseY-B.hC.y)/hr,(B.noseZ-B.hC.z)/hr),chin=V(0,(B.chinY-B.hC.y)/hr,(B.noseZ-B.hC.z)/hr-0.18);
+ const HC=st.hairC,HM=TM(HC,st.flame?'#ff5a00':null);
+ const sway=(o,a,f,extra)=>rig.sway.push(Object.assign({o,r0:o.rotation.clone(),a,f,ph:Math.random()*6,run:0.15,sw:0.08},extra||{}));
+ const clusterOn=(par,o)=>{const g=VR.cluster(o);const m=hairMesh(g,o.c||HC,o.em);const piv=new T.Group();piv.position.copy(o.root);par.add(piv);m.position.copy(o.root).multiplyScalar(-1);piv.add(m);return piv;};
+ // ---------- TÓC ----------
+ const top=V(0,0.98,-0.05);
+ switch(st.hair){
+  case 'bun':{const bun=add(sph(0.36,22,16),HM,0,0.95,-0.42,HG,0.03);bun.scale.set(1,0.9,1);add(tor(0.3,0.06,8,24),TM(st.g==='f'?gold:shade(acc,-0.2)),0,0.82,-0.36,HG,0).rotation.x=1.15;
+   if(st.g==='f'){add(cyl(0.02,0.02,1.1,6),TM(gold),0.1,1.0,-0.4,HG,0).rotation.z=1.2;add(sph(0.07),TM(h.ec,h.ec),0.62,1.2,-0.4,HG,0);}
+   if(st.g==='m'&&st.hideHair){}break;}
+  case 'pony':{const p=clusterOn(HG,{root:V(0,0.55,-0.8),dir:V(0,-0.55,-0.85),len:2.8,n:9,spread:0.9,rw:0.25,fan:0.12,w:0.16,grav:1.0,seed:st.seed});sway(p,0.08,2.2,{zA:0.06});
+   add(tor(0.16,0.05,8,20),TM(acc),0,0.55,-0.8,HG,0).rotation.x=0.9;break;}
+  case 'twin':[-1,1].forEach(sx=>{const p=clusterOn(HG,{root:V(sx*0.82,0.42,-0.28),dir:V(sx*0.25,-1,-0.25),len:2.6,n:7,spread:0.7,rw:0.18,fan:0.1,w:0.15,grav:0.6,seed:st.seed+sx});sway(p,0.07,2.4,{zA:0.08});add(sph(0.13),TM(acc),sx*0.82,0.42,-0.28,HG,0.04);});break;
+  case 'long':{if(st.g==='m'){const p=clusterOn(HG,{root:V(0,0.3,-0.85),dir:V(0,-1,-0.3),len:3.0,n:15,spread:2.2,rw:0.85,fan:0.18,w:0.2,grav:0.8,seed:st.seed});sway(p,0.05,1.8);}break;}
+  case 'spiky':case 'flame':{const n=st.hair==='flame'?13:11;for(let i=0;i<n;i++){const a=(i/n)*Math.PI*1.6-Math.PI*0.8;const r=V(Math.sin(a)*0.55,0.7,Math.cos(a)*0.55-0.2);const d=V(Math.sin(a)*0.7,st.hair==='flame'?1.3:0.75,Math.cos(a)*0.5-0.75).normalize();
+    const g=VR.strandGeo([r,r.clone().add(d.clone().multiplyScalar(0.45)),r.clone().add(d.clone().multiplyScalar(0.95)).add(V(0,st.hair==='flame'?0.25:-0.1,0))],0.24,0.02,0.45);
+    HG.add(hairMesh(g,st.hair==='flame'&&i%2?shade(HC,0.25):HC,st.hair==='flame'?'#5a1a00':null));}break;}
+  case 'wild':{const p=clusterOn(HG,{root:V(0,0.55,-0.7),dir:V(0,-0.4,-1),len:1.8,n:13,spread:2.6,rw:0.9,fan:0.5,w:0.2,grav:0.5,seed:st.seed});sway(p,0.06,2.0);
+   for(let i=0;i<7;i++){const a=(i/6-0.5)*2.2;const r=V(Math.sin(a)*0.6,0.82,Math.cos(a)*0.4-0.25);const d=V(Math.sin(a)*0.9,0.5,-0.7).normalize();HG.add(hairMesh(VR.strandGeo([r,r.clone().add(d.clone().multiplyScalar(0.5)),r.clone().add(d.clone().multiplyScalar(0.9)).add(V(0,-0.2,0))],0.2,0.02,0.45),HC));}break;}
+ }
+ // ---------- MŨ / KHĂN ----------
+ const band=(c,y,r)=>{const b=add(tor(r||1.02,0.09,8,40),TM(c),0,y,0.0,HG,0.02);b.rotation.x=Math.PI/2-0.18;return b;};
+ switch(st.hair){
+  case 'khan':{ // khăn quấn đầu (khăn vấn nam)
+   const k=add(tor(0.86,0.22,14,40),TM(acc),0,0.42,-0.05,HG,0.02);k.rotation.x=Math.PI/2-0.12;k.scale.set(1,1.02,0.75);
+   add(new T.SphereGeometry(0.98,30,18,0,Math.PI*2,0,Math.PI*0.42),TM(shade(acc,-0.12)),0,0.22,-0.04,HG,0.02).rotation.x=-0.12;
+   for(let i=0;i<4;i++){const s=add(tor(0.9,0.05,6,40,Math.PI*1.1),TM(shade(acc,-0.25)),0,0.32+i*0.13,-0.05,HG,0);s.rotation.set(Math.PI/2-0.12,0,i*0.7);}
+   const tail=new T.Group();tail.position.set(0.1,0.35,-0.95);HG.add(tail);const t1=add(box(0.22,0.9,0.05),TM(acc),0,-0.45,0,tail,0.02);t1.rotation.z=0.15;sway(tail,0.12,2.5,{zA:0.1});break;}
+  case 'khandong':{ // khăn đóng (xếp nếp chữ nhân)
+   const KD=new T.Group();KD.position.set(0,0.0,-0.06);KD.rotation.x=-0.14;HG.add(KD);
+   add(new T.SphereGeometry(1.06,32,18,0,Math.PI*2,0,Math.PI*0.5),TM('#1c1c26'),0,0.05,0,KD,0.02);
+   for(let i=0;i<6;i++){const r=add(tor(1.07-i*0.03,0.07,8,48),TM(i%2?'#2c2c3a':'#1c1c26'),0,0.08+i*0.11,0,KD,0);r.rotation.x=Math.PI/2;r.rotation.y=(i%2?0.12:-0.12);}
+   break;}
+  case 'khanvan':{ // khăn vấn nữ (vành khăn tròn quấn quanh đầu)
+   const kc=st.a==='nutuong'?'#3a1414':'#2a1a1a';const k=add(tor(1.08,0.26,14,44),TM(kc),0,0.42,-0.1,HG,0.02);k.rotation.x=Math.PI/2-0.22;k.scale.set(1.08,1.1,0.85);add(new T.SphereGeometry(1.12,30,16,0,Math.PI*2,0,Math.PI*0.36),TM(shade(kc,0.1)),0,0.4,-0.12,HG,0.02).rotation.x=-0.22;
+   for(let i=0;i<3;i++){const s=add(tor(1.16,0.05,6,44,Math.PI*1.2),TM(shade(kc,0.25)),0,0.32+i*0.12,-0.1,HG,0);s.rotation.set(Math.PI/2-0.22,0,i*1.1);}
+   if(st.a==='nutuong'){add(sph(0.12),TM(gold,gold),0,0.5,1.12,HG,0.03);const pl=new T.Group();pl.position.set(0,1.0,-0.3);HG.add(pl);add(cone(0.12,0.9,8),TM('#c81a1a'),0,0.45,0,pl,0.02);sway(pl,0.05,2.2);}
+   break;}
+  case 'helm':{ // mũ trụ: chóp, vành, chắn tai, chùm tua đỏ
+   const hm=TM(metal);add(new T.SphereGeometry(1.12,32,18,0,Math.PI*2,0,Math.PI*0.52),hm,0,0.08,-0.02,HG,0.02);
+   const br=add(tor(1.12,0.09,8,44),TM(gold),0,0.1,-0.02,HG,0.02);br.rotation.x=Math.PI/2;
+   const vis=add(new T.CylinderGeometry(1.2,1.32,0.12,40,1,true,-Math.PI*0.35,Math.PI*0.7),TM(metal).clone(),0,0.05,-0.02,HG,0.02);vis.material.side=T.DoubleSide;
+   [-1,1].forEach(sx=>{const e=add(box(0.1,0.8,0.7),hm,sx*1.08,-0.3,-0.15,HG,0.02);e.rotation.z=sx*0.12;});
+   const nb=add(box(0.6,0.8,0.08),hm,0,-0.32,-1.0,HG,0.02);nb.rotation.x=-0.2;
+   add(cyl(0.05,0.08,0.4,8),TM(gold),0,1.3,-0.05,HG,0);const pl=new T.Group();pl.position.set(0,1.45,-0.05);HG.add(pl);for(let i=0;i<7;i++){const a=i/7*Math.PI*2;const c=add(cone(0.08,0.7,6),TM('#c81a1a'),Math.cos(a)*0.08,-0.3,Math.sin(a)*0.08-0.15,pl,0);c.rotation.set(Math.PI+0.5,a,0);}sway(pl,0.05,2.6);
+   if(st.g==='m'){}break;}
+  case 'dragon':{const hm=TM(aw>=3?gold:'#4a5a3a');add(new T.SphereGeometry(1.12,32,18,0,Math.PI*2,0,Math.PI*0.52),hm,0,0.08,-0.02,HG,0.02);add(tor(1.12,0.08,8,40),TM(gold),0,0.1,-0.02,HG,0).rotation.x=Math.PI/2;
+   [-1,1].forEach(sx=>{const g=VR.strandGeo([V(sx*0.6,0.8,-0.1),V(sx*0.95,1.3,-0.5),V(sx*1.0,1.75,-1.1)],0.16,0.02,1.0,8);HG.add(hairMesh(g,'#f0e6c8'));});
+   add(sph(0.12),TM(h.ec,h.ec),0,0.75,1.0,HG,0.03);break;}
+  case 'crown':{const CG=new T.Group();CG.position.set(0,0.78,-0.1);CG.rotation.x=-0.2;HG.add(CG);const cm=TM(gold,'#aa7700').clone();cm.side=T.DoubleSide;
+   const cb=new T.Mesh(cyl(0.72,0.78,0.36,32,1,true),cm);CG.add(cb);add(tor(0.78,0.04,6,40),TM(gold),0,-0.18,0,CG,0).rotation.x=Math.PI/2;add(tor(0.72,0.04,6,40),TM(gold),0,0.18,0,CG,0).rotation.x=Math.PI/2;
+   for(let i=0;i<9;i++){const a=i/9*Math.PI*2+Math.PI/2;add(cone(0.09,0.34,6),TM(gold),Math.cos(a)*0.74,0.34,Math.sin(a)*0.74,CG,0);add(sph(0.05),TM('#ff3a3a','#c8201a'),Math.cos(a)*0.76,0.02,Math.sin(a)*0.76,CG,0);}
+   add(sph(0.12),TM(h.ec,h.ec),0,0.05,0.8,CG,0);
+   // tua châu hai bên (mũ miện)
+   [-1,1].forEach(sx=>{const tz=new T.Group();tz.position.set(sx*0.95,0.6,0);HG.add(tz);for(let i=0;i<3;i++)add(sph(0.05),TM(gold),0,-0.15-i*0.14,0,tz,0);sway(tz,0.06,2.8);});break;}
+  case 'tiara':{const ti=add(tor(1.0,0.05,6,40,Math.PI),TM(gold),0,0.45,0.05,HG,0);ti.rotation.x=-0.35;add(sph(0.12),TM(h.ec,h.ec),0,1.32,0.42,HG,0);
+   [-1,1].forEach(sx=>{const f=add(cone(0.1,0.5,5),TM(gold),sx*0.55,1.22,0.25,HG,0);f.rotation.z=-sx*0.6;add(sph(0.06),TM(gold),sx*0.95,0.9,0.1,HG,0);});
+   const veil=new T.Group();veil.position.set(0,0.8,-0.6);HG.add(veil);const vg=new T.PlaneGeometry(1.6,2.6,4,8);vg.translate(0,-1.3,0);const vm=TM(shade(st.pal.cloth,0.5),null,0.55,T.DoubleSide);const vv=new T.Mesh(vg,vm);vv.rotation.x=0.25;veil.add(vv);sway(veil,0.06,1.9);break;}
+  case 'hat':{const hat=add(cone(2.1,0.85,40),TM('#e8d6a0'),0,1.05,-0.05,HG,0.02);for(let i=1;i<6;i++){const r=add(tor(2.1*i/6,0.012,4,40),TM('#b89a60'),0,1.05+0.425-0.85*i/6,-0.05,HG,0);r.rotation.x=Math.PI/2;}
+   [-1,1].forEach(sx=>{const s=add(cyl(0.02,0.02,1.2,6),TM('#5a3a20'),sx*0.7,0.0,0.3,HG,0);s.rotation.z=-sx*0.35;});break;}
+  case 'hood':{const hm=TM(shade(st.pal.cloth,-0.1));const hd=add(new T.SphereGeometry(1.15,32,20,0,Math.PI*2,0,Math.PI*0.62),hm,0,0.12,-0.12,HG,0.02);hd.rotation.x=-0.3;
+   const tail=new T.Group();tail.position.set(0,0.3,-1.15);HG.add(tail);add(box(0.25,1.0,0.05),hm,0,-0.5,0,tail,0.02);sway(tail,0.1,2.4,{zA:0.08});break;}
+  case 'crane':{add(sph(0.3),HM,0,0.95,-0.35,HG,0.03);const f=add(box(0.08,0.9,0.25),TM('#ffffff'),0.1,1.45,-0.4,HG,0.03);f.rotation.z=-0.3;break;}
+  case 'short':case 'spiky':case 'wild':if(st.a==='nhan'||st.a==='quyen'||st.a==='kiem'){const b=band(acc,0.38);const tail=new T.Group();tail.position.set(0,0.35,-1.0);HG.add(tail);[0.12,-0.1].forEach((dx,i)=>{const k=add(box(0.18,0.9,0.03),TM(acc),dx,-0.45,0,tail,0.02);k.rotation.z=i?-0.2:0.25;});sway(tail,0.12,2.6,{zA:0.1});}break;}
+ // khăn che mặt cho nhẫn giả
+ if(st.a==='nhan'){const fm=src.getObjectByProperty('isSkinnedMesh',true);let face=null;src.traverse(o=>{if(o.isSkinnedMesh&&o.geometry===B.meshes.find(m=>m.k==='face').o.geometry)face=o;});
+  if(face){const mg=VR.maskGeo(B);const mm=new T.SkinnedMesh(mg,VR.mat({skin:true,tint:shade(st.pal.cloth,0.12),side:T.DoubleSide}));mm.bind(face.skeleton,face.bindMatrix);mm.frustumCulled=false;face.parent.add(mm);
+   const mo=new T.SkinnedMesh(mg,VR.mat({skin:true,outline:0.003*S}));mo.bind(face.skeleton,face.bindMatrix);mo.frustumCulled=false;face.parent.add(mo);}}
+ // ---------- RÂU ----------
+ if(st.g==='m'&&st.beard!=='none'){const BC=st.age==='old'?'#e8e4de':shade(HC,-0.1);const mo=nose.clone().add(V(0,-0.12,-0.08));
+  if(['stache','goatee','full','long'].includes(st.beard))[-1,1].forEach(sx=>{const g=VR.strandGeo([mo.clone().add(V(sx*0.04,0,0.05)),mo.clone().add(V(sx*0.22,-0.05,0.0)),mo.clone().add(V(sx*0.36,-0.2,-0.08))],0.06,0.012,0.5,6);HG.add(hairMesh(g,BC));});
+  const ch=chin.clone().add(V(0,0.05,0.08));
+  if(st.beard==='goatee'){HG.add(hairMesh(VR.strandGeo([ch,ch.clone().add(V(0,-0.25,0.02)),ch.clone().add(V(0,-0.45,-0.03))],0.11,0.02,0.6,6),BC));}
+  if(st.beard==='long'){const g=VR.cluster({root:ch.clone().add(V(0,0.05,0)),dir:V(0,-1,0.1),len:0.95,n:5,spread:0.9,rw:0.15,fan:0.08,w:0.08,grav:0.1,th:0.6,seed:st.seed});const piv=new T.Group();piv.position.copy(ch);HG.add(piv);const m=hairMesh(g,BC);m.position.copy(ch).multiplyScalar(-1);piv.add(m);sway(piv,0.05,1.9);}
+  if(st.beard==='full'){const g=VR.cluster({root:ch.clone().add(V(0,0.1,-0.08)),dir:V(0,-1,0.2),len:0.42,n:7,spread:1.6,rw:0.32,fan:0.1,w:0.1,grav:0.05,th:0.6,seed:st.seed});HG.add(hairMesh(g,BC));}}
+ // ---------- THÂN: đai, khăn quàng, giáp vai, bao tay ----------
+ const W=n=>V(0,0,0).setFromMatrixPosition(bs[n].matrixWorld);const toLocal=(bn,obj)=>{bs[bn].attach(obj);return obj;};
+ const yN=W('J_Bip_C_Neck').y,yC=W('J_Bip_C_UpperChest').y,yS=W('J_Bip_C_Spine').y,yH=W('J_Bip_C_Hips').y;
+ const rw=B.radAt((B.restY.spine+B.restY.hips)/2+0.012*S,0.015);const yb=(yS+yH)/2+0.012*S;
+ const AG=new T.Group();G.add(AG);
+ const belt=add(tor(1,0.13,8,44),TM(st.a==='vuong'?'#b8201a':st.a==='dan'?shade(st.pal.cloth,-0.4):shade(acc,-0.05),aw>=1?h.ec:null),0,yb,rw.cz,AG,0);belt.rotation.x=Math.PI/2;belt.scale.set(rw.rx+0.026*S,rw.rz+0.03*S,0.15*S);
+ if(st.a!=='dan'){const kn=add(sph(0.022*S),TM(st.a==='giap'||st.a==='vuong'?gold:acc),0.035*S,yb,rw.cz+rw.rz+0.03*S,AG,0.05);
+  const sash=new T.Group();sash.position.set(0.04*S,yb-0.01*S,rw.cz+rw.rz+0.032*S);AG.add(sash);[0.0,0.03*S].forEach((dx,i)=>{const s=add(box(0.026*S,0.16*S,0.006*S),TM(st.a==='vuong'?'#b8201a':acc),dx,-0.08*S,0,sash,0.03);s.rotation.z=i?-0.12:0.1;});sway(sash,0.06,2.3,{zA:0.05});}
+ toLocal('J_Bip_C_Hips',AG);
+ // giáp vai: tướng / thần / thức tỉnh
+ if(['giap','nutuong','than'].includes(st.a)||aw>=1)['L','R'].forEach(Sd=>{const sx=Sd==='L'?1:-1;const p=W(`J_Bip_${Sd}_UpperArm`);const PG=new T.Group();PG.position.copy(p);G.add(PG);
+  const big=['giap','nutuong'].includes(st.a);const mc=aw>=3?gold:big?metal:h.ec;
+  for(let i=0;i<(big?3:1);i++){const pd=add(new T.SphereGeometry(0.06*S*(1-i*0.08),22,12,0,Math.PI*2,0,Math.PI*0.5),TM(mc,aw>=2?h.ec:null).clone(),sx*0.012*S,(0.012-i*0.026)*S,0,PG,0.04);pd.material.side=T.DoubleSide;pd.scale.set(1.05,0.7,1.2);pd.rotation.z=-sx*(0.55+i*0.12);}
+  if(big)add(sph(0.012*S),TM(gold),sx*0.03*S,0.03*S,0,PG,0);
+  toLocal(`J_Bip_${Sd}_UpperArm`,PG);});
+ // bao tay / quấn chân (chỉ cho tay áo bó)
+ if(st.garment.wrap)['L','R'].forEach(Sd=>{const A=W(`J_Bip_${Sd}_LowerArm`),Bh=W(`J_Bip_${Sd}_Hand`);const d=Bh.clone().sub(A);const L=d.length();const m=add(cyl(0.03*S,0.027*S,L*0.5,16),TM(st.pal.trim),0,0,0,G,0.04);m.position.copy(A).add(d.clone().multiplyScalar(0.7));m.quaternion.setFromUnitVectors(V(0,1,0),d.normalize());toLocal(`J_Bip_${Sd}_LowerArm`,m);});
+ // khăn quàng cổ (nhẫn giả, kiếm khách)
+ if(['nhan','kiem','quyen'].includes(st.a)){const rN=B.radAt(B.restY.neck-0.012*S,0.008);const sc=add(tor(1,0.35,10,32),TM(acc),0,yN-0.02*S,rN.cz,G,0);sc.rotation.x=Math.PI/2+0.1;sc.scale.set(Math.min(rN.rx,0.042*S)+0.02*S,Math.min(rN.rz,0.04*S)+0.02*S,0.05*S);toLocal('J_Bip_C_UpperChest',sc);
+  const tl=new T.Group();tl.position.set(-0.03*S,yN-0.02*S,B.radAt(B.restY.chest).cz-0.07*S);G.add(tl);[0,0.025*S].forEach((dx,i)=>{const k=add(box(0.035*S,0.22*S,0.006*S),TM(shade(acc,-0.08)),dx,-0.11*S,0,tl,0.03);k.rotation.z=i?0.18:-0.12;});toLocal('J_Bip_C_UpperChest',tl);sway(tl,0.1,2.4,{zA:0.08,run:0.4});}
+ // dải lụa tiên nữ
+ if(st.a==='tien'||st.a==='than'&&st.g==='f'){const rc=shade(st.pal.cloth,0.35);[-1,1].forEach(sx=>{const p=W(sx>0?'J_Bip_L_LowerArm':'J_Bip_R_LowerArm');const rg=new T.Group();rg.position.copy(p);G.add(rg);
+  const g=VR.strandGeo([V(0,0,0),V(sx*0.06*S,-0.12*S,-0.05*S),V(sx*0.1*S,-0.3*S,-0.1*S),V(sx*0.07*S,-0.5*S,-0.06*S)],0.026*S,0.02*S,0.15,6);const m=new T.Mesh(g,TM(rc,null,0.85,T.DoubleSide));rg.add(m);toLocal(sx>0?'J_Bip_L_LowerArm':'J_Bip_R_LowerArm',rg);sway(rg,0.1,1.7,{zA:0.1,run:0.3});});}
+ // ---------- VŨ KHÍ ----------
+ const hp=W('J_Bip_L_Hand'),g0=B.base.grip;const Wg=new T.Group();Wg.position.copy(hp.clone().add(g0.hd.clone().multiplyScalar(0.045*S)).add(g0.n.clone().multiplyScalar(0.012*S)));G.add(Wg);
+ const Wp=new T.Group();Wg.add(Wp);Wp.scale.setScalar(0.6*S);Wp.rotation.set(0.25,0,Math.PI-0.12);
+ const Wm=Wp,wm=TM('#c4ccd8'),wd=TM('#6a4520'),wg=TM(gold);
+ const wb={sword:()=>{add(box(0.06,0.7,0.02),wm,0,-0.42,0,Wm);add(box(0.22,0.04,0.07),wg,0,-0.06,0,Wm);add(cyl(0.025,0.025,0.18),wd,0,0.05,0,Wm);add(sph(0.035),wg,0,0.15,0,Wm);},
+  katana:()=>{const b=add(box(0.045,0.8,0.02),wm,0,-0.46,0.03,Wm);b.rotation.x=0.08;add(cyl(0.055,0.055,0.02),wg,0,-0.05,0,Wm);add(cyl(0.026,0.026,0.24),TM('#2a2a3a'),0,0.08,0,Wm);},
+  spear:()=>{add(cyl(0.025,0.025,1.6),wd,0,-0.2,0,Wm);add(cone(0.06,0.26,8),wm,0,-1.13,0,Wm).rotation.x=Math.PI;add(sph(0.05),TM('#c8201a'),0,-0.97,0,Wm);},
+  glaive:()=>{add(cyl(0.025,0.025,1.5),wd,0,-0.2,0,Wm);const b=add(box(0.16,0.42,0.02),wm,0.06,-1.12,0,Wm);b.rotation.z=0.25;},
+  trident:()=>{add(cyl(0.025,0.025,1.5),wd,0,-0.2,0,Wm);add(box(0.22,0.03,0.03),wg,0,-0.95,0,Wm);[-0.09,0,0.09].forEach(x=>add(cone(0.025,0.22,6),wg,x,-1.07,0,Wm).rotation.x=Math.PI);},
+  staff:()=>{add(cyl(0.03,0.03,1.3),wd,0,-0.15,0,Wm);add(sph(0.09),TM(h.ec,h.ec),0,-0.86,0,Wm);add(tor(0.1,0.015),wg,0,-0.86,0,Wm);},
+  oar:()=>{add(cyl(0.025,0.025,1.2),wd,0,-0.2,0,Wm);add(box(0.14,0.36,0.03),wd,0,-0.9,0,Wm);},
+  hammer:()=>{add(cyl(0.03,0.03,0.75),wd,0,-0.25,0,Wm);add(box(0.22,0.18,0.18),wm,0,-0.66,0,Wm);},
+  axe:()=>{add(cyl(0.03,0.03,0.75),wd,0,-0.25,0,Wm);add(box(0.26,0.22,0.03),wm,0.1,-0.58,0,Wm);},
+  scythe:()=>{add(cyl(0.025,0.025,1.3),wd,0,-0.2,0,Wm);const b=add(box(0.44,0.06,0.02),wm,0.18,-0.86,0,Wm);b.rotation.z=-0.3;},
+  kunai:()=>{add(cone(0.045,0.3,4),wm,0,-0.22,0,Wm).rotation.x=Math.PI;add(cyl(0.015,0.015,0.1),wd,0,0.0,0,Wm);add(tor(0.035,0.012,6,12),wd,0,0.08,0,Wm);},
+  claw:()=>{[-0.05,0,0.05].forEach(x=>add(cone(0.016,0.3,4),wm,x,-0.2,0.03,Wm).rotation.x=Math.PI);},
+  shuriken:()=>{const sg=new T.Group();sg.position.set(0,-0.14,0.03);Wm.add(sg);for(let i=0;i<4;i++){const s=add(cone(0.05,0.17,3),wm,Math.sin(i*Math.PI/2)*0.08,-Math.cos(i*Math.PI/2)*0.08,0,sg);s.rotation.z=i*Math.PI/2+Math.PI;}add(cyl(0.035,0.035,0.02),TM('#3a3a44'),0,0,0,sg).rotation.x=Math.PI/2;},
+  bow:()=>{const b=add(tor(0.42,0.022,6,24,Math.PI*0.9),wd,0,-0.1,0.0,Wm);b.rotation.set(0,Math.PI/2,Math.PI*0.55);},
+  crossbow:()=>{add(box(0.06,0.06,0.5),wd,0,-0.1,0.2,Wm);const b=add(tor(0.25,0.02,6,16,Math.PI),wg,0,-0.1,0.4,Wm);b.rotation.x=Math.PI/2;},
+  fan:()=>{const f=new T.Mesh(new T.CircleGeometry(0.34,18,0,Math.PI),TM(acc,null,null,T.DoubleSide));f.position.set(0,-0.04,0.02);f.rotation.z=-Math.PI/2;Wm.add(f);},
+  scroll:()=>{add(cyl(0.05,0.05,0.42),TM('#f4ecd0'),0,-0.1,0.05,Wm).rotation.z=Math.PI/2;},
+  orb:()=>{add(sph(0.11),TM(h.ec,h.ec),0.0,-0.2,0.12,Wm);},
+  bell:()=>{add(cone(0.1,0.16,14),wg,0,-0.15,0.05,Wm);},
+  brush:()=>{add(cyl(0.02,0.02,0.42),wd,0,-0.1,0,Wm);add(cone(0.035,0.1,8),TM('#1a1a1a'),0,-0.36,0,Wm).rotation.x=Math.PI;},
+  flag:()=>{add(cyl(0.02,0.02,1.4),wd,0,-0.2,0,Wm);const fl=new T.Group();fl.position.set(0,-0.75,0.02);Wm.add(fl);add(box(0.02,0.36,0.5),TM('#c8201a'),0,0,0.26,fl);sway(fl,0.1,3.0);},
+  lantern:()=>{add(sph(0.12),TM('#e8402a','#c82a00'),0,-0.2,0.06,Wm).scale.set(1,1.2,1);},
+  fist:()=>{['L','R'].forEach(Sd=>{const p=W(`J_Bip_${Sd}_Hand`);const gl=add(sph(0.04*S),TM(acc),p.x,p.y-0.03*S,p.z+0.01*S,G,0.05);gl.scale.set(1,1.3,1);toLocal(`J_Bip_${Sd}_Hand`,gl);});}};
+ (wb[wpn]||wb.sword)();toLocal('J_Bip_L_Hand',Wg);rig.weapon=Wg;
+ // ---------- THỨC TỈNH ----------
+ const rc=B.radAt(B.restY.chest);
+ if(aw>=2){const WG=new T.Group();WG.position.set(0,yC+0.02*S,rc.cz-rc.rz-0.03*S);G.add(WG);const wc=aw>=3?gold:h.ec;
+  [-1,1].forEach(sx=>{const side=new T.Group();side.scale.x=sx;WG.add(side);for(let i=0;i<(aw>=3?3:2);i++)for(let f=0;f<6;f++){const ln=(0.42-i*0.08)*(1-f*0.09)*S;const a=(32-f*12-i*6)*Math.PI/180;
+   const m=new T.Mesh(sph(0.5,16,10),TM(f%2?shade(wc,0.35):wc,wc,0.92-i*0.12));m.scale.set(ln,0.04*S-f*0.003*S,0.012*S);m.position.set(0.03*S+Math.cos(a)*ln/2,-i*0.08*S+Math.sin(a)*ln/2,-i*0.008*S);m.rotation.z=a;side.add(m);}
+   rig.sway.push({o:side,r0:side.rotation.clone(),a:0,f:4,ph:0,run:0,sw:0,zA:0.12*sx});});
+  toLocal('J_Bip_C_UpperChest',WG);}
+ if(aw>=3){const cg=new T.CylinderGeometry(0.22,0.3,1,40,8,true,Math.PI*0.62,Math.PI*0.76);const P=cg.attributes.position;for(let i=0;i<P.count;i++){const x=P.getX(i),y=P.getY(i),z=P.getZ(i);const t=0.5-y;const a=Math.atan2(x,z);const f=1+0.07*t*Math.sin(a*9);P.setXYZ(i,x*f,y-0.5,z*f-t*0.12);}cg.computeVertexNormals();
+  const CP=new T.Group();CP.position.set(0,yN-0.02*S,rc.cz-0.01*S);G.add(CP);const cp=new T.Mesh(cg,TM('#9a1c22',null,null,T.DoubleSide));cp.scale.set(rc.rx*2.4/0.44,yN-0.1*S,0.5*S);CP.add(cp);toLocal('J_Bip_C_UpperChest',CP);rig.sway.push({o:CP,r0:CP.rotation.clone(),a:0.04,f:1.8,ph:1,run:-0.3,sw:-0.1});
+  const ha=new T.Mesh(tor(0.6,0.06,8,40),TM('#ffe066','#ffcc00'));ha.position.set(0,1.45,-0.25);ha.rotation.x=Math.PI/2-0.3;HG.add(ha);rig.halo=ha;}
+ if(aw>=1){/* viền áo phát sáng theo hệ */}
+};
+})();
+
+/* =========================================================
+   21: NHÂN VẬT VROID TRONG TRẬN – khung xương chuyển động, trang phục riêng từng tướng
+   – Nạp models/vroid_nam.glb + models/vroid_nu.glb một lần, mỗi tướng là bản sao dùng chung lưới
+   – Thay c3Build/c3Pose; khi chưa nạp xong dùng mô hình 3D cũ
+   ========================================================= */
+const VRS={ok:false,err:false};
+(function vrBoot(){if(!C3.ok||!THREE.GLTFLoader||!THREE.SkeletonUtils)return;
+ Promise.all([VR.load('nam','models/vroid_nam.glb'),VR.load('nu','models/vroid_nu.glb')]).then(()=>{VRS.ok=true;
+  for(const [k,g] of C3.models){c3Dispose(g);}C3.models.clear();C3.cache={};for(const k in PCACHE)delete PCACHE[k];
+  setTimeout(()=>{if(document.querySelector('.modal')||(typeof B!=='undefined'&&B))return;try{if(typeof VS_LAST!=='undefined')go(VS_LAST[0],VS_LAST[1]);}catch(e){}},60);
+ }).catch(e=>{VRS.err=true;console.warn('VRoid lỗi',e);});})();
+let VS_LAST=['hub'];{const _g21=go;go=function(v,a){VS_LAST=[v,a];return _g21(v,a);};}
+function vrBuild(h,look,aw){const hh=Object.assign({},h,{look,ec:h.ec||(EL[h.el]&&EL[h.el].c)||'#ffcc3a'});const st=VR.style(hh);const g=VR.make(hh,aw|0,st);
+ // lưới dùng chung (mẫu gốc, trang phục đã may) không được giải phóng khi model bị loại khỏi bộ nhớ đệm
+ g.traverse(o=>{if(o.isSkinnedMesh)o.userData.shared=true;});return g;}
+{const _cb21=c3Build;c3Build=function(h,look,aw,pose){if(VRS.ok&&h&&HB[h.id]){try{return vrBuild(h,look,aw);}catch(e){console.warn('vrBuild',h.id,e);}}return _cb21(h,look,aw,pose);};}
+{const _cp21=c3Pose;c3Pose=function(g,p,t){if(g&&g.userData.vr){VR.pose(g,p,t);return;}return _cp21(g,p,t);};}
+// sửa dữ liệu: các nhân vật nữ bị ghi nhầm giới tính trong dữ liệu ngoại hình
+['mylan','auco','vannu','tam','miquang','moclinh','tuyetlan'].forEach(id=>{if(HB[id]&&HB[id].look)HB[id].look[6]=1;});
+
+/* =========================================================
+   22: HIỆU ỨNG KỸ NĂNG CHÂN THỰC – ánh sáng cộng dồn, lửa/khói, bọt nước, lá, đá vụn, tia lửa kim loại
+   Ghi đè cách vẽ các loại hạt cơ bản qua SIGDRAW (vòng vẽ ưu tiên SIGDRAW)
+   ========================================================= */
+const FXS={g:{},n:0};
+function fxGlow(col,soft){const k=col+(soft?'s':'');if(FXS.g[k])return FXS.g[k];const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
+ const g=x.createRadialGradient(32,32,0,32,32,32);if(soft){g.addColorStop(0,col+'cc');g.addColorStop(0.5,col+'44');g.addColorStop(1,col+'00');}else{g.addColorStop(0,'#ffffff');g.addColorStop(0.22,col);g.addColorStop(0.55,col+'55');g.addColorStop(1,col+'00');}
+ x.fillStyle=g;x.fillRect(0,0,64,64);return FXS.g[k]=c;}
+function fxSmokeSpr(col){col=fxHex(col||'#888888');const k='sm'+col;if(FXS[k])return FXS[k];const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
+ for(let i=0;i<14;i++){const px=20+Math.random()*24,py=20+Math.random()*24,r=10+Math.random()*14;const g=x.createRadialGradient(px,py,0,px,py,r);g.addColorStop(0,col+'5a');g.addColorStop(1,col+'00');x.fillStyle=g;x.fillRect(0,0,64,64);}return FXS[k]=c;}
+function fxDt(p){const d=p.t-(p.lt||0);p.lt=p.t;return Math.max(0,Math.min(0.05,d));}
+function fxAdd(o){if(B&&B.parts.length<(SPEED>=2||B.skip?260:700))B.parts.push(o);}
+const FX_ADD=(c,f)=>{const o=c.globalCompositeOperation;c.globalCompositeOperation='lighter';f();c.globalCompositeOperation=o;};
+const fxHex=c=>{if(!c)return'#ffffff';if(c[0]!=='#')return'#ffffff';return c.length===4?'#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]:c.slice(0,7);};
+// ---------- hạt cơ bản ----------
+SIGDRAW.dot=function(c,p,k){const dt=fxDt(p);p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.g||0)*dt;p.vx*=1-dt*1.5;
+ const s=p.size*(1-k*0.6)*2.2,col=fxHex(p.col);FX_ADD(c,()=>{c.globalAlpha=Math.max(0,(1-k)*0.7);
+  const sp=Math.hypot(p.vx,p.vy);if(sp>120){const a=Math.atan2(p.vy,p.vx),L=Math.min(46,sp*0.06);c.save();c.translate(p.x,p.y);c.rotate(a);c.drawImage(fxGlow(col),-L,-s/3,L*2,s/1.5);c.restore();}
+  else c.drawImage(fxGlow(col),p.x-s/2,p.y-s/2,s,s);});c.globalAlpha=1;};
+SIGDRAW.fire=function(c,p,k){const dt=fxDt(p);p.x+=p.vx*dt+Math.sin(p.t*14+p.size)*30*dt;p.y+=p.vy*dt;p.vy-=140*dt;p.vx*=1-dt*2;
+ const s=p.size*(1.0+k*1.8)*2.2,hue=48-k*48,l=70-k*30;const col=`hsl(${hue},100%,${l}%)`;
+ if(!p.sm&&k>0.55){p.sm=1;fxAdd({x:p.x,y:p.y,vx:p.vx*0.3,vy:-50,life:0.9,t:0,kind:'smoke',size:p.size*2.2,col:'#3a3030'});}
+ FX_ADD(c,()=>{c.globalAlpha=Math.max(0,(1-k)*0.6);const g=fxGlow(col.startsWith('hsl')?FXH(hue,l):col);c.drawImage(g,p.x-s/2,p.y-s/2,s,s);});c.globalAlpha=1;};
+const FXHC={};function FXH(h,l){h=Math.round(h/6)*6;l=Math.round(l/5)*5;const k=h+'_'+l;if(FXHC[k])return FXHC[k];const c=document.createElement('canvas').getContext('2d');c.fillStyle=`hsl(${h},100%,${l}%)`;return FXHC[k]=c.fillStyle;}
+SIGDRAW.smoke=function(c,p,k){const dt=fxDt(p);p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy*=1-dt;const s=p.size*(1+k*3)*2.4;c.globalAlpha=Math.max(0,0.35*(1-k)*Math.min(1,k*6));
+ c.save();c.translate(p.x,p.y);c.rotate(p.t*0.8+p.size);c.drawImage(fxSmokeSpr(p.col),-s/2,-s/2,s,s);c.restore();c.globalAlpha=1;};
+SIGDRAW.heal=function(c,p,k){const dt=fxDt(p);p.x+=p.vx*dt*0.3;p.y+=p.vy*dt*0.6;p.vy+=(p.g||0)*dt;const s=p.size*4*(1-k*0.4);
+ FX_ADD(c,()=>{c.globalAlpha=Math.max(0,1-k);c.drawImage(fxGlow('#7cffb0'),p.x-s/2,p.y-s/2,s,s);c.fillStyle='#eafff2';c.fillRect(p.x-1.5,p.y-s*0.22,3,s*0.44);c.fillRect(p.x-s*0.22,p.y-1.5,s*0.44,3);});c.globalAlpha=1;};
+SIGDRAW.leaf=function(c,p,k){const dt=fxDt(p);p.x+=p.vx*dt+Math.sin(p.t*5+p.size)*40*dt;p.y+=p.vy*dt;p.vy+=Math.min(140,(p.g||200)*0.4)*dt;p.vx*=1-dt*2;
+ c.save();c.translate(p.x,p.y);c.rotate(p.t*4+p.size);c.scale(Math.cos(p.t*9+p.size)*0.9+0.1,1);c.globalAlpha=Math.max(0,1-k*k);const s=p.size*1.8;
+ const g=c.createLinearGradient(-s,0,s,0);g.addColorStop(0,'#2f7a2a');g.addColorStop(0.5,'#8fdc5a');g.addColorStop(1,'#3a8a30');c.fillStyle=g;c.beginPath();c.moveTo(-s,0);c.quadraticCurveTo(0,-s*0.7,s,0);c.quadraticCurveTo(0,s*0.7,-s,0);c.fill();
+ c.strokeStyle='#e8ffd0aa';c.lineWidth=1;c.beginPath();c.moveTo(-s,0);c.lineTo(s,0);c.stroke();c.restore();c.globalAlpha=1;};
+SIGDRAW.spark=function(c,p,k){const dt=fxDt(p);const ox=p.x,oy=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=600*dt;
+ FX_ADD(c,()=>{c.globalAlpha=Math.max(0,1-k);c.strokeStyle=fxHex(p.col);c.lineWidth=2.4*(1-k)+0.6;c.lineCap='round';c.beginPath();c.moveTo(ox-p.vx*0.03,oy-p.vy*0.03);c.lineTo(p.x,p.y);c.stroke();});c.globalAlpha=1;};
+SIGDRAW.rock=function(c,p,k){const dt=fxDt(p);p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=900*dt;if(p.y>p.gy){p.y=p.gy;p.vy*=-0.35;p.vx*=0.6;}
+ c.save();c.translate(p.x,p.y);c.rotate(p.t*p.spin);c.globalAlpha=Math.min(1,(1-k)*3);const s=p.size;c.fillStyle='#7a6248';c.beginPath();for(let i=0;i<6;i++){const a=i/6*Math.PI*2,r=s*(0.7+((i*37+p.seed)%5)/10);i?c.lineTo(Math.cos(a)*r,Math.sin(a)*r):c.moveTo(Math.cos(a)*r,Math.sin(a)*r);}c.closePath();c.fill();
+ c.fillStyle='#b8986e';c.beginPath();c.moveTo(-s*0.5,-s*0.2);c.lineTo(s*0.2,-s*0.6);c.lineTo(s*0.5,-s*0.1);c.closePath();c.fill();c.strokeStyle='#3a2a1a';c.lineWidth=1.5;c.stroke();c.restore();c.globalAlpha=1;};
+SIGDRAW.drop=function(c,p,k){const dt=fxDt(p);p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=700*dt;const s=p.size;c.globalAlpha=Math.max(0,1-k);
+ c.save();c.translate(p.x,p.y);c.rotate(Math.atan2(p.vy,p.vx)-Math.PI/2);const g=c.createRadialGradient(-s*0.3,-s*0.3,0,0,0,s*1.3);g.addColorStop(0,'#ffffff');g.addColorStop(0.4,'#9fd8ff');g.addColorStop(1,'#2a7ad855');c.fillStyle=g;c.beginPath();c.ellipse(0,0,s*0.7,s*1.2,0,0,7);c.fill();c.restore();c.globalAlpha=1;};
+// ---------- vết chém hình lưỡi liềm ----------
+SIGDRAW.slash=function(c,p,k){if(!p.sp){p.sp=1;const col=fxHex(p.col);for(let i=0;i<6;i++){const a=p.rot-1+Math.random()*2.5,v=200+Math.random()*420;fxAdd({x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-80,life:0.25+Math.random()*0.25,t:0,kind:'spark',col:i%2?'#ffffff':col});}}
+ const e=1-Math.pow(1-Math.min(1,k*1.8),3),col=fxHex(p.col);const R=58+e*40,a0=-1.5+e*0.5,a1=a0+0.4+e*2.6;
+ c.save();c.translate(p.x,p.y);c.rotate(p.rot);c.scale(1,0.55);
+ FX_ADD(c,()=>{c.globalAlpha=Math.max(0,(1-k*k)*0.85);
+  const g=c.createRadialGradient(0,0,R*0.55,0,0,R*1.12);g.addColorStop(0,col+'00');g.addColorStop(0.55,col+'99');g.addColorStop(0.8,'#ffffff');g.addColorStop(1,col+'00');
+  c.fillStyle=g;c.beginPath();c.arc(0,0,R*1.1,a0,a1);c.arc(0,0,R*0.62,a1,a0,true);c.closePath();c.fill();
+  c.strokeStyle='#ffffff';c.lineWidth=3*(1-k);c.beginPath();c.arc(0,0,R*0.95,a0+0.2,a1);c.stroke();});
+ c.restore();c.globalAlpha=1;};
+// ---------- vòng sóng xung kích ----------
+SIGDRAW.ring=function(c,p,k){const e=1-Math.pow(1-k,2.4),col=fxHex(p.col);FX_ADD(c,()=>{c.globalAlpha=Math.max(0,(1-k)*0.6);
+ c.lineWidth=7*(1-k)+1.5;const g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,40+e*130);g.addColorStop(0,col+'00');g.addColorStop(0.85,col+'cc');g.addColorStop(1,'#ffffff');c.strokeStyle=g;
+ c.beginPath();c.ellipse(p.x,p.y,24+e*90,7+e*24,0,0,7);c.stroke();c.globalAlpha=Math.max(0,0.3-k);c.drawImage(fxGlow(col,1),p.x-60,p.y-30,120,60);});c.globalAlpha=1;};
+// ---------- đạn năng lượng & cầu lửa có vệt đuôi ----------
+function fxProj(c,p,k,big){const kk=Math.min(1,k),x=lerp(p.x,p.tx,kk),y=lerp(p.y,p.ty,kk)-Math.sin(kk*Math.PI)*36;p.tr=p.tr||[];p.tr.push([x,y]);if(p.tr.length>14)p.tr.shift();const col=fxHex(p.col);
+ FX_ADD(c,()=>{for(let i=0;i<p.tr.length;i++){const q=p.tr[i],f=(i+1)/p.tr.length,s=(big?70:30)*f;c.globalAlpha=f*0.35;c.drawImage(fxGlow(big?'#ff7a20':col),q[0]-s/2,q[1]-s/2,s,s);}
+  c.globalAlpha=1;const s=big?80:34;c.drawImage(fxGlow(big?'#ffb040':col),x-s/2,y-s/2,s,s);c.drawImage(fxGlow('#ffffff'),x-s/5,y-s/5,s/2.5,s/2.5);});
+ if(big){for(let i=0;i<2;i++)fxAdd({x:x+(Math.random()-0.5)*20,y:y+(Math.random()-0.5)*20,vx:(Math.random()-0.5)*80,vy:-40,life:0.45,t:0,col:'#ffa040',size:7+Math.random()*5,kind:'fire',g:0});}
+ else if(Math.random()<0.5)fxAdd({x,y,vx:(Math.random()-0.5)*60,vy:(Math.random()-0.5)*60,life:0.3,t:0,col:p.col,size:2.5,kind:'dot',g:0});
+ if(k>=0.98&&!p.hitfx){p.hitfx=1;for(let i=0;i<(big?10:4);i++){const a=Math.random()*Math.PI*2,v=150+Math.random()*300;fxAdd({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.3,t:0,kind:'spark',col:big?'#ffd080':col});}fxAdd({x,y:y+10,life:0.45,t:0,kind:'ring',col:big?'#ff8a2a':col});}
+ c.globalAlpha=1;}
+SIGDRAW.proj=(c,p,k)=>fxProj(c,p,k,false);SIGDRAW.fireball=(c,p,k)=>fxProj(c,p,k,true);
+// ---------- sóng nước: nhiều lớp, bọt trắng, giọt bắn ----------
+SIGDRAW.wave=function(c,p,k){const x=lerp(p.x,p.tx,k),y=p.y,dir=p.tx>p.x?1:-1,h=170*Math.sin(Math.min(1,k*1.4)*Math.PI*0.5)*(1-Math.max(0,k-0.75)/0.25);
+ c.save();c.translate(x,y);c.scale(dir,1);c.globalAlpha=0.92;
+ for(let L=0;L<3;L++){const hh=h*(1-L*0.22),off=-L*40;const g=c.createLinearGradient(0,-hh,0,10);g.addColorStop(0,L?'#5ab8f0':'#e8f8ff');g.addColorStop(0.35,'#3a9ae0');g.addColorStop(1,'#1a5aa8');c.fillStyle=g;
+  c.beginPath();c.moveTo(-200+off,12);c.bezierCurveTo(-120+off,-hh*0.3,-60+off,-hh*1.05,30+off,-hh);c.bezierCurveTo(70+off,-hh*0.95,90+off,-hh*0.6,60+off,-hh*0.45);c.quadraticCurveTo(84+off,-hh*0.2,90+off,12);c.closePath();c.fill();}
+ c.strokeStyle='#ffffffcc';c.lineWidth=5;c.beginPath();c.moveTo(-40,-h*0.92);c.bezierCurveTo(0,-h*1.05,50,-h*0.98,62,-h*0.55);c.stroke();c.restore();c.globalAlpha=1;
+ if(Math.random()<0.8)for(let i=0;i<3;i++)fxAdd({x:x+dir*(40+Math.random()*30),y:y-h*(0.4+Math.random()*0.6),vx:dir*(80+Math.random()*200),vy:-120-Math.random()*200,life:0.5,t:0,kind:'drop',size:3+Math.random()*4});};
+// ---------- dây leo: thân có khối, gai, lá non ----------
+SIGDRAW.vine=function(c,p,k){const h=Math.min(1,k*2.5)*170,al=1-Math.max(0,k-0.75)/0.25;c.globalAlpha=al;c.lineCap='round';
+ const pts=[];for(let i=0;i<=14;i++){pts.push([p.x+Math.sin(i*0.8+p.ph)*16*(i/14)+Math.sin(p.t*3+i)*3,p.y-h*i/14]);}
+ [[13,'#2a5a1a'],[9,'#4a9a2a'],[3,'#a8e870']].forEach(([w,col],j)=>{c.strokeStyle=col;c.lineWidth=w*(1-0.3*j/2);c.beginPath();pts.forEach((q,i)=>i?c.lineTo(q[0]+(j===2?-2:0),q[1]):c.moveTo(q[0],q[1]));c.stroke();});
+ for(let i=3;i<pts.length;i+=3){const q=pts[i],s=i%2?1:-1;c.fillStyle='#5ab83a';c.beginPath();c.ellipse(q[0]+s*12,q[1],12,5,s*0.5,0,7);c.fill();c.fillStyle='#d8e8b0';c.beginPath();c.moveTo(q[0]-s*4,q[1]);c.lineTo(q[0]-s*14,q[1]-6);c.lineTo(q[0]-s*5,q[1]-4);c.fill();}
+ if(Math.random()<0.25)fxAdd({x:pts[14][0],y:pts[14][1],vx:(Math.random()-0.5)*80,vy:-40,life:0.6,t:0,col:'#b8ff8a',size:2.5,kind:'dot',g:-20});c.globalAlpha=1;};
+// ---------- lưỡi kim khí: vệt sáng + ánh kim + tia lửa ----------
+SIGDRAW.blade=function(c,p,k){if(!p.sp){p.sp=1;for(let i=0;i<8;i++){const a=p.rot+(Math.random()-0.5)*0.8+(i%2?Math.PI:0),v=250+Math.random()*350;fxAdd({x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.3,t:0,kind:'spark',col:i%3?'#fff2c0':'#ffffff'});}}
+ const e=1-Math.pow(1-k,3);c.save();c.translate(p.x,p.y);c.rotate(p.rot);FX_ADD(c,()=>{c.globalAlpha=Math.max(0,1-k);const L=150,x0=-L+e*L*0.4,x1=L*e+40;
+  const g=c.createLinearGradient(x0,0,x1,0);g.addColorStop(0,'#ffffff00');g.addColorStop(0.7,'#dfe8ff');g.addColorStop(1,'#ffffff');c.fillStyle=g;c.beginPath();c.moveTo(x0,0);c.lineTo(x1-10,-7*(1-k)-1);c.lineTo(x1,0);c.lineTo(x1-10,7*(1-k)+1);c.closePath();c.fill();
+  c.drawImage(fxGlow('#ffffff'),x1-30,-30,60,60);});c.restore();c.globalAlpha=1;};
+// ---------- gai đất: khối đá có mặt sáng/tối, đá vụn, bụi ----------
+SIGDRAW.spike=function(c,p,k){if(!p.sp){p.sp=1;for(let i=0;i<6;i++)fxAdd({x:p.x+(Math.random()-0.5)*30,y:p.y-10,vx:(Math.random()-0.5)*300,vy:-250-Math.random()*300,life:0.9,t:0,kind:'rock',size:4+Math.random()*6,spin:(Math.random()-0.5)*12,seed:i*7,gy:p.y+6});
+  for(let i=0;i<3;i++)fxAdd({x:p.x+(Math.random()-0.5)*40,y:p.y-8,vx:(Math.random()-0.5)*70,vy:-30,life:1.0,t:0,kind:'smoke',size:12,col:'#8a7050'});}
+ const h=Math.min(1,k*5)*p.h*1.3*(1-Math.max(0,k-0.75)/0.25),w=20;c.globalAlpha=1;
+ c.fillStyle='#5a4630';c.beginPath();c.moveTo(p.x-w,p.y+4);c.lineTo(p.x-3,p.y-h);c.lineTo(p.x+w,p.y+4);c.fill();
+ c.fillStyle='#a8865c';c.beginPath();c.moveTo(p.x-w*0.6,p.y+4);c.lineTo(p.x-3,p.y-h);c.lineTo(p.x+2,p.y+4);c.fill();
+ c.fillStyle='#d8b888';c.beginPath();c.moveTo(p.x-3,p.y-h);c.lineTo(p.x-w*0.25,p.y-h*0.55);c.lineTo(p.x-1,p.y-h*0.5);c.fill();
+ c.strokeStyle='#2a1e12';c.lineWidth=2;c.beginPath();c.moveTo(p.x-w,p.y+4);c.lineTo(p.x-3,p.y-h);c.lineTo(p.x+w,p.y+4);c.stroke();};
+// ---------- tăng chất liệu cho các hàm phát hiệu ứng ----------
+{const _b22=burst;burst=function(x,y,col,n,kind,sp){_b22(x,y,col,n,kind,sp);if(!B)return;
+  if(kind==='fire'){for(let i=0;i<Math.ceil(n/5);i++)fxAdd({x:x+(Math.random()-0.5)*30,y:y+(Math.random()-0.5)*20,vx:(Math.random()-0.5)*90,vy:-60-Math.random()*60,life:1.1,t:0,kind:'smoke',size:14+Math.random()*10,col:'#3a2a2a'});}
+  else if(col==='#bfe6ff'||kind==='water'){for(let i=0;i<n;i++){const a=-Math.PI*Math.random(),v=150+Math.random()*300;fxAdd({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0.6,t:0,kind:'drop',size:3+Math.random()*3});}}
+  else if(col==='#c09060'){for(let i=0;i<6;i++)fxAdd({x,y,vx:(Math.random()-0.5)*400,vy:-200-Math.random()*300,life:0.8,t:0,kind:'rock',size:4+Math.random()*6,spin:(Math.random()-0.5)*12,seed:i*5,gy:y+30});}};}
+{const _s22=slash;slash=function(t,el){_s22(t,el);if(!B)return;const y=t.y-70-(t.z||0);
+  if(el==='hoa')for(let i=0;i<6;i++)fxAdd({x:t.x+(Math.random()-0.5)*30,y:y+(Math.random()-0.5)*30,vx:(Math.random()-0.5)*120,vy:-80,life:0.5,t:0,col:'#ff8a2a',size:8,kind:'fire',g:0});
+  if(el==='thuy')for(let i=0;i<6;i++){const a=-Math.random()*Math.PI;fxAdd({x:t.x,y,vx:Math.cos(a)*260,vy:Math.sin(a)*260,life:0.5,t:0,kind:'drop',size:3+Math.random()*3});}
+  if(el==='moc')for(let i=0;i<4;i++)fxAdd({x:t.x,y,vx:(Math.random()-0.5)*240,vy:-120-Math.random()*120,life:0.9,t:0,col:'#6ac04a',size:5,kind:'leaf',g:200});
+  if(el==='tho')for(let i=0;i<4;i++)fxAdd({x:t.x,y,vx:(Math.random()-0.5)*300,vy:-180-Math.random()*200,life:0.7,t:0,kind:'rock',size:3+Math.random()*4,spin:8,seed:i,gy:t.y});};}
+{const _c22=fxCast;fxCast=function(u,el){_c22(u,el);if(!B)return;const col=EL[el].c;for(let i=0;i<8;i++){const a=Math.random()*Math.PI*2,r=60+Math.random()*30;fxAdd({x:u.x+Math.cos(a)*r,y:u.y-60+Math.sin(a)*r*0.5,vx:-Math.cos(a)*r*2.2,vy:-Math.sin(a)*r*1.1-40,life:0.45,t:0,col,size:3,kind:'dot',g:0});}};}
 
 go('hub');
 </script>
