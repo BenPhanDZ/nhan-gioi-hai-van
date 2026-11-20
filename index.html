@@ -4970,12 +4970,12 @@ VR.phap=function(rig,h){const el=BUILD[h.el]?h.el:'kim';const A=AW3[el];const B=
  const bc=document.createElement('canvas');bc.width=bc.height=256;{const x=bc.getContext('2d');const g=x.createRadialGradient(128,128,10,128,128,128);g.addColorStop(0,'rgba(8,6,18,0.82)');g.addColorStop(0.55,'rgba(8,6,18,0.55)');g.addColorStop(1,'rgba(8,6,18,0)');x.fillStyle=g;x.fillRect(0,0,256,256);}
  const bd=new T.Mesh(new T.PlaneGeometry(2.6*S,2.9*S),new T.MeshBasicMaterial({map:new T.CanvasTexture(bc),transparent:true,depthWrite:false}));bd.position.set(0,0.12*S,-0.9*S);bd.renderOrder=-3;bd.visible=false;piv.add(bd);
  const tv=new T.Vector3();const D=0.62*S;
- sg.onBeforeRender=function(r,sc,cam){bd.visible=!!cam.isPerspectiveCamera;const pr=piv.parent;if(!pr)return;pr.updateWorldMatrix(true,false);cam.getWorldPosition(tv);pr.worldToLocal(tv);let dx=tv.x,dz=tv.z;const L=Math.hypot(dx,dz)||1;dx/=L;dz/=L;
+ sg.onBeforeRender=function(r,sc,cam){const bat=typeof C3!=='undefined'&&cam===C3.cam;rig.phap.bat=bat;bd.visible=!!cam.isPerspectiveCamera&&!bat;const pr=piv.parent;if(!pr)return;pr.updateWorldMatrix(true,false);cam.getWorldPosition(tv);pr.worldToLocal(tv);let dx=tv.x,dz=tv.z;const L=Math.hypot(dx,dz)||1;dx/=L;dz/=L;
   piv.position.x=-dx*D;piv.position.z=-dz*D;piv.rotation.y=Math.atan2(dx,dz)*(cam.isPerspectiveCamera?1:0.6);piv.updateMatrixWorld(true);};
- rig.phap={y0,piv,root,M,E,ctl,sg,sm,S,m:{opacity:1},pl:{scale:{set(){}}}};};
+ rig.phap={y0,piv,root,M,E,ctl,sg,sm,S,m:{opacity:1},pl:{scale:{set(){}}},L0:M.uniforms.uL.value.clone(),D0:M.uniforms.uD.value.clone(),Lb:new T.Color(A.col).lerp(new T.Color('#ffffff'),0.3),Db:new T.Color(A.col).multiplyScalar(0.35)};};
 VR.phapTick=function(P,tt,k){P.M.uniforms.uT.value=tt;P.E.uniforms.uT.value=tt;const o=Math.min(1,0.78+0.08*Math.sin(tt*1.8)+k*0.25);P.M.uniforms.uO.value=o;P.E.uniforms.uO.value=Math.min(1,o+0.1);
- const sc=0.72*(1+0.02*Math.sin(tt*1.8)+k*0.14);P.root.scale.setScalar(sc);P.root.position.y=(P.y0||0)+k*0.08*P.S;P.ctl.upd(tt,k);
- P.sg.rotation.z=tt*0.35;P.sm.opacity=0.35+0.15*Math.sin(tt*2.2)+k*0.45;const s2=1+k*0.25+0.03*Math.sin(tt*3);P.sg.scale.set(s2,s2,1);};
+ const fit=P.bat?0.74:1;const sc=0.72*fit*(1+0.02*Math.sin(tt*1.8)+k*0.14);P.root.scale.setScalar(sc);P.root.position.y=(P.y0||0)+(P.bat?0.36*P.S:0)+k*0.08*P.S;if(P.L0){P.M.uniforms.uL.value.copy(P.bat?P.Lb:P.L0);P.M.uniforms.uD.value.copy(P.bat?P.Db:P.D0);}if(P.bat){P.M.uniforms.uO.value=1;}P.ctl.upd(tt,k);
+ P.sg.rotation.z=tt*0.35;P.sm.opacity=0.35+0.15*Math.sin(tt*2.2)+k*0.45;const s2=1+k*0.25+0.03*Math.sin(tt*3);P.sg.scale.set(s2*(P.bat?0.7:1),s2*(P.bat?0.7:1),1);};
 })();
 
 /* =========================================================
@@ -5861,6 +5861,58 @@ function refSpd(idx){const R=refBuild(idx);const s=stat(stdStat(R.rar,'cong'),R.
    ========================================================= */
 function SCOIN(idx,first){const L=typeof stageLv==='function'?stageLv(idx):1+idx*1.75;return Math.max(600+idx*120,Math.round(lvCost(L)*(first?4:0.8)));}
 {const _rb33=refBuild;refBuild=function(idx){const R=_rb33(idx);R.aw=R.br>=10?3:R.br>=8?2:R.br>=6?1:0;return R;};}
+
+/* =========================================================
+   34: LINH THÚ RENDER BẰNG BLENDER + HIỆU ỨNG ĐẸP MÀ DỄ NHÌN
+   – 5 linh thú dựng 3D trong Blender, render Cycles 8 khung hình lặp (thở, vẫy đuôi, vỗ cánh, uốn mình)
+   – Thức tỉnh trong trận: khi nhân vật 3D đã có pháp tướng/cánh/trang phục thì lớp 2D cũ chỉ còn vòng chân + vài đốm sáng
+   – Giảm độ chói các hiệu ứng toàn màn hình (cột sáng, sóng xung kích, tia sáng) để không che nhân vật
+   ========================================================= */
+const PETI={};PETS.forEach(p=>{const im=new Image();im.onload=()=>PETI[p.id]=im;im.src='pets/'+p.id+'.png';});
+// Làm mờ một lệnh vẽ: mọi lần đặt globalAlpha bên trong đều nhân thêm hệ số f (đọc lại thì trả giá trị gốc nên mã cũ khôi phục đúng)
+const GA_D=Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,'globalAlpha');
+function dimDraw(c,f,fn){if(f>=1||c.__dim)return fn();const ga=GA_D.get.call(c);c.__dim=1;
+ Object.defineProperty(c,'globalAlpha',{configurable:true,get(){return GA_D.get.call(c)/f;},set(v){GA_D.set.call(c,Math.min(1,v)*f);}});
+ GA_D.set.call(c,ga*f);try{return fn();}finally{delete c.globalAlpha;c.__dim=0;GA_D.set.call(c,ga);}}
+const PET_FX={vooc:{y:-30,h:150},caong:{y:-24,h:150},hoda:{y:-30,h:150},daibang:{y:-36,h:150},ronglua:{y:-34,h:150}};
+{const _dp=drawPet;drawPet=function(c,p,x,y,s,t,face){const im=PETI[p.id];if(!im)return _dp(c,p,x,y,s,t,face);
+ const cfg=PET_FX[p.id]||{y:-30,h:150},ec=EL[p.el].c,fly=p.id==='daibang'||p.id==='ronglua'||p.id==='caong';
+ const bob=fly?Math.sin(t*2.5)*6:Math.abs(Math.sin(t*2.5))*-2;
+ c.save();c.translate(x,y);c.scale(s*(face||1),s);
+ // bóng đổ mềm + vòng hệ mảnh dưới chân (không loá)
+ const ga=c.globalAlpha;c.globalAlpha=ga*(fly?0.22:0.32);c.fillStyle='#000';c.beginPath();c.ellipse(0,cfg.y+cfg.h*0.5+6,cfg.h*0.34,cfg.h*0.06,0,0,7);c.fill();
+ c.globalAlpha=ga*0.55;c.strokeStyle=ec;c.lineWidth=2;c.beginPath();c.ellipse(0,cfg.y+cfg.h*0.5+6,cfg.h*0.3+Math.sin(t*3)*3,cfg.h*0.05,0,0,7);c.stroke();c.globalAlpha=ga;
+ const n=8,f=Math.floor(t*9)%n,fw=im.width/n,sz=cfg.h;
+ c.shadowColor='rgba(0,0,0,0.55)';c.shadowBlur=6;c.shadowOffsetY=2;
+ c.drawImage(im,f*fw,0,fw,im.height,-sz/2,cfg.y-sz/2+bob,sz,sz);
+ c.restore();};}
+// Linh thú xuất chiêu trong trận: lao lên một nhịp, có vệt sáng hệ phía sau thay vì phóng to đột ngột
+{const _dbp=drawBattlePet;drawBattlePet=function(c,t){if(!B||!PB[S.pet]||!S.pets[S.pet]||!PETI[S.pet])return _dbp(c,t);
+ const p=PB[S.pet];B.__pk=B.petAct?Math.min(1,(B.__pk||0)+0.08):Math.max(0,(B.__pk||0)-0.05);const k=B.__pk,e=k*k*(3-2*k);
+ if(k>0.05){c.save();c.globalAlpha=0.35*k;const g=c.createRadialGradient(95+e*70,245-e*24,6,95+e*70,245-e*24,90);g.addColorStop(0,EL[p.el].c);g.addColorStop(1,hexA(EL[p.el].c,0));c.fillStyle=g;c.beginPath();c.arc(95+e*70,245-e*24,90,0,7);c.fill();c.restore();}
+ drawPet(c,p,95+e*70,265-e*24,0.9+e*0.2,t*(1+k),1);};}
+// ---------- thức tỉnh trong trận khi đã có nhân vật 3D ----------
+const AW3D=()=>typeof VRS!=='undefined'&&VRS.ok;
+{const _ab=awBack,_af=awFront;
+ awBack=function(c,h,aw,t){if(!AW3D())return _ab(c,h,aw,t);const ec=EL[h.el].c,ga=c.globalAlpha;
+  const g=c.createRadialGradient(0,0,4,0,0,70+aw*6);g.addColorStop(0,hexA(ec,0.22+aw*0.04));g.addColorStop(1,hexA(ec,0));c.fillStyle=g;c.beginPath();c.ellipse(0,0,70+aw*6,20+aw*2,0,0,7);c.fill();
+  c.strokeStyle=hexA(ec,0.8);c.lineWidth=2.5;c.beginPath();c.ellipse(0,2,54+Math.sin(t*4)*3,12,0,0,7);c.stroke();
+  if(aw>=3){c.strokeStyle='rgba(255,214,90,0.75)';c.lineWidth=1.5;c.setLineDash([10,7]);c.lineDashOffset=-t*30;c.beginPath();c.ellipse(0,2,68,16,0,0,7);c.stroke();c.setLineDash([]);}
+  c.globalAlpha=ga;};
+ awFront=function(c,h,aw,t){if(!AW3D())return _af(c,h,aw,t);const ec=EL[h.el].c,ga=c.globalAlpha,N=3+aw*2;
+  for(let i=0;i<N;i++){const ph=(t*0.5+i/N)%1;c.globalAlpha=ga*(1-ph)*0.8;c.fillStyle=i%3===0&&aw>=3?'#ffe9a0':ec;c.beginPath();c.arc(Math.sin(i*2.3+t*0.8)*52,-10-ph*150,1.6+(i%2),0,7);c.fill();}
+  c.globalAlpha=ga;};}
+// ---------- giảm loá cho các hiệu ứng phủ rộng ----------
+// Các hiệu ứng này trước đây đứng yên ở độ sáng tối đa suốt lúc thoại mở màn (vì vòng cập nhật tạm dừng) – nay tự tắt theo thời gian thật
+{const DIM={awPillar:0.4,awShock:0.55,awRays:0.45,awSigil:0.6};
+ Object.keys(DIM).forEach(k=>{const f0=SIGDRAW[k];if(!f0)return;SIGDRAW[k]=function(c,p,kk,...a){const now=performance.now();if(p.__t0==null)p.__t0=now;
+  const kr=(now-p.__t0)/1000/(p.life||1);if(kr>=1){p.t=Math.max(p.t||0,p.life||1);return;}kk=Math.max(kk||0,kr);
+  return dimDraw(c,DIM[k],()=>f0.call(this,c,p,kk,...a));};});}
+// ---------- đội hình so le: mỗi tướng một cột riêng để trang phục, pháp tướng không che nhau ----------
+// Trước: cùng cột thì 3 tướng gần như chồng thẳng hàng (lệch 22px) nên người sau bị người trước che mất nửa thân
+slotPos=function(side,slot){const col=slot<3?0:1,row=slot%3;const x0=(col?345:540)-row*95;const y=400+row*92;return{x:side===0?x0:1280-x0,y};};
+// Ô nhắc "Nộ 100…" dời lên dưới bảng hiệp, không che hàng tướng phía trước
+{const st=document.createElement('style');st.textContent='#prompt{top:84px!important;bottom:auto!important;font-size:17px!important;padding:6px 12px!important;background:#000b!important}';document.head.appendChild(st);}
 
 go('hub');
 </script>
